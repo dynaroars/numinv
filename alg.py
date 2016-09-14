@@ -6,7 +6,7 @@ import os.path
 import sage.all
 
 import vu_common as CM
-import sageutil
+from sageutil import is_sage_expr
 import settings
 logger = CM.VLog('alg')
 logger.level = settings.logger_level  
@@ -176,7 +176,12 @@ class Inv(object):
         self.resetTemplateID()
         
     def __str__(self, printStat=False):
-        s = str(self.inv)
+        
+        if is_sage_expr(self.inv):
+            s = miscs.strOfExp(self.inv)
+        else:
+            s = str(self.inv)
+
         if printStat: s = "{} {}".format(s, self.stat)
         return s
     
@@ -266,11 +271,11 @@ class DInvs(MyDict):
     
     def update(self, dinvs):
         assert isinstance(dinvs, DInvs), dinvs
-        new_dinvs = DInvs()
+        deltas = DInvs()
         for loc in self:
             if loc not in dinvs:
                 dinvs[loc] = self[loc]
-                new_dinvs[loc] = self[loc]
+                deltas[loc] = self[loc]
             elif dinvs[loc] != self[loc]:
                 new_invs = Invs()
                 for inv in self[loc]:
@@ -282,9 +287,9 @@ class DInvs(MyDict):
                         if inv.stat != old_inv.stat:
                             inv.stat = old_inv.stat
                 dinvs[loc] = self[loc]
-                new_dinvs[loc] = new_invs
+                deltas[loc] = new_invs
 
-        return new_dinvs
+        return deltas
 
     @classmethod
     def mkFalses(cls, locs):
@@ -690,7 +695,7 @@ class DIG2(object):
                 break
 
             dinvs_, locsMoreTraces = infer_f(deg, locs, dtraces, curIter==0)
-            new_dinvs = dinvs_.update(dinvs)
+            deltas = dinvs_.update(dinvs)
             
             curIter += 1
             logger.info(
@@ -708,13 +713,13 @@ class DIG2(object):
                 locs = new_dtraces.keys()
                 continue
 
-            #new_dinvs means some changed
+            #deltas means some changed
             #(this could be adding to or removing from dinvs, thus
-            #new_dinvs.siz could be 0, e.g., dinvs has a, b and dinvs_ has a)
-            if new_dinvs.siz:
+            #deltas.siz could be 0, e.g., dinvs has a, b and dinvs_ has a)
+            if deltas:
                 logger.debug("{} new invs:\n{}"
-                             .format(new_dinvs.siz,
-                                     new_dinvs.__str__(printStat=True)))
+                             .format(deltas.siz,
+                                     deltas.__str__(printStat=True)))
             else:
                 logger.debug("no new invs")
                 break
@@ -738,7 +743,8 @@ class DIG2(object):
         for loc in locs:
             assert dtraces[loc], loc
             terms = [sage.all.var(k) for k in self.invdecls[loc]]
-            
+            logger.debug("infer using {} terms and {} traces".format(
+                len(terms), len(dtraces[loc])))
             try:
                 if issubclass(solverCls, EqtSolver): #eqts
                     terms = miscs.getTerms(terms, deg)
