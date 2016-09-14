@@ -43,6 +43,7 @@ class KLEE(object):
         rs,rsErr = CM.vcmd(cmd)
         assert not rs, rs
         assert "clang" not in rsErr and "error" not in rsErr, rsErr
+        if rsErr: logger.detail(rsErr)
         return obj
 
     def run(self, obj):
@@ -50,9 +51,9 @@ class KLEE(object):
         kleeOutdir = "{}-klee-out".format(obj)
         if os.path.exists(kleeOutdir): shutil.rmtree(kleeOutdir)
 
+        #"-optimize "  causes problems with prod4br
         timeout = 5
-        kleeOpts = ("--allow-external-sym-calls "
-                    "-optimize "
+        kleeOpts = ("--allow-external-sym-calls "                    
                     "--max-time={}. "
                     "-output-dir={} "
                     .format(timeout,kleeOutdir))
