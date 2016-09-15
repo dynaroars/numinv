@@ -90,6 +90,15 @@ class Trace(CM.HDict):
 
     def __str__(self):
         return " ".join("{}={}".format(x,y) for x,y in self.iteritems())
+
+    def check(self):
+        """
+        check if any value is too big (likely to cause overflow)
+        """
+        bigV = 1000000
+        rs = all(-1*bigV <= v <= bigV for v in self.itervalues())
+        return rs
+        
         
     @property
     def _dict(self):
@@ -143,6 +152,10 @@ class DTraces(MyDict):
     def addToSet(self, loc, trace):
         assert isinstance(loc, str), loc
         assert isinstance(trace, Trace), trace
+
+        if not trace.check():
+            return
+        
         return super(DTraces, self).addToSet(loc, trace, Traces)
 
     def update(self, dtraces):
@@ -163,6 +176,7 @@ class DTraces(MyDict):
         return "\n".join("{}: {}".format(loc, len(traces))
                          for loc, traces in self.iteritems())
 
+
 class Inv(object):
     PROVED = "p"
     DISPROVED = "d"
@@ -178,7 +192,8 @@ class Inv(object):
     def __str__(self, printStat=False):
         
         if is_sage_expr(self.inv):
-            s = miscs.strOfExp(self.inv)
+            inv = miscs.elim_denom(self.inv)
+            s = miscs.strOfExp(inv)
         else:
             s = str(self.inv)
 
@@ -743,17 +758,20 @@ class DIG2(object):
         for loc in locs:
             assert dtraces[loc], loc
             terms = [sage.all.var(k) for k in self.invdecls[loc]]
-            logger.debug("infer using {} terms and {} traces".format(
-                len(terms), len(dtraces[loc])))
+            logger.debug("infer using vars: {}, deg: {}, and traces: {}".format(
+                len(terms), deg, len(dtraces[loc])))
+            
             try:
+                # print len(dtraces[loc])
+                # print '\n'.join(map(str,dtraces[loc]))
+                
+                traces = (t._dict for t in dtraces[loc])
                 if issubclass(solverCls, EqtSolver): #eqts
                     terms = miscs.getTerms(terms, deg)
-                    traces = (t._dict for t in dtraces[loc])
                     solver = solverCls(traces)
                     invs = solver.solve(terms)
                     
                 else:  #ieqs
-                    traces = (t._dict for t in dtraces[loc])
                     solver = solverCls(traces)
                     if doWeak:
                         invs = solver.solveWeak(terms)
