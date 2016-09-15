@@ -49,14 +49,13 @@ if __name__ == "__main__":
     #Run it
     st = time()
     import alg
-    dig2 = alg.DIG2(args.inp)
+
     import tempfile
     tmpdir = tempfile.mkdtemp(dir=settings.tmpdir, prefix="DIG2_")
-
+    dig2 = alg.DIG2(args.inp, tmpdir)
     invs = dig2.start(seed=seed, deg=args.degree,
                       doEqts=not args.noEqts, doIeqs=not args.noIeqs,
-                      ieqTyp=args.ieqTyp,
-                      tmpdir=tmpdir)
+                      ieqTyp=args.ieqTyp)
 
 
     logger.info("time {}s".format(time() - st))

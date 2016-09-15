@@ -14,7 +14,7 @@ int mainQ(int a, int b){
      int ctr = 0;
      while(x!=y) {
 	  //assert(x*u + y*v == a*b);
-	  //%%%traces: int a, int b, int x,int y, int u, int v
+	  //%%%traces: int a, int b, int x, int y, int u, int v
 
 	  while (x>y){
 	       x=x-y;

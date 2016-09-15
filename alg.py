@@ -91,15 +91,6 @@ class Trace(CM.HDict):
     def __str__(self):
         return " ".join("{}={}".format(x,y) for x,y in self.iteritems())
 
-    def check(self):
-        """
-        check if any value is too big (likely to cause overflow)
-        """
-        bigV = 1000000
-        rs = all(-1*bigV <= v <= bigV for v in self.itervalues())
-        return rs
-        
-        
     @property
     def _dict(self):
         """
@@ -153,7 +144,7 @@ class DTraces(MyDict):
         assert isinstance(loc, str), loc
         assert isinstance(trace, Trace), trace
 
-        if not trace.check():
+        if not miscs.checkVals(trace.itervalues()):
             return
         
         return super(DTraces, self).addToSet(loc, trace, Traces)
@@ -485,11 +476,13 @@ class Src(object):
         return fname
 
 class DIG2(object):
-    def __init__(self, filename):
+    def __init__(self, filename, tmpdir):
         assert os.path.isfile(filename), filename
+        assert os.path.isdir(tmpdir), tmpdir
         self.filename = filename
-
-    def initialize(self, seed, tmpdir):
+        self.tmpdir = tmpdir
+        
+    def initialize(self, seed):
         #set seed
         import random        
         random.seed(seed)
@@ -498,7 +491,7 @@ class DIG2(object):
                     .format(seed, sage.all.randint(0,100)))
 
         fname = os.path.basename(self.filename)
-        src = os.path.join(tmpdir, fname)
+        src = os.path.join(self.tmpdir, fname)
         _, rs_err = CM.vcmd("astyle -Y < {} > {}".format(self.filename, src))
         assert not rs_err, rs_err
         
@@ -513,29 +506,28 @@ class DIG2(object):
         #tracefile
         self.tcsFile =  "{}.tcs".format(self.printfSrc)
 
-    def checkReach(self, tmpdir):
+    def checkReach(self):
         #check for reachability using inv False (0)
         dinvs = DInvs.mkFalses(self.invdecls)
         inps = Inps()
-        dtraces = self.checkInvs(dinvs, inps, tmpdir, doSafe=True)
+        dtraces = self.checkInvs(dinvs, inps, doSafe=True)
         return dinvs, dtraces, inps
         
-    def start(self, seed, deg, doEqts, doIeqs, ieqTyp, tmpdir):
+    def start(self, seed, deg, doEqts, doIeqs, ieqTyp):
         assert isinstance(seed, (int,float)), seed
         assert deg >= 1, deg
         assert isinstance(doEqts, bool), doEqts
         assert isinstance(doIeqs, bool), doIeqs
-        assert os.path.isdir(tmpdir), tmpdir
-        
-        self.initialize(seed, tmpdir)
+
+        self.initialize(seed)
 
         logger.info("checking reachability")
-        dinvs, dtraces, inps = self.checkReach(tmpdir)
+        dinvs, dtraces, inps = self.checkReach()
         if dtraces:                                          
             def _infer(solverCls):
                 infer_f = lambda deg, locs, dtraces, doWeak: self.infer(
                     deg, locs, dtraces, solverCls, doWeak)
-                dinvs = self.approx(deg, dtraces, inps, infer_f, tmpdir)
+                dinvs = self.approx(deg, dtraces, inps, infer_f)
                 return dinvs
 
             locs_s = "{} locs: {}".format(
@@ -556,15 +548,14 @@ class DIG2(object):
                 dinvs = dinvs.merge(dinvs_)
 
         
-        logger.info("final checking {} candidate invs\n{}"
-                    .format(dinvs.siz, dinvs.__str__(printStat=True)))
+        logger.info("final checking {} invs".format(dinvs.siz))
 
         #try to remove unknown ones using specific inputs
         #_ = self.getKleeInpsPreset(dinvs, inps, tmpdir)
         
         #final tests
         dinvs.resetStats()
-        _ = self.getKleeInpsNoRange(dinvs, inps, tmpdir)
+        _ = self.getKleeInpsNoRange(dinvs, inps)
         dinvs = dinvs.removeDisproved()
 
         logger.info("got {} invs\n{} (test {})"
@@ -573,10 +564,9 @@ class DIG2(object):
                     
         return dinvs
 
-    def getKleeInps(self, dinvs, inps, minV, maxV, tmpdir, doSafe):
+    def getKleeInps(self, dinvs, inps, minV, maxV, doSafe):
         assert isinstance(dinvs, DInvs), dinvs
         assert isinstance(inps, Inps), inps
-        assert os.path.isdir(tmpdir), tmpdir
         assert isinstance(doSafe, bool), doSafe
 
         def addInps(klInps, new_inps, inps):
@@ -606,7 +596,7 @@ class DIG2(object):
                     dinvs_ = DInvs()
                     dinvs_.addToSet(loc, inv)
                     klSrc = self.src.instrKleeAsserts(dinvs_, inps, inps_d)
-                    klDInps, isSucc = KLEE(klSrc, tmpdir).getDInps()
+                    klDInps, isSucc = KLEE(klSrc, self.tmpdir).getDInps()
                     try:
                         klInps = klDInps[loc][str(inv)]
                         addInps(klInps, new_inps, inps)
@@ -629,7 +619,7 @@ class DIG2(object):
                         dinvs_.addToSet(loc, inv)
 
             klSrc = self.src.instrKleeAsserts(dinvs_, inps, inps_d)
-            klDInps, _ = KLEE(klSrc, tmpdir).getDInps()
+            klDInps, _ = KLEE(klSrc, self.tmpdir).getDInps()
 
             #IMPORTANT: getDInps() returns an isSucc flag (false if timeout),
             #but it's not useful here (when haveing multiple klee_asserts)
@@ -648,20 +638,19 @@ class DIG2(object):
 
         return new_inps
                     
-    def getKleeInpsRange(self, dinvs, inps, tmpdir, doSafe):
+    def getKleeInpsRange(self, dinvs, inps, doSafe):
         return self.getKleeInps(dinvs, inps, 
-                                IeqSolver.minV, IeqSolver.maxV,
-                                tmpdir, doSafe)
+                                IeqSolver.minV, IeqSolver.maxV, doSafe)
 
-    def getKleeInpsNoRange(self, dinvs, inps, tmpdir):
+    def getKleeInpsNoRange(self, dinvs, inps):
         return self.getKleeInps(dinvs, inps, 
                                 IeqSolver.minV*10, IeqSolver.maxV*10,
-                                tmpdir, doSafe=True)
+                                doSafe=True)
 
-    def getKleeInpsPreset(dinvs, inps, tmpdir):
+    def getKleeInpsPreset(dinvs, inps):
         return self.getKleeInps(dinvs, inps, 
                                 IeqSolver.minV, IeqSolver.maxV,
-                                tmpdir, doSafe=True)        
+                                doSafe=True)        
     
     def getTraces(self, inps):
         assert isinstance(inps, Inps) and inps, inps
@@ -677,14 +666,13 @@ class DIG2(object):
         new_dtraces = Trace.parse(self.tcsFile, self.invdecls)
         return new_dtraces        
         
-    def checkInvs(self, dinvs, inps, tmpdir, doSafe):
+    def checkInvs(self, dinvs, inps, doSafe):
         assert isinstance(dinvs, DInvs), dinvs
         assert isinstance(inps, Inps), inps
-        assert os.path.isdir(tmpdir), tmpdir
 
         logger.detail("checking {} invs:\n{}".format(
             dinvs.siz, dinvs.__str__(printStat=True)))
-        new_inps = self.getKleeInpsRange(dinvs, inps, tmpdir, doSafe)
+        new_inps = self.getKleeInpsRange(dinvs, inps, doSafe)
         if not new_inps:
             return DTraces()
         else:
@@ -693,13 +681,12 @@ class DIG2(object):
                          .format(new_dtraces.siz, len(new_inps)))
             return new_dtraces
 
-    def approx(self, deg, dtraces, inps, infer_f, tmpdir):
+    def approx(self, deg, dtraces, inps, infer_f):
         """iterative refinment algorithm"""
         
         assert deg >= 1, deg
         assert isinstance(dtraces, DTraces) and dtraces, dtraces        
         assert isinstance(inps, Inps), inps        
-        assert os.path.isdir(tmpdir), tmpdir
 
         dinvs = DInvs()
         locs = dtraces.keys()
@@ -723,7 +710,7 @@ class DIG2(object):
                              .format(len(locsMoreTraces),
                                      ",".join(map(str, locsMoreTraces))))
                 dinvsFalse = DInvs.mkFalses(locsMoreTraces)
-                dtraces_ = self.checkInvs(dinvsFalse, inps, tmpdir, doSafe=False)
+                dtraces_ = self.checkInvs(dinvsFalse, inps, doSafe=False)
                 new_dtraces = dtraces_.update(dtraces)
                 locs = new_dtraces.keys()
                 continue
@@ -739,9 +726,9 @@ class DIG2(object):
                 logger.debug("no new invs")
                 break
 
-            dtraces_ = self.checkInvs(dinvs, inps, tmpdir, doSafe=False)
+            dtraces_ = self.checkInvs(dinvs, inps, doSafe=False)
             new_dtraces = dtraces_.update(dtraces)
-            loc = new_dtraces.keys()
+            locs = new_dtraces.keys()
             
         return dinvs
         
@@ -762,9 +749,6 @@ class DIG2(object):
                 len(terms), deg, len(dtraces[loc])))
             
             try:
-                # print len(dtraces[loc])
-                # print '\n'.join(map(str,dtraces[loc]))
-                
                 traces = (t._dict for t in dtraces[loc])
                 if issubclass(solverCls, EqtSolver): #eqts
                     terms = miscs.getTerms(terms, deg)

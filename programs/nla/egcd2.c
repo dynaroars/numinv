@@ -20,12 +20,12 @@ int mainQ(int x, int y){
 	  c=a;
 	  k=0;
 
-	  while( c>=b ){
+	  while(1){
 	       //assert(a == k*b+c);
 	       //assert(a == y*r+x*p);
 	       //assert(b == x*q+y*s);
 	       //%%%traces: int a, int b, int c, int p, int q, int r, int s, int x, int y, int k
-
+	       if(!( c>=b )) break;
 	       c=c-b;
 	       k=k+1;
 	  }

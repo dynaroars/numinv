@@ -12,8 +12,6 @@ int mainQ(int x, int y){
      /* assert(a==y*r+x*p); */
      /* assert(b==x*q+y*s); */
 
-     int ctr0 = 0;
-     int ctr1 = 0;
      while( b!=0 ) { 
 	  int c,k;
 	  c=a;
@@ -24,8 +22,7 @@ int mainQ(int x, int y){
 	       d=1;
 	       v=b;
 
-	       ctr1 = 0;
-	       while ( c>= 2*v ) {
+	       while (1) {
 
 		    /* assert(a == y*r+x*p); */
 		    /* assert(b == x*q+y*s); */
@@ -33,6 +30,7 @@ int mainQ(int x, int y){
 		    /* assert(v == b*d); */
 		    //%%%traces: int a, int b, int y, int r, int x, int p, int q, int s, int d, int v, int k, int c
 
+		    if(!( c>= 2*v )) break;
 		    d = 2*d;
 		    v = 2*v;
 
@@ -40,12 +38,6 @@ int mainQ(int x, int y){
 	       c=c-v;
 	       k=k+d;
 
-	       /* printf("l2: a b y r x p q s d v k c dummy_ctr0\n"); */
-	       /* printf("l2: %d %d %d %d %d %d %d %d %d %d %d %d %d\n",  */
-	       /* 	      a, b, y, r, x, p, q, s, d, v, k, c, ctr0++); */
-
-	       /* assert(a==y*r+x*p && b==x*q+y*s && a==k*b+c ); */
-             
 	  }
       
 	  a=b;
