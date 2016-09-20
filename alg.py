@@ -507,15 +507,34 @@ class DIG2(object):
         self.tcsFile =  "{}.tcs".format(self.printfSrc)
 
     def checkReach(self):
+
         #check for reachability using inv False (0)
-        dinvs = DInvs.mkFalses(self.invdecls)
+        dinvs = DInvs.mkFalses(self.invdecls)        
         inps = Inps()
-        dtraces = self.checkInvs(dinvs, inps, doSafe=True)
+
+        #use some initial inps first
+        rinps = miscs.genInitInps(len(self.inpdecls), IeqSolver.maxV)
+        for inp in rinps: inps.add(Inp(zip(self.inpdecls, inp)))
+        dtraces = self.getTraces(inps)
+        #update invs and reachable locs
+        unreach_locs = set()
+        for loc in dinvs:
+            if loc in dtraces:
+                for inv in dinvs[loc]:
+                    inv.stat = Inv.DISPROVED #reachable
+            else:
+                unreach_locs.add(loc)
+
+        if unreach_locs: #use reach tool to generate traces
+            unreach_dinvs = DInvs.mkFalses(unreach_locs)
+            unreach_dtraces = self.checkInvs(unreach_dinvs, inps, doSafe=True)
+            unreach_dtraces.update(dtraces)
+
         return dinvs, dtraces, inps
         
     def start(self, seed, deg, doEqts, doIeqs, ieqTyp):
         assert isinstance(seed, (int,float)), seed
-        assert deg >= 1, deg
+        assert deg >= 1 or callable(deg), deg
         assert isinstance(doEqts, bool), doEqts
         assert isinstance(doIeqs, bool), doIeqs
 
@@ -549,9 +568,19 @@ class DIG2(object):
 
         
         logger.info("final checking {} invs".format(dinvs.siz))
-
+        logger.detail(dinvs.__str__(printStat=True))
+        
         #try to remove unknown ones using specific inputs
         #_ = self.getKleeInpsPreset(dinvs, inps, tmpdir)
+
+        #re-test against all traces
+        # for loc in dinvs:
+        #     for inv in dinvs[loc]:
+        #         print loc, inv
+        #         print [inv.inv.subs(t._dict) for t in dtraces[loc]]
+                    
+        #         if not all(bool(inv.inv.subs(t._dict)) for t in dtraces[loc]):
+        #             print "DISPROVED"
         
         #final tests
         dinvs.resetStats()
@@ -602,10 +631,7 @@ class DIG2(object):
                         addInps(klInps, new_inps, inps)
                         inv.stat = Inv.DISPROVED
                     except KeyError:
-                        if isSucc:
-                            inv.stat = Inv.PROVED
-                        else:
-                            inv.stat = Inv.UNKNOWN
+                        inv.stat = Inv.PROVED if isSucc else Inv.UNKNOWN
 
             for loc,invs in dinvs.iteritems():
                 assert(inv.stat is not None for inv in invs)
@@ -663,6 +689,8 @@ class DIG2(object):
             logger.detail(cmd)
             CM.vcmd(cmd)
 
+        # print self.tcsFile
+        # CM.pause()
         new_dtraces = Trace.parse(self.tcsFile, self.invdecls)
         return new_dtraces        
         
@@ -673,6 +701,7 @@ class DIG2(object):
         logger.detail("checking {} invs:\n{}".format(
             dinvs.siz, dinvs.__str__(printStat=True)))
         new_inps = self.getKleeInpsRange(dinvs, inps, doSafe)
+        
         if not new_inps:
             return DTraces()
         else:
@@ -736,7 +765,7 @@ class DIG2(object):
         """
         call DIG's algorithm to infer invariants from traces
         """
-        assert deg >= 1, deg
+        assert deg >= 1 or callable(deg), deg
         assert isinstance(locs, list) and locs, locs
         assert isinstance(dtraces, DTraces) and dtraces, dtraces
 
@@ -750,6 +779,10 @@ class DIG2(object):
             
             try:
                 traces = (t._dict for t in dtraces[loc])
+                if callable(deg):
+                    deg = deg(len(terms))
+                    logger.info("autodeg {}".format(deg))
+                    
                 if issubclass(solverCls, EqtSolver): #eqts
                     terms = miscs.getTerms(terms, deg)
                     solver = solverCls(traces)

@@ -4,7 +4,7 @@ if __name__ == "__main__":
     import argparse
     aparser = argparse.ArgumentParser("DIG2 (Dynamic Invariant Generator)")
     aparser.add_argument("inp", help="inp")
-
+    
     #0 Error #1 Warn #2 Info #3 Debug #4 Detail
     aparser.add_argument("--logger_level", "-logger_level",
                          help="set logger info",
@@ -16,10 +16,15 @@ if __name__ == "__main__":
                          type=float,
                          help="use this seed")
     
-    aparser.add_argument("--degree", "-degree",
+    aparser.add_argument("--maxdeg", "-maxdeg",
                          type=int,
-                         default=2,
+                         default=None,
                          help="find nonlinear invs up to degree")
+
+    aparser.add_argument("--maxterms", "-maxterms",
+                         type=int,
+                         default=None,
+                         help="autodegree")
 
     aparser.add_argument("--noEqts", "-noEqts",
                          action="store_true")
@@ -45,15 +50,29 @@ if __name__ == "__main__":
 
     if __debug__: logger.warn("DEBUG MODE ON. Can be slow !")
     seed = round(time(), 2) if args.seed is None else float(args.seed)
+
+    import alg
+    import tempfile
     
     #Run it
     st = time()
-    import alg
-
-    import tempfile
     tmpdir = tempfile.mkdtemp(dir=settings.tmpdir, prefix="DIG2_")
     dig2 = alg.DIG2(args.inp, tmpdir)
-    invs = dig2.start(seed=seed, deg=args.degree,
+
+    maxdeg = args.maxdeg
+    maxterms = args.maxterms
+
+    import miscs    
+    if maxdeg and maxterms:
+        deg = maxdeg
+    elif maxdeg:
+        deg = maxdeg
+    elif maxterms:
+        deg = lambda nvs: miscs.genDeg(nvs, maxterms)
+    else:
+        deg = lambda nvs: miscs.genDeg(nvs, 200)
+
+    invs = dig2.start(seed=seed, deg=deg,
                       doEqts=not args.noEqts, doIeqs=not args.noIeqs,
                       ieqTyp=args.ieqTyp)
 
