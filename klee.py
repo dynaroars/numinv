@@ -11,7 +11,7 @@ import settings
 logger = CM.VLog('klee')
 logger.level = settings.logger_level
 
-class KLEE(object):
+class RT(object):
 
     cexStr = "counterexample"
     haltStr = "halting execution, dumping remaining states"
@@ -145,7 +145,11 @@ class KLEE(object):
         return loc, inv, inp
         
 
-    #Make klee statements
+    #Make statements
+    @classmethod
+    def mkHeaders(cls):
+        return ["#include <klee/klee.h>"]
+    
     @classmethod
     def mkSymbolic(cls, varname, vartyp):
         """

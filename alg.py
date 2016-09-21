@@ -12,7 +12,7 @@ logger = CM.VLog('alg')
 logger.level = settings.logger_level  
 
 import miscs
-from klee import KLEE 
+from cpa import RT   #Reachability Tool
 from solver import EqtSolver, RangeSolver, OctSolver, IeqSolver
 
 ### Classes ###
@@ -45,6 +45,7 @@ class MyDict(MutableMapping):
 
     def addToSet(self, key, val, cls):
         assert issubclass(cls, MySet), cls
+        
         if key not in self.__dict__:
             self.__dict__[key] = cls()
         return self.__dict__[key].add(val)
@@ -140,6 +141,9 @@ class Traces(MySet):
         return ", ".join(map(str, sorted(self)))
     
 class DTraces(MyDict):
+    """
+    loc -> Traces
+    """
     def addToSet(self, loc, trace):
         assert isinstance(loc, str), loc
         assert isinstance(trace, Trace), trace
@@ -233,6 +237,9 @@ class Invs(MySet):
         return ", ".join(map(lambda inv: inv.__str__(printStat), sorted(self)))
 
 class DInvs(MyDict):
+    """
+    loc -> Invs
+    """
     def __str__(self, printStat=False):
         return "\n".join("{}: {}".format(loc, invs.__str__(printStat))
                          for loc, invs in self.iteritems())
@@ -240,6 +247,7 @@ class DInvs(MyDict):
     def addToSet(self, loc, inv):
         assert isinstance(loc, str), loc
         assert isinstance(inv, Inv), inv
+        
         return super(DInvs, self).addToSet(loc, inv, Invs)
 
     def __setitem__(self, loc, invs):
@@ -253,7 +261,6 @@ class DInvs(MyDict):
             for inv in self[loc]:
                 inv.resetStat()
         
-
     def merge(self, dinvs):
         assert isinstance(dinvs, DInvs), dinvs
         merged_dinvs = DInvs()
@@ -316,7 +323,7 @@ class Src(object):
         assert isinstance(invdecls, dict) and invdecls, invdecls
         return self.instr(self.filename, ".printf.c", invdecls, self.mkPrintfs)
     
-    def instrKleeAsserts(self, dinvs, inps, inps_d, startFun="mainQ"):
+    def instrAsserts(self, dinvs, inps, inps_d, startFun="mainQ"):
         assert isinstance(dinvs, DInvs), dinvs
         assert (inps_d is None or
                 (isinstance(inps_d, OrderedDict) and inps_d)), inps_d
@@ -327,39 +334,45 @@ class Src(object):
             parts = self.mkPrintfArgs(inps_d)
         else:
             parts = (None, None)
-        _mk = lambda invs, loc: KLEE.mkAssertInvs(invs, loc, parts)
+            
+        _mk = lambda invs, loc: RT.mkAssertInvs(invs, loc, parts)
         stmts = self.mkProgStmts(self.filename, dinvs, _mk)
+
         #comment startFun(..argv[]) and add symbolic input
         stmts_ = []
         for stmt in stmts:
             if startFun in stmt and "argv" in stmt:
-                # stmt = "//" + stmt
-                # stmts_.append(stmt)
                 for varname, (vartyp, (minV, maxV)) in inps_d.iteritems():
-                    stmt = KLEE.mkSymbolic(varname, vartyp)
+                    stmt = RT.mkSymbolic(varname, vartyp)
                     stmts_.append(stmt)
                     if minV is not None and maxV is not None:
-                        stmts__ = KLEE.mkAssumeRanges(varname, minV, maxV)
+                        stmts__ = RT.mkAssumeRanges(varname, minV, maxV)
                         stmts_.extend(stmts__)
 
                 #klee_assume(x!=0 || y!=1); klee_assume(x!=2 || y!=3);
                 if inps:
-                    stmts__ = KLEE.mkAssumeInps(inps)
+                    stmts__ = RT.mkAssumeInps(inps)
                     stmts_.extend(stmts__)
                 
                 #call mainQ(inp0, ..);
                 stmt = "{}({});".format(
                     startFun, ",".join(map(str, inps_d.iterkeys())))
                 stmts_.append(stmt)
+                
+            if (all(x in stmt for x in ['assert', '(', ')', ';']) and
+                '//' not in stmt):
+                
+                stmt = RT.mkAssert(stmt);
+                stmts_.append(stmt)
             else:
                 stmts_.append(stmt)
 
         stmts = stmts_
             
-        #add header
-        stmts = ["#include <klee/klee.h>"] + stmts
+        #add header, e.g., #include ...
+        stmts = RT.mkHeaders() + stmts
         
-        fname = self.filename + ".klee_assert.c"
+        fname = self.filename + ".assert.c"
         CM.vwrite(fname, '\n'.join(stmts))
         CM.vcmd("astyle -Y {}".format(fname))
         return fname
@@ -381,8 +394,7 @@ class Src(object):
             except ValueError:
                 return None
 
-        inpdecls = OrderedDict()
-        invdecls = OrderedDict()
+        inpdecls, invdecls = OrderedDict(), OrderedDict()
         for i,l in enumerate(CM.iread(filename)):            
             i = i + 1
             l = l.strip()
@@ -527,7 +539,7 @@ class DIG2(object):
 
         if unreach_locs: #use reach tool to generate traces
             unreach_dinvs = DInvs.mkFalses(unreach_locs)
-            unreach_dtraces = self.checkInvs(unreach_dinvs, inps, doSafe=True)
+            unreach_dtraces = self.checkInvs(unreach_dinvs, inps)
             unreach_dtraces.update(dtraces)
 
         return dinvs, dtraces, inps
@@ -570,9 +582,6 @@ class DIG2(object):
         logger.info("final checking {} invs".format(dinvs.siz))
         logger.detail(dinvs.__str__(printStat=True))
         
-        #try to remove unknown ones using specific inputs
-        #_ = self.getKleeInpsPreset(dinvs, inps, tmpdir)
-
         #re-test against all traces
         # for loc in dinvs:
         #     for inv in dinvs[loc]:
@@ -584,7 +593,7 @@ class DIG2(object):
         
         #final tests
         dinvs.resetStats()
-        _ = self.getKleeInpsNoRange(dinvs, inps)
+        _ = self.getInpsNoRange(dinvs, inps)
         dinvs = dinvs.removeDisproved()
 
         logger.info("got {} invs\n{} (test {})"
@@ -593,91 +602,68 @@ class DIG2(object):
                     
         return dinvs
 
-    def getKleeInps(self, dinvs, inps, minV, maxV, doSafe):
+    def getInps(self, dinvs, inps, minV, maxV):
         assert isinstance(dinvs, DInvs), dinvs
         assert isinstance(inps, Inps), inps
-        assert isinstance(doSafe, bool), doSafe
+        assert minV <= maxV, (minV, maxV)
 
-        def addInps(klInps, new_inps, inps):
-            for inp in klInps:
-                if self.inpdecls:
-                    assert inp and len(self.inpdecls) == len(inp)
-                    inp = Inp(zip(self.inpdecls, inp))
+        def addInps(cexInps, deltaInps, inps, ss):
+            for inp in cexInps:
+                if ss:
+                    assert inp and set(map(str, ss)) == set(inp), inp
+                    inp = Inp((k, inp[str(k)]) for k in ss)
                 else:
                     inp = Inp() #empty inp
                 assert inp not in inps, inp
                 inps.add(inp)
-                new_inps.add(inp)
-
+                deltaInps.add(inp)
+                
+        def addTraces(cexTraces, deltaTraces):
+            #these traces could be partial
+            for trace in cexTraces:
+                trace = Trace((k, miscs.ratOfStr(trace[k])) for k in trace)
+                deltaTraces.add(trace)
+                
         if self.inpdecls:
             inps_d = OrderedDict((vname, (vtyp, (minV, maxV)))
                                  for vname, vtyp in self.inpdecls.iteritems())
         else:
             inps_d = None
         
-        new_inps = Inps()
-        if doSafe:
-            #prove individually
-            for loc,invs in dinvs.iteritems():
-                for inv in invs:
-                    if inv.stat is not None: continue
+        deltaInps, deltaTraces = Inps(), Traces()
+        for loc in dinvs:
+            for inv in dinvs[loc]:
+                if inv.stat is not None: continue
 
-                    dinvs_ = DInvs()
-                    dinvs_.addToSet(loc, inv)
-                    klSrc = self.src.instrKleeAsserts(dinvs_, inps, inps_d)
-                    klDInps, isSucc = KLEE(klSrc, self.tmpdir).getDInps()
-                    try:
-                        klInps = klDInps[loc][str(inv)]
-                        addInps(klInps, new_inps, inps)
-                        inv.stat = Inv.DISPROVED
-                    except KeyError:
-                        inv.stat = Inv.PROVED if isSucc else Inv.UNKNOWN
+                dinvs_ = DInvs()
+                dinvs_.addToSet(loc, inv)
+                rtSrc = self.src.instrAsserts(dinvs_, inps, inps_d)
+                
+                proved, cexInps, cexTraces = RT(rtSrc, self.tmpdir).getDInps()
+                if proved:
+                    inv.stat = Inv.PROVED
+                elif proved is None:
+                    inv.stat = Inv.UNKNOWN
+                else:
+                    assert cexInps
+                    assert cexTraces
 
-            for loc,invs in dinvs.iteritems():
-                assert(inv.stat is not None for inv in invs)
+                    addInps(cexInps, deltaInps, inps, self.inpdecls)
+                    addTraces(cexTraces, deltaTraces)
+                    inv.stat = Inv.DISPROVED
 
-        else:
-            #do all at once
-            dinvs_ = DInvs()
-            for loc, invs in dinvs.iteritems():
-                for inv in invs:
-                    if inv.stat is None:
-                        dinvs_.addToSet(loc, inv)
+        for invs in dinvs.itervalues():
+            assert(inv.stat is not None for inv in invs)
 
-            klSrc = self.src.instrKleeAsserts(dinvs_, inps, inps_d)
-            klDInps, _ = KLEE(klSrc, self.tmpdir).getDInps()
-
-            #IMPORTANT: getDInps() returns an isSucc flag (false if timeout),
-            #but it's not useful here (when haveing multiple klee_asserts)
-            #because even if isSucc, it doesn't guarantee to generate cex
-            #for a failed assertions (that means we can't claim if an assertion
-            #without cex is proved).
-            for loc, invs in dinvs.iteritems():
-                for inv in invs:
-                    if inv.stat is not None: continue
-                    try:
-                        klInps = klDInps[loc][str(inv)]
-                        addInps(klInps, new_inps, inps)
-                        inv.stat = Inv.DISPROVED
-                    except KeyError:
-                        pass
-
-        return new_inps
+        assert len(deltaInps) == len(deltaTraces)
+        return deltaInps, deltaTraces
                     
-    def getKleeInpsRange(self, dinvs, inps, doSafe):
-        return self.getKleeInps(dinvs, inps, 
-                                IeqSolver.minV, IeqSolver.maxV, doSafe)
+    def getInpsRange(self, dinvs, inps):
+        return self.getInps(dinvs, inps, IeqSolver.minV, IeqSolver.maxV)
 
-    def getKleeInpsNoRange(self, dinvs, inps):
-        return self.getKleeInps(dinvs, inps, 
-                                IeqSolver.minV*10, IeqSolver.maxV*10,
-                                doSafe=True)
+    def getInpsNoRange(self, dinvs, inps):
+        return self.getInps(dinvs, inps, IeqSolver.minV*10, IeqSolver.maxV*10)
 
-    def getKleeInpsPreset(dinvs, inps):
-        return self.getKleeInps(dinvs, inps, 
-                                IeqSolver.minV, IeqSolver.maxV,
-                                doSafe=True)        
-    
     def getTraces(self, inps):
         assert isinstance(inps, Inps) and inps, inps
         
@@ -689,18 +675,16 @@ class DIG2(object):
             logger.detail(cmd)
             CM.vcmd(cmd)
 
-        # print self.tcsFile
-        # CM.pause()
         new_dtraces = Trace.parse(self.tcsFile, self.invdecls)
         return new_dtraces        
         
-    def checkInvs(self, dinvs, inps, doSafe):
+    def checkInvs(self, dinvs, inps):
         assert isinstance(dinvs, DInvs), dinvs
         assert isinstance(inps, Inps), inps
 
         logger.detail("checking {} invs:\n{}".format(
             dinvs.siz, dinvs.__str__(printStat=True)))
-        new_inps = self.getKleeInpsRange(dinvs, inps, doSafe)
+        new_inps, new_traces = self.getInpsRange(dinvs, inps)
         
         if not new_inps:
             return DTraces()
@@ -739,7 +723,7 @@ class DIG2(object):
                              .format(len(locsMoreTraces),
                                      ",".join(map(str, locsMoreTraces))))
                 dinvsFalse = DInvs.mkFalses(locsMoreTraces)
-                dtraces_ = self.checkInvs(dinvsFalse, inps, doSafe=False)
+                dtraces_ = self.checkInvs(dinvsFalse, inps)
                 new_dtraces = dtraces_.update(dtraces)
                 locs = new_dtraces.keys()
                 continue
@@ -755,7 +739,7 @@ class DIG2(object):
                 logger.debug("no new invs")
                 break
 
-            dtraces_ = self.checkInvs(dinvs, inps, doSafe=False)
+            dtraces_ = self.checkInvs(dinvs, inps)
             new_dtraces = dtraces_.update(dtraces)
             locs = new_dtraces.keys()
             
