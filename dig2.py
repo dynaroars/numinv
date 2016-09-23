@@ -72,10 +72,7 @@ if __name__ == "__main__":
     else:
         deg = lambda nvs: miscs.genDeg(nvs, 200)
 
-    invs = dig2.start(seed=seed, deg=deg,
-                      doEqts=not args.noEqts, doIeqs=not args.noIeqs,
-                      ieqTyp=args.ieqTyp)
-
+    invs = dig2.start(seed=seed, deg=deg)
 
     logger.info("time {}s".format(time() - st))
     
