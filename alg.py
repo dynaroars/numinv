@@ -26,20 +26,16 @@ class Src(object):
         return self.instr(self.filename, ".dp.c",
                           invs, invdecls, lineno, self.mkDisproves)
     
-    def instrAssertsRT(self, dinvs, inps, inps_d, startFun="mainQ"):
-        assert isinstance(dinvs, DInvs), dinvs
+    def instrAssertsRT(self, invs, inps, inps_d, invdecls, lineno, startFun="mainQ"):
+        assert isinstance(invs, set) and invs, dinvs
+        assert isinstance(inps, set), inps
         assert (inps_d is None or
                 (isinstance(inps_d, OrderedDict) and inps_d)), inps_d
-        
-        assert isinstance(inps, Inps), inps
 
-        if inps_d:
-            parts = self.mkPrintfArgs(inps_d)
-        else:
-            parts = (None, None)
-            
-        _mk = lambda invs, loc: RT.mkAssertInvs(invs, loc, parts)
-        stmts = self.mkProgStmts(self.filename, dinvs, _mk)
+        
+        #mk_f(invs, invdecls, lineno)            
+        _mk = lambda myinvs, _, loc: RT.mkAssertInvs(myinvs, loc)
+        stmts = self.mkProgStmts(self.filename, invs, invdecls, lineno, _mk)
 
         #comment startFun(..argv[]) and add symbolic input
         stmts_ = []
@@ -62,7 +58,7 @@ class Src(object):
                     startFun, ",".join(map(str, inps_d.iterkeys())))
                 stmts_.append(stmt)
                 
-            if (all(x in stmt for x in ['assert', '(', ')', ';']) and
+            elif (all(x in stmt for x in ['assert', '(', ')', ';']) and
                 '//' not in stmt):
                 
                 stmt = RT.mkAssert(stmt);
@@ -133,10 +129,7 @@ class Src(object):
             if isinstance(vars_d[k], tuple): #(typ, (minV, maxV))
                 typ = vars_d[k][0]
                 
-            if typ == "int":
-                a = "%d"
-            else:
-                a = "%g"
+            a = "%d" if typ == "int" else "%g"
             p1.append(a)
         p1 = ' '.join(p1)
         p2 = ', '.join(map(str, vars_d.iterkeys()))
@@ -154,13 +147,14 @@ class Src(object):
         vstr = '@ line {}: {}\\n", {}'.format(lineno, p1, p2)
         stmts = []
         for inv in invs:
-            dStmt = "if(!({})) printf(\"disproved {} {});".format(
+            dStmt = "if(!((int){})) printf(\"disproved {} {});".format(
                 inv, inv, vstr)
             stmts.append(dStmt)
         return stmts
 
     @classmethod
     def mkProgStmts(cls, filename, invs, invdecls, lineno, mk_f):
+        assert invs, invs
         assert lineno > 0;
         
         stmts = []
@@ -195,6 +189,12 @@ def strOfInv(inv):
     else:
         s = str(inv)
     return s
+
+def printInvs(stats):
+    invs = [inv for inv in stats if isinstance(stats[inv], bool)]
+    if invs:
+        logger.warn("found {} invs\n{}".format(
+            len(invs), '\n'.join(map(strOfInv, invs))))
 
 class Trace(CM.HDict):
     """
@@ -238,7 +238,7 @@ class Trace(CM.HDict):
             tracevals = trace_s.strip().split()
             tracevals = map(miscs.ratOfStr, tracevals)
             if not miscs.checkVals(tracevals):
-                logger.detail('skipping trace: {}'.format(tracevals))
+                #logger.detail('skipping trace: {}'.format(tracevals))
                 continue
             
             ss = invdecls.keys()
@@ -250,6 +250,108 @@ class Trace(CM.HDict):
             dtraces[inv].add(trace)
             
         return dtraces
+
+
+class MySet(MutableSet):
+    __metaclass__ = abc.ABCMeta
+    def __init__(self): self.__set__ = set()
+    def __len__(self): return len(self.__set__)
+    def __iter__(self): return iter(self.__set__)    
+    def __str__(self): return ", ".join(map(str, sorted(self)))
+    def discard(self): raise NotImplementedError("discard")
+    
+    @abc.abstractmethod
+    def __contains__(self, inp): return inp in self.__set__
+    @abc.abstractmethod
+    def add(self, inp):
+        notIn = False
+        if inp not in self.__set__:
+            notIn = True
+            self.__set__.add(inp)
+        return notIn
+    
+class Inv(object):
+    PROVED = "p"
+    DISPROVED = "d"
+    UNKNOWN = "u"
+    
+    def __init__(self, inv):
+        assert inv == 0 or inv == 1 or inv.is_relational(), inv
+        self.inv = inv
+        
+        self.resetStat()
+        self.resetTemplateID()
+        
+    def __str__(self, printStat=False):
+        
+        if is_sage_expr(self.inv):
+            inv = miscs.elim_denom(self.inv)
+            s = miscs.strOfExp(inv)
+        else:
+            s = str(self.inv)
+
+        if printStat: s = "{} {}".format(s, self.stat)
+        return s
+    
+    def __hash__(self): return hash(self.inv)
+    def __repr__(self): return repr(self.inv)
+    def __eq__(self, o): return self.inv.__eq__(o.inv)
+    def __ne__(self, o): return not self.inv.__eq__(o.inv)
+
+    def getStat(self): return self._stat    
+    def setStat(self, stat):
+        assert stat in {self.PROVED, self.DISPROVED, self.UNKNOWN}, stat
+        self._stat = stat
+    stat = property(getStat, setStat)
+
+    def resetStat(self): self._stat = None
+        
+    @property
+    def isProved(self): return self.stat == self.PROVED
+    @property
+    def isDisproved(self): return self.stat == self.DISPROVED
+    @property
+    def isUnknown(self): return self.stat == self.UNKNOWN
+
+    @classmethod
+    def mkFalse(cls): return cls(0)
+
+    def getTemplateID(self): return self._tid
+    def setTemplateID(self, tid):
+        self._tid = tid
+    templateID = property(getTemplateID, setTemplateID)
+    def resetTemplateID(self): self._tid = None
+
+class Invs(MySet):
+    def __contains__(self, inv):
+        assert isinstance(inv, Inv), inv
+        return super(Invs, self).__contains__(inv)
+
+    def add(self, inv):
+        assert isinstance(inv, Inv), inv
+        return super(Invs, self).add(inv)
+
+    def remove(self, inv):
+        assert isinstance(inv, Inv), inv
+        self.__set__.remove(inv)
+
+    def clear(self):
+        self.__set__.clear()
+
+    def __str__(self, printStat=False):
+        return ", ".join(map(lambda inv: inv.__str__(printStat), sorted(self)))
+
+    def resetStats(self):
+        for inv in self:
+            inv.resetStat()
+
+    def removeDisproved(self):
+        newInvs = Invs()
+        for inv in self:
+            if not inv.isDisproved:
+                newInvs.add(inv)
+
+        return newInvs
     
 class DIG2(object):
     def __init__(self, filename, tmpdir):
@@ -265,95 +367,130 @@ class DIG2(object):
         self.initialize(seed, deg)
 
         exprs = set()
-        traces = [] #total traces
         inps = set()
-        #stats = {inv -> traces or proved or unknown}
-        stats = self.check([0], inps, nNeededTraces=None)
-        for inv in stats:
-            if isinstance(stats[inv], set):
-                traces.extend(stats[inv])
 
+        invs = Invs()        
+        invs.add(Inv(0))
+        
+        traces = self.check(invs, inps)
+        invs = invs.removeDisproved()
+        
         curIter = 0
+
         while True:
+            curIter += 1
+            logger.info(
+                "iter {}, invs {}, inps {}, traces {}, exprs {}, rand {}".
+                format(curIter, len(invs), len(inps), len(traces), len(exprs),
+                       sage.all.randint(0,100)))
+            logger.debug(str(invs))
+
             if not traces:
                 logger.debug("no more traces")
                 break
 
-            invs, nNeededTraces = self.infer(traces, exprs)
-            
-            curIter += 1
-            logger.info(
-                "iter {}, invs {}, inps {}, traces {}, rand {}".
-                format(curIter, len(invs), len(inps), len(traces),
-                       sage.all.randint(0,100)))
-            
-            if nNeededTraces:
-                stats_ = self.check([0], inps, nNeededTraces)
-                traces = []
-                for inv in stats_:
-                    if isinstance(stats_[inv], set):
-                        traces.extend(stats_[inv])
+            try:
+                invs_ = self.infer(traces, exprs)
+                logger.debug(str(invs_))
+            except solver.NotEnoughTraces as e:
+                logger.detail(str(e))
+                invs__ = Invs()
+                invs__.add(Inv(0))
+                traces = self.check(invs__, inps)
                 continue
+            except solver.SameInsts as e:
+                logger.detail(str(e))
+                break  
 
-            if not invs:
-                logger.warn("found no invs")
+            if not invs_ or invs_ == invs:
                 break
-            
-            stats = self.check(invs, inps, nNeededTraces=None)
-            traces = []
-            for inv in stats:
-                if isinstance(stats[inv], list):
-                    traces.extend(stats[inv])
 
-        invs = [inv for inv in stats if isinstance(stats[inv], bool)]
-        logger.info('\n'.join(map(str,invs)))
+            invs = invs_
+            traces = self.check(invs, inps)
+                
+        logger.debug(str(invs))
         return invs
 
-
-    def check(self, invs, einps, nNeededTraces):
-        assert invs, invs
-        assert isinstance(einps, set)
-        assert nNeededTraces is None or nNeededTraces > 0, nNeededTraces
-
-        invs = [strOfInv(inv) for inv in invs]
-        src = self.src.instrDisproves(invs, self.invdecls, self.lineno)
-        exe = "{}.exe".format(src)
-        #-lm for math.h to work
-        cmd = "gcc -lm {} -o {}".format(src, exe) 
-        rs, rs_err = CM.vcmd(cmd)
-        assert not rs, rs
-        assert not rs_err, rs_err
+    def mexec(self, exe, inps):
+        assert isinstance(exe, str) and exe.endswith(".exe"), exe
+        assert isinstance(inps, set) and inps, inps
         
-        inps = miscs.genInitInps(len(self.inpdecls), solver.maxV)
-
         if os.path.isfile(self.tcsFile): os.remove(self.tcsFile)
         for inp in inps:
-            einps.add(inp)
-            
             inp = ' '.join(map(str, inp))
             cmd = "{} {} >> {}".format(exe, inp, self.tcsFile)
             logger.detail(cmd)
             CM.vcmd(cmd)
         dtraces = Trace.parse(self.tcsFile, self.invdecls)
-        stats = {}
+        return dtraces
+
+    def check(self, invs, einps):
+        assert isinstance(invs, Invs) and invs, invs 
+        assert isinstance(einps, set) #existing inps
+
+        src = self.src.instrDisproves(invs, self.invdecls, self.lineno)
+        exe = "{}.exe".format(src)
+        cmd = "gcc -lm {} -o {}".format(src, exe) 
+        rs, rs_err = CM.vcmd(cmd)
+        assert not rs, rs
+        assert not rs_err, rs_err
+
+        inps = miscs.genInps(len(self.inpdecls), solver.maxV)
+        for inp in inps: einps.add(inp)
+        dtraces = self.mexec(exe, inps)
+        
+        if not dtraces: #invoke rt
+            if self.inpdecls:
+                inps_d = OrderedDict(
+                    (vname, (vtyp, (solver.minV, solver.maxV)))
+                    for vname, vtyp in self.inpdecls.iteritems())
+            else:
+                inps_d = None
+
+            stats = {}
+            for inv in invs:
+                einps_ =  set(CM.HDict(zip(self.inpdecls, inp)) for inp in einps)
+                rtSrc = self.src.instrAssertsRT(set([inv]), einps_, inps_d,
+                                                self.invdecls, self.lineno)
+                _, inps = RT(rtSrc, self.tmpdir).getDInps()  #run
+                if inps:
+                    logger.info("RT disproved {}".format(inv))
+                    inps_ = set()
+                    for inp in inps:
+                        inp = tuple([inp[str(k)] for k in self.inpdecls])
+                        einps.add(inp)
+                        inps_.add(inp)
+                    dtraces = self.mexec(exe, inps_)
+                    break
+
+        traces = []
         for inv in invs:
-            stats[inv] = dtraces[inv] if inv in dtraces else False
-        return stats
+            k = str(inv)
+            if k in dtraces:
+                inv.stat = Inv.DISPROVED
+                traces.extend(dtraces[k])
+            else:
+                inv.stat = Inv.UNKNOWN
+
+        return traces
         
     def infer(self, traces, exprs):
-        assert traces        
-        ss = self.ss
-        deg = self.deg
-        logger.debug("infer with vs: {}, deg: {}, traces: {}, exprs: {}".format(
-            len(ss), deg, len(traces), len(exprs)))
-
-        terms = miscs.getTerms(ss, deg)  #cache
-        solvercls = solver.EqtSolver
-        invs, nMoreTraces = solvercls().solve(terms, traces, exprs)
-        invs = solvercls.refine(invs)
-        return invs, nMoreTraces
-
+        assert traces
         
+        logger.debug("infer: vs {}, deg {}, traces {}, exprs {}".format(
+            len(self.ss), self.deg, len(traces), len(exprs)))
+
+        terms = miscs.getTerms(self.ss, self.deg)  #cache
+        solvercls = solver.EqtSolver
+        invs = solvercls().solve(terms, traces, exprs)
+        invs = solvercls.refine(invs)
+
+        newInvs = Invs()
+        for inv in invs:
+            newInvs.add(Inv(inv))
+            
+        return newInvs
+
     def initialize(self, seed, deg):
         import random        
         random.seed(seed)

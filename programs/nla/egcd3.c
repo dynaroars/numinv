@@ -9,8 +9,8 @@ int mainQ(int x, int y){
 
      a=x; b=y;  p=1;  q=0;  r=0;   s=1;
 
-     /* assert(a==y*r+x*p); */
-     /* assert(b==x*q+y*s); */
+     //assert(a==y*r+x*p); 
+     //assert(b==x*q+y*s);
 
      while( b!=0 ) { 
 	  int c,k;
@@ -24,10 +24,10 @@ int mainQ(int x, int y){
 
 	       while (1) {
 
-		    /* assert(a == y*r+x*p); */
-		    /* assert(b == x*q+y*s); */
-		    /* assert(a == k*b+c); */
-		    /* assert(v == b*d); */
+		    // assert(a == y*r+x*p); 
+		    // assert(b == x*q+y*s); 
+		    // assert(a == k*b+c); 
+		    // assert(v == b*d); 
 		    //%%%traces: int a, int b, int y, int r, int x, int p, int q, int s, int d, int v, int k, int c
 
 		    if(!( c>= 2*v )) break;

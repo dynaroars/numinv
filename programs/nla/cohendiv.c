@@ -16,7 +16,7 @@ int mainQ(int x, int y){
 	  int b=y;
 
 	  while (r >= 2*b){
-	       /* assert(r>=2*y*a && b==y*a && x==q*y+r && r>=0); */
+	       //assert(r>=2*y*a && b==y*a && x==q*y+r && r>=0);
 	       //%%%traces: int x, int y, int q, int a, int b, int r
 	       a = 2*a;
 	       b = 2*b;
@@ -24,9 +24,9 @@ int mainQ(int x, int y){
 	  r=r-b;
 	  q=q+a;
      }
-     /* assert(r == x % y); */
-     /* assert(q == x / y); */
-     /* assert(x == q*y+r); */
+     //assert(r == x % y);
+     //assert(q == x / y);
+     //assert(x == q*y+r);
      ////%%%traces: int x, int y, int q, int r
      return q;
 }

@@ -29,7 +29,7 @@ int mainQ(int A, int R){
 
      }
   
-     assert(u!=v); 
+     //assert(u!=v); 
      int o = (u-v)/2;
      return o;
 }

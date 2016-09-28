@@ -7,7 +7,7 @@ int mainQ(int k){
      int c = 0;
 
      while(1){
-	  //assert(6*(int)pow(y,5) + 15*(int)pow(y,4) + 10*(int)pow(y,3) - 30*x - y == 0); //DIG Generated	  
+	  //assert(6*(int)pow(y,5) + 15*(int)pow(y,4) + 10*(int)pow(y,3) - 30*x - y == 0);
 	  //%%%traces: int x, int y, int k
 	  if (!(c < k)) break;
     
