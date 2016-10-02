@@ -222,18 +222,21 @@ class Trace(CM.HDict):
         """
         assert isinstance(tracefile, str), tracefile        
         assert isinstance(invdecls, dict) and invdecls, invdecls
-
+        
         dtraces = {}
         for l in CM.iread_strip(tracefile):
             #disproved x + y == 0 @ line 20: 924 9 0 1 9 924
             inv_s, trace_s = l.split(':')
+            print inv_s, trace_s
             #lineno = parts[0].strip()  #l22
             #assert lineno in invdecls, (lineno, invdecls)
 
             #inv
             inv_s, line_s = inv_s.strip().split('@')
+            print inv_s, line_s
             inv = inv_s.replace('disproved', '').strip()
-
+            print inv
+            
             #traces
             tracevals = trace_s.strip().split()
             tracevals = map(miscs.ratOfStr, tracevals)
@@ -245,6 +248,9 @@ class Trace(CM.HDict):
             assert len(ss) == len(tracevals)
             trace = cls(zip(ss, tracevals))
 
+            print inv
+            print dtraces
+            CM.pause()
             if inv not in dtraces:
                 dtraces[inv] = set()
             dtraces[inv].add(trace)
@@ -360,23 +366,10 @@ class DIG2(object):
         self.filename = filename
         self.tmpdir = tmpdir
 
-    def start(self, seed, deg):
-        assert isinstance(seed, (int,float)), seed
-        assert deg >= 1 or callable(deg), deg
-
-        self.initialize(seed, deg)
-
+    def approx(self, invs, inps, traces, solvercls):
         exprs = set()
-        inps = set()
-
-        invs = Invs()        
-        invs.add(Inv(0))
-        
-        traces = self.check(invs, inps)
-        invs = invs.removeDisproved()
-        
         curIter = 0
-
+        
         while True:
             curIter += 1
             logger.info(
@@ -390,13 +383,13 @@ class DIG2(object):
                 break
 
             try:
-                invs_ = self.infer(traces, exprs)
+                invs_ = self.infer(traces, exprs, solvercls)
                 logger.debug(str(invs_))
             except solver.NotEnoughTraces as e:
                 logger.detail(str(e))
                 invs__ = Invs()
                 invs__.add(Inv(0))
-                traces = self.check(invs__, inps)
+                traces = self.check(invs__, inps, solvercls.minV, solvercls.maxV)
                 continue
             except solver.SameInsts as e:
                 logger.detail(str(e))
@@ -406,8 +399,35 @@ class DIG2(object):
                 break
 
             invs = invs_
-            traces = self.check(invs, inps)
-                
+            traces = self.check(invs, inps, solvercls.minV, solvercls.maxV)
+            invs = invs.removeDisproved()
+            
+        return invs
+
+    def start(self, seed, deg):
+        assert isinstance(seed, (int,float)), seed
+        assert deg >= 1 or callable(deg), deg
+
+        self.initialize(seed, deg)
+
+        inps = set()
+        invs = Invs()        
+        invs.add(Inv(0))
+        
+        #solvercls = solver.EqtSolver
+        solvercls = solver.RangeSolverWeak
+
+        traces = self.check(invs, inps, solvercls.minV, solvercls.maxV)
+        invs = invs.removeDisproved()
+        invs = self.approx(invs, inps, traces, solvercls)
+
+
+        logger.info("final checking {} candidate invs\n{}"
+                    .format(len(invs), invs))
+        _ = self.check(invs, inps, solvercls.minV*10, solvercls.maxV*10,
+                       quickcheck=False)
+        invs.removeDisproved()
+                                                                            
         logger.debug(str(invs))
         return invs
 
@@ -422,51 +442,66 @@ class DIG2(object):
             logger.detail(cmd)
             CM.vcmd(cmd)
         dtraces = Trace.parse(self.tcsFile, self.invdecls)
+        print "babab", dtraces
         return dtraces
 
-    def check(self, invs, einps):
+    def checkRT(self, invs, einps, exe, minV, maxV):
+        if self.inpdecls:
+            inps_d = OrderedDict(
+                (vname, (vtyp, (minV, maxV)))
+                for vname, vtyp in self.inpdecls.iteritems())
+        else:
+            inps_d = None
+
+        for inv in invs:
+            einps_ =  set(CM.HDict(zip(self.inpdecls, inp)) for inp in einps)
+            rtSrc = self.src.instrAssertsRT(
+                set([inv]), einps_, inps_d,
+                self.invdecls, self.lineno)
+            _, inps = RT(rtSrc, self.tmpdir).getDInps()  #run
+            if inps:
+                logger.info("RT disproved {}".format(inv))
+                inps_ = set()
+                for inp in inps:
+                    inp = tuple([inp[str(k)] for k in self.inpdecls])
+                    einps.add(inp)
+                    inps_.add(inp)
+                print 'ba', inps_
+                dtraces = self.mexec(exe, inps_)
+                return dtraces
+
+        return {}
+                
+    def check(self, invs, einps, minV, maxV, quickcheck=True):
         assert isinstance(invs, Invs) and invs, invs 
         assert isinstance(einps, set) #existing inps
-
+        assert isinstance(quickcheck, bool), quickcheck
+        
         src = self.src.instrDisproves(invs, self.invdecls, self.lineno)
         exe = "{}.exe".format(src)
         cmd = "gcc -lm {} -o {}".format(src, exe) 
         rs, rs_err = CM.vcmd(cmd)
         assert not rs, rs
         assert not rs_err, rs_err
+        print exe
 
-        inps = miscs.genInps(len(self.inpdecls), solver.maxV)
-        for inp in inps: einps.add(inp)
-        dtraces = self.mexec(exe, inps)
+        dtraces = None
+        if quickcheck:
+            inps = miscs.genInps(len(self.inpdecls), maxV)
+            for inp in inps: einps.add(inp)
+            dtraces = self.mexec(exe, inps)
+            
         
-        if not dtraces: #invoke rt
-            if self.inpdecls:
-                inps_d = OrderedDict(
-                    (vname, (vtyp, (solver.minV, solver.maxV)))
-                    for vname, vtyp in self.inpdecls.iteritems())
-            else:
-                inps_d = None
+        if not dtraces:
+            logger.debug("invoke rt")
+            dtraces = self.checkRT(invs, einps, exe, minV, maxV)
 
-            stats = {}
-            for inv in invs:
-                einps_ =  set(CM.HDict(zip(self.inpdecls, inp)) for inp in einps)
-                rtSrc = self.src.instrAssertsRT(set([inv]), einps_, inps_d,
-                                                self.invdecls, self.lineno)
-                _, inps = RT(rtSrc, self.tmpdir).getDInps()  #run
-                if inps:
-                    logger.info("RT disproved {}".format(inv))
-                    inps_ = set()
-                    for inp in inps:
-                        inp = tuple([inp[str(k)] for k in self.inpdecls])
-                        einps.add(inp)
-                        inps_.add(inp)
-                    dtraces = self.mexec(exe, inps_)
-                    break
-
+        print 'hi', dtraces
         traces = []
         for inv in invs:
             k = str(inv)
             if k in dtraces:
+                logger.detail("{} disproved".format(inv))
                 inv.stat = Inv.DISPROVED
                 traces.extend(dtraces[k])
             else:
@@ -474,21 +509,17 @@ class DIG2(object):
 
         return traces
         
-    def infer(self, traces, exprs):
+    def infer(self, traces, exprs, solvercls):
         assert traces
         
         logger.debug("infer: vs {}, deg {}, traces {}, exprs {}".format(
             len(self.ss), self.deg, len(traces), len(exprs)))
 
         terms = miscs.getTerms(self.ss, self.deg)  #cache
-        solvercls = solver.EqtSolver
         invs = solvercls().solve(terms, traces, exprs)
-        invs = solvercls.refine(invs)
-
         newInvs = Invs()
         for inv in invs:
             newInvs.add(Inv(inv))
-            
         return newInvs
 
     def initialize(self, seed, deg):
