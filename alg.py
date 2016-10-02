@@ -216,47 +216,29 @@ class Trace(CM.HDict):
             return self._d
         
     @classmethod
-    def parse(cls, tracefile, invdecls):
+    def parse(cls, tracefile):
         """
         parse trace for new traces
         """
         assert isinstance(tracefile, str), tracefile        
-        assert isinstance(invdecls, dict) and invdecls, invdecls
-        
+
         dtraces = {}
         for l in CM.iread_strip(tracefile):
             #disproved x + y == 0 @ line 20: 924 9 0 1 9 924
             inv_s, trace_s = l.split(':')
-            print inv_s, trace_s
             #lineno = parts[0].strip()  #l22
-            #assert lineno in invdecls, (lineno, invdecls)
-
+            
             #inv
             inv_s, line_s = inv_s.strip().split('@')
-            print inv_s, line_s
             inv = inv_s.replace('disproved', '').strip()
-            print inv
             
             #traces
             tracevals = trace_s.strip().split()
-            tracevals = map(miscs.ratOfStr, tracevals)
-            if not miscs.checkVals(tracevals):
-                #logger.detail('skipping trace: {}'.format(tracevals))
-                continue
-            
-            ss = invdecls.keys()
-            assert len(ss) == len(tracevals)
-            trace = cls(zip(ss, tracevals))
-
-            print inv
-            print dtraces
-            CM.pause()
+            tracevals = tuple(miscs.ratOfStr(t) for t in tracevals)
             if inv not in dtraces:
                 dtraces[inv] = set()
-            dtraces[inv].add(trace)
-            
+            dtraces[inv].add(tracevals)
         return dtraces
-
 
 class MySet(MutableSet):
     __metaclass__ = abc.ABCMeta
@@ -351,10 +333,10 @@ class Invs(MySet):
         for inv in self:
             inv.resetStat()
 
-    def removeDisproved(self):
+    def removeDisproved(self, disproves={}):
         newInvs = Invs()
         for inv in self:
-            if not inv.isDisproved:
+            if not (inv.isDisproved or inv in disproves):
                 newInvs.add(inv)
 
         return newInvs
@@ -414,19 +396,19 @@ class DIG2(object):
         invs = Invs()        
         invs.add(Inv(0))
         
-        #solvercls = solver.EqtSolver
-        solvercls = solver.RangeSolverWeak
+        solvercls = solver.EqtSolver
+        #solvercls = solver.RangeSolverWeak
 
         traces = self.check(invs, inps, solvercls.minV, solvercls.maxV)
         invs = invs.removeDisproved()
         invs = self.approx(invs, inps, traces, solvercls)
 
-
         logger.info("final checking {} candidate invs\n{}"
                     .format(len(invs), invs))
-        _ = self.check(invs, inps, solvercls.minV*10, solvercls.maxV*10,
-                       quickcheck=False)
-        invs.removeDisproved()
+        disproved = self.checkRT(invs, inps,
+                                 solvercls.minV*10, solvercls.maxV*10,
+                                 quickbreak=False)
+        invs = invs.removeDisproved(disproved)
                                                                             
         logger.debug(str(invs))
         return invs
@@ -441,11 +423,28 @@ class DIG2(object):
             cmd = "{} {} >> {}".format(exe, inp, self.tcsFile)
             logger.detail(cmd)
             CM.vcmd(cmd)
-        dtraces = Trace.parse(self.tcsFile, self.invdecls)
-        print "babab", dtraces
-        return dtraces
+        return Trace.parse(self.tcsFile)
 
-    def checkRT(self, invs, einps, exe, minV, maxV):
+    def pp(self, invs, dtraces):
+        bigV = 10000
+        checkvals = lambda vs: all(-1*bigV <= v <= bigV for v in vs)
+
+        ss = self.invdecls.keys()
+        traces = []
+        for inv in invs:
+            k = str(inv)
+            if k in dtraces:
+                logger.detail("{} disproved".format(inv))
+                inv.stat = Inv.DISPROVED
+                ts = [Trace(zip(ss, t))
+                      for t in dtraces[k] if checkvals(t)]
+                traces.extend(ts)
+            else:
+                inv.stat = Inv.UNKNOWN
+
+        return traces
+                
+    def checkRT(self, invs, einps, minV, maxV, quickbreak):
         if self.inpdecls:
             inps_d = OrderedDict(
                 (vname, (vtyp, (minV, maxV)))
@@ -453,60 +452,48 @@ class DIG2(object):
         else:
             inps_d = None
 
+        disproved = {}
         for inv in invs:
-            einps_ =  set(CM.HDict(zip(self.inpdecls, inp)) for inp in einps)
-            rtSrc = self.src.instrAssertsRT(
-                set([inv]), einps_, inps_d,
-                self.invdecls, self.lineno)
+            einps_ = set(CM.HDict(zip(self.inpdecls, inp)) for inp in einps)
+            rtSrc = self.src.instrAssertsRT(set([inv]), einps_, inps_d,
+                                            self.invdecls, self.lineno)
             _, inps = RT(rtSrc, self.tmpdir).getDInps()  #run
             if inps:
                 logger.info("RT disproved {}".format(inv))
-                inps_ = set()
-                for inp in inps:
-                    inp = tuple([inp[str(k)] for k in self.inpdecls])
-                    einps.add(inp)
-                    inps_.add(inp)
-                print 'ba', inps_
-                dtraces = self.mexec(exe, inps_)
-                return dtraces
-
-        return {}
+                disproved[inv] = inps
+                if quickbreak:
+                    return disproved
+        return disproved
                 
-    def check(self, invs, einps, minV, maxV, quickcheck=True):
+    def check(self, invs, einps, minV, maxV):
         assert isinstance(invs, Invs) and invs, invs 
         assert isinstance(einps, set) #existing inps
-        assert isinstance(quickcheck, bool), quickcheck
-        
+
         src = self.src.instrDisproves(invs, self.invdecls, self.lineno)
         exe = "{}.exe".format(src)
         cmd = "gcc -lm {} -o {}".format(src, exe) 
         rs, rs_err = CM.vcmd(cmd)
         assert not rs, rs
         assert not rs_err, rs_err
-        print exe
 
-        dtraces = None
-        if quickcheck:
-            inps = miscs.genInps(len(self.inpdecls), maxV)
-            for inp in inps: einps.add(inp)
-            dtraces = self.mexec(exe, inps)
-            
-        
-        if not dtraces:
+        inps = miscs.genInps(len(self.inpdecls), maxV)
+        for inp in inps: einps.add(inp)
+        dtraces = self.mexec(exe, inps)
+        traces = self.pp(invs, dtraces)
+
+        if not traces:
             logger.debug("invoke rt")
-            dtraces = self.checkRT(invs, einps, exe, minV, maxV)
-
-        print 'hi', dtraces
-        traces = []
-        for inv in invs:
-            k = str(inv)
-            if k in dtraces:
-                logger.detail("{} disproved".format(inv))
-                inv.stat = Inv.DISPROVED
-                traces.extend(dtraces[k])
-            else:
-                inv.stat = Inv.UNKNOWN
-
+            disproved = self.checkRT(invs, einps, minV, maxV, quickbreak=True)
+            if disproved:
+                inps = set()
+                for dinv in disproved:
+                    for inp in disproved[dinv]:
+                        inp = tuple([inp[str(k)] for k in self.inpdecls])
+                        einps.add(inp)
+                        inps.add(inp)
+                dtraces = self.mexec(exe, inps)
+                traces = self.pp(invs, dtraces)
+        
         return traces
         
     def infer(self, traces, exprs, solvercls):
