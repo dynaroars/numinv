@@ -13,188 +13,8 @@ logger.level = settings.logger_level
 
 import miscs
 from cpa import RT   #Reachability Tool
+from src import Src
 import solver
-
-class Src(object):
-    def __init__(self, filename):
-        assert os.path.isfile(filename), filename
-        self.filename = filename
-
-    def parse(self): return self._parse(self.filename)
-    
-    def instrDisproves(self, invs, invdecls, lineno):
-        return self.instr(self.filename, ".dp.c",
-                          invs, invdecls, lineno, self.mkDisproves)
-    
-    def instrAssertsRT(self, invs, inps, inps_d, invdecls, lineno, startFun="mainQ"):
-        assert isinstance(invs, set) and invs, dinvs
-        assert isinstance(inps, set), inps
-        assert (inps_d is None or
-                (isinstance(inps_d, OrderedDict) and inps_d)), inps_d
-
-        
-        #mk_f(invs, invdecls, lineno)            
-        _mk = lambda myinvs, _, loc: RT.mkAssertInvs(myinvs, loc)
-        stmts = self.mkProgStmts(self.filename, invs, invdecls, lineno, _mk)
-
-        #comment startFun(..argv[]) and add symbolic input
-        stmts_ = []
-        for stmt in stmts:
-            if startFun in stmt and "argv" in stmt:
-                for varname, (vartyp, (minV, maxV)) in inps_d.iteritems():
-                    stmt = RT.mkSymbolic(varname, vartyp)
-                    stmts_.append(stmt)
-                    if minV is not None and maxV is not None:
-                        stmts__ = RT.mkAssumeRanges(varname, minV, maxV)
-                        stmts_.extend(stmts__)
-
-                #klee_assume(x!=0 || y!=1); klee_assume(x!=2 || y!=3);
-                if inps:
-                    stmts__ = RT.mkAssumeInps(inps)
-                    stmts_.extend(stmts__)
-                
-                #call mainQ(inp0, ..);
-                stmt = "{}({});".format(
-                    startFun, ",".join(map(str, inps_d.iterkeys())))
-                stmts_.append(stmt)
-                
-            elif (all(x in stmt for x in ['assert', '(', ')', ';']) and
-                '//' not in stmt):
-                
-                stmt = RT.mkAssert(stmt);
-                stmts_.append(stmt)
-            else:
-                stmts_.append(stmt)
-
-        stmts = stmts_
-            
-        #add header, e.g., #include ...
-        stmts = RT.mkHeaders() + stmts
-        
-        fname = self.filename + ".assert.c"
-        CM.vwrite(fname, '\n'.join(stmts))
-        CM.vcmd("astyle -Y {}".format(fname))
-        return fname
-
-    @classmethod
-    def _parse(cls, filename, startFun="mainQ", traceIndicator="//%%%traces:"):
-        """
-        Return 
-        inpdecls = {'x':'int', 'y':'double', ..}
-        invdecls = {'lineno' : {'x':'int'; 'y':'double'}}
-        """
-        def mkVarsDict(s):
-            #%%%indicator double x , double y .. ->  {x: int, y: double}
-            #where x and y are SAGE's symbolic variables
-            contents = (x.split() for x in s.split(','))
-            try:
-                return OrderedDict(
-                    (sage.all.var(k.strip()), t.strip()) for t,k in contents )
-            except ValueError:
-                return None
-
-        inpdecls, invdecls, lineno = OrderedDict(), OrderedDict(), None
-        for i,l in enumerate(CM.iread(filename)):            
-            i = i + 1
-            l = l.strip()
-            if not l: continue
-
-            if startFun in l and l.endswith(' {'):  #void startFun(int x, double y) {
-                l = l.split('(')[1].split(')')[0]  #int x, double y
-                inpdecls = mkVarsDict(l)
-
-            elif l.startswith(traceIndicator):
-                invdecls = mkVarsDict(miscs.stripTo(l, ':'))
-                lineno = i
-                
-        assert invdecls
-        assert (inpdecls is None or
-                (isinstance(inpdecls, OrderedDict) and inpdecls)), inpdecls
-        assert lineno
-        return inpdecls, invdecls, lineno
-
-
-    @classmethod
-    def mkPrintfArgs(cls, vars_d):
-        """
-        Return 2 strings representing 2 args to a printf stmt
-        sage: vars_d = OrderedDict([('x','int'),('y','double')])
-        sage: Src.mkPrintfArgs(vars_d)
-        ('%d %g', 'x, y')
-        """
-        assert isinstance(vars_d, OrderedDict) and vars_d, vars_d
-        p1 = []
-        for k in vars_d:
-            typ = vars_d[k]
-            if isinstance(vars_d[k], tuple): #(typ, (minV, maxV))
-                typ = vars_d[k][0]
-                
-            a = "%d" if typ == "int" else "%g"
-            p1.append(a)
-        p1 = ' '.join(p1)
-        p2 = ', '.join(map(str, vars_d.iterkeys()))
-        return p1, p2
-
-    @classmethod
-    def mkDisproves(cls, invs, vars_d, lineno):
-        """
-        sage: vars_d = OrderedDict([('x','int'),('y','double')])
-        sage: Src.mkPrintfVarStr(vars_d, 12)
-        '12: %d %g\\n", x, y'
-        """
-        assert lineno > 0, lineno
-        p1, p2 = cls.mkPrintfArgs(vars_d)
-        vstr = '@ line {}: {}\\n", {}'.format(lineno, p1, p2)
-        stmts = []
-        for inv in invs:
-            dStmt = "if(!((int){})) printf(\"disproved {} {});".format(
-                inv, inv, vstr)
-            stmts.append(dStmt)
-        return stmts
-
-    @classmethod
-    def mkProgStmts(cls, filename, invs, invdecls, lineno, mk_f):
-        assert invs, invs
-        assert lineno > 0;
-        
-        stmts = []
-        for i, l in enumerate(CM.iread(filename)):
-            i = i + 1
-            l = l.strip()
-            if not l: continue
-            stmts.append(l)
-            
-            if i == lineno:
-                assert invdecls
-                stmts_ = mk_f(invs, invdecls, lineno)
-                stmts.extend(stmts_)
-                
-        return stmts
-    
-    @classmethod
-    def instr(cls, filename, filePostfix, invs, invdecls, lineno, mkStmts):
-        stmts = cls.mkProgStmts(filename, invs, invdecls, lineno, mkStmts)
-        
-        fname = filename + filePostfix
-        CM.vwrite(fname, '\n'.join(stmts))
-        CM.vcmd("astyle -Y {}".format(fname))
-        return fname
-
-# inv     
-is_inv = lambda inv: inv is 0 or inv.is_relational()
-def strOfInv(inv):
-    if is_sage_expr(inv):
-        inv = miscs.elim_denom(inv)
-        s = miscs.strOfExp(inv)
-    else:
-        s = str(inv)
-    return s
-
-def printInvs(stats):
-    invs = [inv for inv in stats if isinstance(stats[inv], bool)]
-    if invs:
-        logger.warn("found {} invs\n{}".format(
-            len(invs), '\n'.join(map(strOfInv, invs))))
 
 class Trace(CM.HDict):
     """
@@ -265,10 +85,10 @@ class Inv(object):
     
     def __init__(self, inv):
         assert inv == 0 or inv == 1 or inv.is_relational(), inv
-        self.inv = inv
-        
         self.resetStat()
-        self.resetTemplateID()
+        #self.resetTemplateID()
+
+        self.inv = inv
         
     def __str__(self, printStat=False):
         
@@ -304,12 +124,6 @@ class Inv(object):
     @classmethod
     def mkFalse(cls): return cls(0)
 
-    def getTemplateID(self): return self._tid
-    def setTemplateID(self, tid):
-        self._tid = tid
-    templateID = property(getTemplateID, setTemplateID)
-    def resetTemplateID(self): self._tid = None
-
 class Invs(MySet):
     def __contains__(self, inv):
         assert isinstance(inv, Inv), inv
@@ -338,7 +152,16 @@ class Invs(MySet):
         for inv in self:
             if not (inv.isDisproved or inv in disproves):
                 newInvs.add(inv)
-
+        self.__set__ = newInvs
+        
+    @classmethod
+    def mk(cls, invs):
+        newInvs = Invs()
+        if not CM.is_iterable(invs):
+            newInvs.add(invs)
+        else:
+            for inv in invs:
+                newInvs.add(inv)
         return newInvs
     
 class DIG2(object):
@@ -366,7 +189,8 @@ class DIG2(object):
 
             try:
                 invs_ = self.infer(traces, exprs, solvercls)
-                logger.debug(str(invs_))
+                if invs_:
+                    logger.debug(str(invs_))
             except solver.NotEnoughTraces as e:
                 logger.detail(str(e))
                 invs__ = Invs()
@@ -382,10 +206,44 @@ class DIG2(object):
 
             invs = invs_
             traces = self.check(invs, inps, solvercls.minV, solvercls.maxV)
+            print 'traces', traces
             invs = invs.removeDisproved()
             
         return invs
 
+    def guesscheck(self, t, einps, minV, maxV, oMinV, oMaxV, isupper):
+        """
+        if isupper then obtain an upper bound v of t (v >= t)
+        otherwise obtain a lower bound v of t (t >= v)
+        """
+        print oMinV, oMaxV
+        assert maxV >= minV, (maxV, minV)
+        print 'gc', 'isupper', t, minV, maxV
+        if minV == maxV:
+            return maxV
+        elif maxV - minV == 1:
+            inv = minV >= t
+            disproved = self.checkRT(Invs.mk(Inv(inv)), set(),
+                                     oMinV, oMaxV, quickbreak=True)
+            return maxV if disproved else minV
+            
+        v = sage.all.ceil((maxV - minV)/2.0) + minV
+        inv = Inv(t <= v)
+        print minV, maxV, v, inv
+        
+        traces = self.check(Invs.mk(inv), set(), oMinV, oMaxV, dorandom=False)
+        if traces: #disproved
+            print 'disproved'
+            print traces
+            #TODO: max for <= , what about >= ??
+            minV = max(t.subs(tc._dict) for tc in traces)   
+            print 'cex', minV
+        else:
+            maxV = v
+            print 'checked'
+            
+        return self.guesscheck(t, einps, minV, maxV, oMinV, oMaxV, isupper)
+    
     def start(self, seed, deg):
         assert isinstance(seed, (int,float)), seed
         assert deg >= 1 or callable(deg), deg
@@ -393,14 +251,66 @@ class DIG2(object):
         self.initialize(seed, deg)
 
         inps = set()
-        invs = Invs()        
-        invs.add(Inv(0))
+        logger.debug("check reachability")
+        invs = Invs.mk(Inv(0))
         
-        solvercls = solver.EqtSolver
-        #solvercls = solver.RangeSolverWeak
+        from solver import IeqSolver
+        minV, maxV = IeqSolver.minV, IeqSolver.maxV
+        ubminV, ubmaxV = minV*10, maxV*10
+        
+        traces = self.check(invs, inps, minV, maxV)
+        invs.removeDisproved()
 
-        traces = self.check(invs, inps, solvercls.minV, solvercls.maxV)
-        invs = invs.removeDisproved()
+        logger.debug("analyze weak ieqs")
+        solvercls = solver.RangeSolverWeak()
+        wterms = solvercls.genWeaks(self.ss)
+        print wterms
+        wieqs = Invs()
+        dd = {}
+        mmaxV = solvercls.maxV - 1
+        for t in wterms:
+            inv_u = Inv(t <= mmaxV)
+            wieqs.add(inv_u)
+            print inv_u, t, True
+            dd[inv_u] = (t, True)
+
+            t_ = -1*t
+            inv_l = Inv(t_ <= mmaxV)
+            wieqs.add(inv_l)
+            print inv_l, t, False
+            dd[inv_l] = (t_, False)
+
+        print dd
+        
+        disproved = self.checkRT(wieqs, inps, ubminV, ubmaxV, quickbreak=False)
+        wieqs.removeDisproved(disproved)
+        rwieqs = Invs()
+        for ieq in wieqs:
+            print 'refining', ieq, type(ieq), map(type, dd)
+            t, isupper = dd[ieq]
+            myv = self.guesscheck(t, inps, minV, maxV, ubminV, ubmaxV, isupper)
+            myinv = Inv(t <= myv)
+            rwieqs.add(myinv)
+            print myinv
+            CM.pause()
+            
+        # wieqs = Invs()
+        # wieqs_ = solver.RangeSolverWeak().solve1(self.ss)
+        # for inv in wieqs_:
+        #     wieqs.add(Inv(inv))
+        # disproved = self.checkRT(wieqs, inps, minV*10, maxV*10, quickbreak=False)
+        # wieqs.removeDisproved(disproved)
+
+        # rwieqs = Invs()
+        # for ieq in wieqs:
+        #     print 'refining', ieq
+        #     myv = self.guesscheck(ieq.templateID, inps, minV, maxV, minV*10, maxV*10)
+        #     myinv = Inv(ieq.templateID <= myv)
+        #     print(myinv)
+        #     rwieqs.add(myinv)
+        #     CM.pause()
+        
+        #solvercls = solver.EqtSolver
         invs = self.approx(invs, inps, traces, solvercls)
 
         logger.info("final checking {} candidate invs\n{}"
@@ -425,9 +335,9 @@ class DIG2(object):
             CM.vcmd(cmd)
         return Trace.parse(self.tcsFile)
 
-    def pp(self, invs, dtraces):
-        bigV = 10000
-        checkvals = lambda vs: all(-1*bigV <= v <= bigV for v in vs)
+    def pp(self, invs, dtraces, maxV):
+        maxV = maxV + 1
+        checkvals = lambda vs: all(-1*maxV <= v <= maxV for v in vs)
 
         ss = self.invdecls.keys()
         traces = []
@@ -465,9 +375,10 @@ class DIG2(object):
                     return disproved
         return disproved
                 
-    def check(self, invs, einps, minV, maxV):
+    def check(self, invs, einps, minV, maxV, dorandom=True):
         assert isinstance(invs, Invs) and invs, invs 
         assert isinstance(einps, set) #existing inps
+
 
         src = self.src.instrDisproves(invs, self.invdecls, self.lineno)
         exe = "{}.exe".format(src)
@@ -476,11 +387,14 @@ class DIG2(object):
         assert not rs, rs
         assert not rs_err, rs_err
 
-        inps = miscs.genInps(len(self.inpdecls), maxV)
-        for inp in inps: einps.add(inp)
-        dtraces = self.mexec(exe, inps)
-        traces = self.pp(invs, dtraces)
+        traces = None
+        if dorandom:
+            inps = miscs.genInps(len(self.inpdecls), maxV)
+            for inp in inps: einps.add(inp)
+            dtraces = self.mexec(exe, inps)
+            traces = self.pp(invs, dtraces, maxV)
 
+        #use RT
         if not traces:
             logger.debug("invoke rt")
             disproved = self.checkRT(invs, einps, minV, maxV, quickbreak=True)
@@ -492,7 +406,7 @@ class DIG2(object):
                         einps.add(inp)
                         inps.add(inp)
                 dtraces = self.mexec(exe, inps)
-                traces = self.pp(invs, dtraces)
+                traces = self.pp(invs, dtraces, maxV)
         
         return traces
         
