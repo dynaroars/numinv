@@ -26,6 +26,11 @@ if __name__ == "__main__":
                          default=None,
                          help="autodegree")
 
+    aparser.add_argument("--maxtimeRT", "-maxtimeRT",
+                         type=int,
+                         default=5,
+                         help="max number of secs for reachability tool")
+    
     aparser.add_argument("--noEqts", "-noEqts",
                          action="store_true")
 
@@ -61,7 +66,8 @@ if __name__ == "__main__":
 
     maxdeg = args.maxdeg
     maxterms = args.maxterms
-
+    maxtime = args.maxtimeRT
+    
     import miscs    
     if maxdeg and maxterms:
         deg = maxdeg
@@ -72,7 +78,7 @@ if __name__ == "__main__":
     else:
         deg = lambda nvs: miscs.genDeg(nvs, 200)
 
-    invs = dig2.start(seed=seed, deg=deg)
+    invs = dig2.start(seed=seed, deg=deg, maxtime=maxtime)
 
     logger.info("time {}s".format(time() - st))
     

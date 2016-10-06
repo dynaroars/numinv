@@ -170,7 +170,8 @@ class DIG2(object):
         assert os.path.isdir(tmpdir), tmpdir
         self.filename = filename
         self.tmpdir = tmpdir
-
+        self.rtCalls = 0
+        
     def approx(self, invs, inps, traces, solvercls):
         exprs = set()
         curIter = 0
@@ -211,111 +212,90 @@ class DIG2(object):
             
         return invs
 
-    def guesscheck(self, t, einps, minV, maxV, oMinV, oMaxV, isupper):
-        """
-        if isupper then obtain an upper bound v of t (v >= t)
-        otherwise obtain a lower bound v of t (t >= v)
-        """
-        print oMinV, oMaxV
-        assert maxV >= minV, (maxV, minV)
-        print 'gc', 'isupper', t, minV, maxV
+    def guesscheck(self, term, etraces, minV, maxV, oMinV, oMaxV):
+        assert minV <= maxV, (minV, maxV)
+        assert oMinV < oMaxV, (oMinV, oMaxV)
+        assert isinstance(etraces, set), etraces
+        
         if minV == maxV:
             return maxV
         elif maxV - minV == 1:
-            inv = minV >= t
-            disproved = self.checkRT(Invs.mk(Inv(inv)), set(),
+            inv = Inv(term <= minV)
+            disproved = self.checkRT(Invs.mk(inv), set(),
                                      oMinV, oMaxV, quickbreak=True)
             return maxV if disproved else minV
             
-        v = sage.all.ceil((maxV - minV)/2.0) + minV
-        inv = Inv(t <= v)
-        print minV, maxV, v, inv
-        
+        v = sage.all.ceil((maxV + minV)/2.0)
+        inv = Inv(term <= v)
         traces = self.check(Invs.mk(inv), set(), oMinV, oMaxV, dorandom=False)
         if traces: #disproved
-            print 'disproved'
-            print traces
-            #TODO: max for <= , what about >= ??
-            minV = max(t.subs(tc._dict) for tc in traces)   
-            print 'cex', minV
+            minV = max(term.subs(tc._dict) for tc in traces)
+            for tc in traces: etraces.add(tc)
         else:
             maxV = v
-            print 'checked'
             
-        return self.guesscheck(t, einps, minV, maxV, oMinV, oMaxV, isupper)
-    
-    def start(self, seed, deg):
+        return self.guesscheck(term, etraces, minV, maxV, oMinV, oMaxV)
+
+    def genIeqs(self, einps, etraces):
+        logger.debug("generate ieqs")
+
+        mminV, mmaxV = self.minV + 1, self.maxV - 1
+        #octagonal invs        
+        solvercls = solver.OctSolver()
+        octTerms = solvercls.getTerms(self.ss)  #x,-x, x-y, -x+y, ..
+
+        octInvs = [Inv(ot <= mmaxV) for ot in octTerms]
+        octD = dict(zip(octInvs, octTerms))
+
+        octInvs = Invs.mk(octInvs)
+        disproved = self.checkRT(octInvs, einps,
+                                 self.unboundMinV, self.unboundMaxV,
+                                 quickbreak=False)
+        octInvs.removeDisproved(disproved)
+        invs = Invs()
+        for octInv in octInvs:
+            octTerm = octD[octInv]            
+            logger.detail("refine {} (compute upperbound for '{}')"
+                          .format(octInv, octTerm))
+
+            mminV = max(octTerm.subs(tc._dict) for tc in etraces)
+            boundV = self.guesscheck(octTerm, etraces,
+                                     mminV, mmaxV,
+                                     self.unboundMinV, self.unboundMaxV)
+            inv = Inv(octTerm <= boundV)
+            print 'obtained', inv
+            invs.add(inv)
+            logger.detail("{}".format(inv))            
+
+        if invs:
+            logger.info("{} ieqs (rtCalls {})\n{}"
+                        .format(len(invs), self.rtCalls, invs))
+            
+        return invs
+            
+    def start(self, seed, deg, maxtime):
         assert isinstance(seed, (int,float)), seed
         assert deg >= 1 or callable(deg), deg
+        assert isinstance(maxtime, int) and maxtime >= 1, maxtime
+        
+        self.initialize(seed, deg, maxtime)
 
-        self.initialize(seed, deg)
-
-        inps = set()
+        einps, etraces = set(), set()
+        
         logger.debug("check reachability")
-        invs = Invs.mk(Inv(0))
+        traces = self.check(Invs.mk(Inv.mkFalse()), einps, self.minV, self.maxV)
+        for tc in traces: etraces.add(tc)
         
-        from solver import IeqSolver
-        minV, maxV = IeqSolver.minV, IeqSolver.maxV
-        ubminV, ubmaxV = minV*10, maxV*10
+        if not traces:
+            logger.warn("Unreachable location (inv = False)")            
+            return
         
-        traces = self.check(invs, inps, minV, maxV)
-        invs.removeDisproved()
-
-        logger.debug("analyze weak ieqs")
-        solvercls = solver.RangeSolverWeak()
-        wterms = solvercls.genWeaks(self.ss)
-        print wterms
-        wieqs = Invs()
-        dd = {}
-        mmaxV = solvercls.maxV - 1
-        for t in wterms:
-            inv_u = Inv(t <= mmaxV)
-            wieqs.add(inv_u)
-            print inv_u, t, True
-            dd[inv_u] = (t, True)
-
-            t_ = -1*t
-            inv_l = Inv(t_ <= mmaxV)
-            wieqs.add(inv_l)
-            print inv_l, t, False
-            dd[inv_l] = (t_, False)
-
-        print dd
-        
-        disproved = self.checkRT(wieqs, inps, ubminV, ubmaxV, quickbreak=False)
-        wieqs.removeDisproved(disproved)
-        rwieqs = Invs()
-        for ieq in wieqs:
-            print 'refining', ieq, type(ieq), map(type, dd)
-            t, isupper = dd[ieq]
-            myv = self.guesscheck(t, inps, minV, maxV, ubminV, ubmaxV, isupper)
-            myinv = Inv(t <= myv)
-            rwieqs.add(myinv)
-            print myinv
-            CM.pause()
-            
-        # wieqs = Invs()
-        # wieqs_ = solver.RangeSolverWeak().solve1(self.ss)
-        # for inv in wieqs_:
-        #     wieqs.add(Inv(inv))
-        # disproved = self.checkRT(wieqs, inps, minV*10, maxV*10, quickbreak=False)
-        # wieqs.removeDisproved(disproved)
-
-        # rwieqs = Invs()
-        # for ieq in wieqs:
-        #     print 'refining', ieq
-        #     myv = self.guesscheck(ieq.templateID, inps, minV, maxV, minV*10, maxV*10)
-        #     myinv = Inv(ieq.templateID <= myv)
-        #     print(myinv)
-        #     rwieqs.add(myinv)
-        #     CM.pause()
-        
-        #solvercls = solver.EqtSolver
-        invs = self.approx(invs, inps, traces, solvercls)
+        ieqs = self.genIeqs(einps, etraces)
+        invs = self.approx(invs, einps, etraces, solvercls)
 
         logger.info("final checking {} candidate invs\n{}"
                     .format(len(invs), invs))
-        disproved = self.checkRT(invs, inps,
+        disproved = self.checkRT(invs, einps,
                                  solvercls.minV*10, solvercls.maxV*10,
                                  quickbreak=False)
         invs = invs.removeDisproved(disproved)
@@ -353,8 +333,13 @@ class DIG2(object):
                 inv.stat = Inv.UNKNOWN
 
         return traces
-                
+
     def checkRT(self, invs, einps, minV, maxV, quickbreak):
+        assert isinstance(invs, Invs) and invs, invs
+        assert isinstance(einps, set), einps
+        assert minV < maxV, (minV, maxV)
+        assert isinstance(quickbreak, bool), quickbreak
+        
         if self.inpdecls:
             inps_d = OrderedDict(
                 (vname, (vtyp, (minV, maxV)))
@@ -367,9 +352,10 @@ class DIG2(object):
             einps_ = set(CM.HDict(zip(self.inpdecls, inp)) for inp in einps)
             rtSrc = self.src.instrAssertsRT(set([inv]), einps_, inps_d,
                                             self.invdecls, self.lineno)
-            _, inps = RT(rtSrc, self.tmpdir).getDInps()  #run
+            _, inps = RT(rtSrc, self.maxtime, self.tmpdir).getDInps()  #run
+            self.rtCalls += 1
             if inps:
-                logger.info("RT disproved {}".format(inv))
+                logger.detail("RT disproved {}".format(inv))
                 disproved[inv] = inps
                 if quickbreak:
                     return disproved
@@ -396,7 +382,6 @@ class DIG2(object):
 
         #use RT
         if not traces:
-            logger.debug("invoke rt")
             disproved = self.checkRT(invs, einps, minV, maxV, quickbreak=True)
             if disproved:
                 inps = set()
@@ -423,7 +408,7 @@ class DIG2(object):
             newInvs.add(Inv(inv))
         return newInvs
 
-    def initialize(self, seed, deg):
+    def initialize(self, seed, deg, maxtime):
         import random        
         random.seed(seed)
         sage.all.set_random_seed(seed)
@@ -445,6 +430,12 @@ class DIG2(object):
             logger.info("autodeg {}".format(self.deg))
         else:
             self.deg = deg
+
+        self.maxtime = maxtime
             
         #tracefile
         self.tcsFile =  "{}.tcs".format(self.src.filename)
+
+        from solver import IeqSolver
+        self.minV, self.maxV = IeqSolver.minV, IeqSolver.maxV
+        self.unboundMinV, self.unboundMaxV = self.minV * 10, self.maxV * 10
