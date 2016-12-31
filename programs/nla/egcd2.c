@@ -2,8 +2,8 @@
 #include <assert.h>
 
 int mainQ(int x, int y){
-     assert(x>0);
-     assert(y>0);
+     assert(x>=1);
+     assert(y>=1);
      
      int a,b,p,q,r,s;
 
@@ -14,13 +14,20 @@ int mainQ(int x, int y){
      r=0; 
      s=1;
 
-     while(b!=0 ) { 
+     //printf("a, b, c, p, q, r, s, x, y, k\n"); //inner
+     printf("a, b, p, q, r, s, x, y\n"); //outter
+     while(1) {
+	  printf("%d %d %d %d %d %d %d %d\n",
+		 a, b, p, q, r, s, x, y);
+	  
+	  if(!(b!=0)) break;
 	  int c,k;
-    
 	  c=a;
 	  k=0;
 
 	  while(1){
+	       /* printf("%d %d %d %d %d %d %d %d %d %d\n", */
+	       /* 	      a, b, c, p, q, r, s, x, y, k); */
 	       //assert(a == k*b+c);
 	       //assert(a == y*r+x*p);
 	       //assert(b == x*q+y*s);

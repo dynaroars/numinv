@@ -4,11 +4,13 @@
 #include <stdlib.h>  //required for afloat to work
 
 int mainQ(int z, int k){
-     assert(k>0);
+     assert(k >= 0);
      int x = 1; int y = z; int c = 1;
+     printf("x y z k\n");
      while (1){
 	  //assert(x*z - x - y + 1 == 0);
 	  //%%%traces: int x, int y, int z, int k
+	  printf("%d %d %d %d\n",x, y, z, k);
 	  if(!(c < k)) break;
 	  
 	  c = c + 1;

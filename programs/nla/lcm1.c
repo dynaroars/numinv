@@ -2,8 +2,8 @@
 #include <assert.h>
 
 int mainQ(int a, int b){
-     assert(a>0);
-     assert(b>0);
+     assert(a>=1);
+     assert(b>=1);
      int x,y,u,v;
 
      x=a;
@@ -11,17 +11,24 @@ int mainQ(int a, int b){
      u=b;
      v=0;
 
-     int ctr = 0;
-     while(x!=y) {
+     printf("a b x y u v\n");     
+     while(1) {
+	  printf("%d %d %d %d %d %d\n",a, b, x, y, u, v);
+	  if (!(x!=y)) break;
+	  
 	  //assert(x*u + y*v == a*b);
 	  //%%%traces: int a, int b, int x, int y, int u, int v
 
-	  while (x>y){
+	  while (1){
+	       //printf("%d %d %d %d %d %d\n",a, b, x, y, u, v);
+	       if(!(x>y)) break;
 	       x=x-y;
 	       v=v+u;
 	  }
     
-	  while (x<y){
+	  while (1){
+	       //printf("%d %d %d %d %d %d\n",a, b, x, y, u, v);
+	       if(!(x<y)) break;
 	       y=y-x;
 	       u=u+v;
 	  }

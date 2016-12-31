@@ -3,8 +3,8 @@
 
 int mainQ(int x, int y){
      /* extended Euclid's algorithm */
-     assert(x>0);
-     assert(y>0);
+     assert(x >= 1);
+     assert(y >= 1);
      int a,b,p,q,r,s;
     
      a=x;
@@ -13,13 +13,15 @@ int mainQ(int x, int y){
      q=0;
      r=0;
      s=1;
-  
-     int ctr = 0 ;
+
+     printf("x y a b p r q s\n");
      while(1){
+	  assert(1 == p*s - r*q);
+	  assert(a == y*r + x*p);
+	  assert(b == x*q + y*s);
+	  
+	  printf("%d %d %d %d %d %d %d %d\n", x, y, a, b, p, r, q, s);
 	  if(!(a!=b)) break;
-	  //assert(1 == p*s - r*q);
-	  //assert(a == y*r + x*p);
-	  //assert(b == x*q + y*s);
 	  //%%%traces: int x, int y, int a, int b, int p, int r, int q, int s
 	  if (a>b) {
 	       a = a-b; 

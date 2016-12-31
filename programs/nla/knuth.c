@@ -15,12 +15,15 @@ int mainQ(int n, int a){
      q=4*(n/(d-2) - n/d);
      s=sqrt(n);
 
+     printf("n a r k q d s t\n");
      while(1){
 	  //assert(d*d*q - 2*q*d - 4*r*d + 4*k*d  + 8*r == 8*n);
 	  //assert(k*t == t*t);
 	  //assert(d*d*q - 2*d*q - 4*d*r + 4*d*t + 4*a*k - 4*a*t - 8*n + 8*r == 0);
 	  //assert(d*k - d*t - a*k + a*t == 0);       
 	  //%%%traces: int n, int a, int r, int k, int q, int d, int s, int t
+
+	  printf("%d %d %d %d %d %d %d %d\n", n, a, r, k, q, d, s, t);
 	  if (!((s>=d)&&(r!=0))) break;
 
 	  if (2*r-k+q<0){

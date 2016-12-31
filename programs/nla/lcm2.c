@@ -2,17 +2,18 @@
 #include <assert.h>
 
 int mainQ(int a, int b){
-     assert(a>0);
-     assert(b>0);
+     assert(a>=1);
+     assert(b>=1);
      int x,y,u,v;
 
      x=a;
      y=b;
      u=b;
      v=a;
-
-     while(x!=y) { 
-
+     printf("a b x y u v\n");
+     while(1) {
+	  printf("%d %d %d %d %d %d\n", a, b, x, y, u, v);
+	  if (!(x!=y)) break;
 	  //assert(x*u + y*v == 2*a*b);
 	  //%%%traces: int a, int b, int x, int y, int u, int v
 

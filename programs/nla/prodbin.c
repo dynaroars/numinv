@@ -2,19 +2,19 @@
 #include <assert.h>
 
 int mainQ(int a, int b){
-     assert(a>0);
-     assert(b>0);
+     assert(a>=0);
+     assert(b>=0);
 
      int x,y,z;
-  
      x = a;
      y = b;
      z = 0;
 
-     int ctr = 0;
+     printf("a b x y z\n");
      while(1) { 
 	  //assert(z+x*y==a*b);
 	  //%%%traces: int a, int b, int x, int y, int z
+	  printf("%d %d %d %d %d\n", a, b, x, y, z);
 	  if(!(y!=0)) break;
 	  
 	  if (y%2 ==1 ){

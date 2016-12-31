@@ -6,9 +6,12 @@ int mainQ(int k){
      int x = 0;
      int c = 0;
 
+     printf("%d %d %d\n",x, y, k);
      while(1){
 //assert(-2*pow(y,6) - 6*pow(y,5) - 5*pow(y,4) + pow(y,2) + 12*x == 0.0); //DIG Generated  (but don't uncomment, assertion will fail because of int overflow)	  
 	  //%%%traces: int x, int y, int k
+
+	  printf("%d %d %d\n",x, y, k);
 	  if (!(c < k)) break;
 	  c = c + 1 ;
 	  y = y + 1;

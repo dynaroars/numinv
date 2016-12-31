@@ -6,18 +6,20 @@ int mainQ(int a){
 
   n=0; x=0; y=1; z=6;
 
+  printf("a n x y z\n");
   while(1){
+       printf("%d %d %d %d %d\n", a, n, x, y, z);     
        if(!(n<=a)) break;
        //assert(z == 6*n + 6);
        //assert(y == 3*n*n + 3*n + 1);
        //assert(x == n*n*n);
        
        //%%%traces: int a, int n, int x, int y, int z
-
-    n=n+1;
-    x=x+y;
-    y=y+z;
-    z=z+6;
+       
+       n=n+1;
+       x=x+y;
+       y=y+z;
+       z=z+6;
   }
 
   return x;
