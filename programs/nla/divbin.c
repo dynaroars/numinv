@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <assert.h>
-#include <stdlib.h>  //required for afloat to work
 
 int mainQ(int A, int B){
      assert(A > 0 && B > 0);
@@ -10,21 +9,17 @@ int mainQ(int A, int B){
      int r = A;
      int b = B;
 
-     //printf("A B q b r\n", A,B,q,b,r);
      while(1){
-	  ///%%%traces: int A, int B, int q, int b, int r
-	  //printf("%d %d %d %d %d\n", A,B,q,b,r);
+	  ////%%%traces: int A, int B, int q, int b, int r
 	  if (!(r>=b)) break;
 	  b=2*b;
      }
 
 
-     printf("A B q b r\n", A,B,q,b,r);
+     //printf("A B q b r\n", A,B,q,b,r);
      while(1){
 	  //assert(A == q*b + r && r >= 0);
-	  
 	  //%%%traces: int A, int B, int q, int b, int r
-	  printf("%d %d %d %d %d\n", A,B,q,b,r);
 	  if (!(b!=B)) break;
 	  
 	  q = 2*q;

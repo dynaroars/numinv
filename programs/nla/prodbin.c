@@ -10,11 +10,11 @@ int mainQ(int a, int b){
      y = b;
      z = 0;
 
-     printf("a b x y z\n");
+     //printf("a b x y z\n");
      while(1) { 
 	  //assert(z+x*y==a*b);
 	  //%%%traces: int a, int b, int x, int y, int z
-	  printf("%d %d %d %d %d\n", a, b, x, y, z);
+	  //printf("%d %d %d %d %d\n", a, b, x, y, z);
 	  if(!(y!=0)) break;
 	  
 	  if (y%2 ==1 ){

@@ -125,8 +125,6 @@ class EqtSolver(Solver):
 
             sols = sage.all.solve(eqts, coefVars, solution_dict=True)
             sols = template.instantiateSols(sols)
-            print len(sols)
-
             # #test against traces
             # sols = [s for s in sols if all(bool(s.subs(t)) for t in traces)]
             # print len(sols)

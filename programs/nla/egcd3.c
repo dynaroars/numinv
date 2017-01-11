@@ -14,10 +14,10 @@ int mainQ(int x, int y){
 
 
      //printf("a b y r x p q s d v k c\n");//inner
-     printf("a b y r x p q s\n");//outter
+     //printf("a b y r x p q s\n");//outter
      while(1) {
-	  printf("%d %d %d %d %d %d %d %d\n",
-		 a, b, y, r, x, p, q, s);
+	  /* printf("%d %d %d %d %d %d %d %d\n", */
+	  /* 	 a, b, y, r, x, p, q, s); */
 
 	  if(!(b!=0)) break;
 	  int c,k;

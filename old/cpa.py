@@ -34,6 +34,7 @@ class RT(object):
 
         prog = "/home/tnguyen/Src/Devel/CPA/scripts/cpa.sh"
         timeout = self.maxtime
+
         opts = ("-predicateAnalysis-bitprecise "
                 "-preprocess "
                 "-nolog "

@@ -18,9 +18,9 @@ int mainQ(int n){
 	  //assert(   n >= 0   &&   p == 0   &&   r==n );
      }
      //q = 4^n
-
-
-     printf("n p q r h\n");
+     
+     
+     //printf("n p q r h\n");
      while (1){	  
 	  //assert(r < 2*p + q);
 
@@ -31,7 +31,7 @@ int mainQ(int n){
 	  //assert((h*h)*p - 4*h*n*q + 4*n*p*q - p*(q*q) + 4*h*q*r - 4*p*q*r == 0 u, (p*p) - n*q + q*r == 0);
 	  //%%%traces: int r, int p, int n, int q, int h
 
-	  printf("%d %d %d %d %d\n",n,p,q,r,h);
+	  //printf("%d %d %d %d %d\n",n,p,q,r,h);
 	  if(!(q!=1)) break;
 			   
 	  q=q/4;

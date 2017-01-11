@@ -2,6 +2,8 @@
 #include <assert.h>
 #include <stdlib.h>  //required for afloat to work
 
+//http://www.cs.upc.edu/~erodri/webpage/polynomial_invariants/cohendiv.htm
+
 int mainQ(int x, int y){
      //Cohen's integer division
      //returns x % y

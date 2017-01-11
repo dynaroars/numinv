@@ -166,8 +166,6 @@ def genDeg(nvs, nts, max_deg=7):
             return d
 
 
-
-
 def genInitInps(nInps,maxV):    
     #15,75=   0...15, 15..75, 75..100
 
