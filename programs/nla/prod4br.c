@@ -11,13 +11,11 @@ int mainQ(int x, int y){
      b = y;
      p = 1;
      q = 0;
-     //printf("x y a b p q\n");
+
      while(1) { 
 	  //assert(q+a*b*p==x*y);
 	  //%%%traces: int x, int y, int a, int b, int p, int q
 
-	  //printf("%d %d %d %d %d %d\n",x, y, a, b, p, q);
-	  
 	  if(!(a!=0 && b!=0)) break;
 	  
 	  if (a % 2 ==0 && b % 2 ==0 ){

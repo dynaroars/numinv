@@ -17,30 +17,22 @@ int mainQ(int A, int B){
      p=1;
      q=0;
 
-     //printf("A B q r d p\n");
      while(1){
-	  //printf("%d %d %d %d %d %d\n", A, B, q, r, d, p);
-	  
+	  //%%%traces: int A, int B, int q, int r, int d, int p
 	  if (!(r >= d)) break;
 	  //assert(A >= 0 && B > 0 && q == 0 && r == A && d == B*p);
-	  ///%%%traces: int A, int B, int q, int r, int d, int p
 	  d = 2 * d;
 	  p  = 2 * p;
      }
 
-     //printf("A B q r d p\n");
      while(1){
-	  //printf("%d %d %d %d %d %d\n", A, B, q, r, d, p);
 	  // assert(A == q*B+r && d==B*p);
 	  //%%%traces: int A, int B, int q, int r, int d, int p    
 	  if (!(p!=1)) break;
     
-	  d=d/2;
-	  p=p/2;
-
+	  d=d/2; p=p/2;
 	  if(r>=d){
-	       r=r-d;
-	       q=q+p;
+	       r=r-d; q=q+p;
 	  }
      }
 

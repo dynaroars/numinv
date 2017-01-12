@@ -11,23 +11,22 @@ int mainQ(int a, int b){
      u=b;
      v=0;
 
-     //printf("a b x y u v\n");     
+
      while(1) {
-	  //printf("%d %d %d %d %d %d\n",a, b, x, y, u, v);
-	  if (!(x!=y)) break;
-	  
 	  //assert(x*u + y*v == a*b);
 	  //%%%traces: int a, int b, int x, int y, int u, int v
+	  if (!(x!=y)) break;
+	  
 
 	  while (1){
-	       //printf("%d %d %d %d %d %d\n",a, b, x, y, u, v);
+	       //%%%traces: int a, int b, int x, int y, int u, int v
 	       if(!(x>y)) break;
 	       x=x-y;
 	       v=v+u;
 	  }
     
 	  while (1){
-	       //printf("%d %d %d %d %d %d\n",a, b, x, y, u, v);
+	       //%%%traces: int a, int b, int x, int y, int u, int v
 	       if(!(x<y)) break;
 	       y=y-x;
 	       u=u+v;

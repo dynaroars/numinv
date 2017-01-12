@@ -14,14 +14,11 @@ int mainQ(int x, int y){
      r=0;
      s=1;
 
-     //printf("x y a b p r q s\n");
      while(1){
 	  //assert(1 == p*s - r*q);
 	  //assert(a == y*r + x*p);
 	  //assert(b == x*q + y*s);
 	  
-	  //printf("%d %d %d %d %d %d %d %d\n", x, y, a, b, p, r, q, s);
-
 	  //%%%traces: int x, int y, int a, int b, int p, int r, int q, int s
 	  if(!(a!=b)) break;
 	  

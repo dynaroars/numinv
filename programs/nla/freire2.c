@@ -8,10 +8,8 @@ int mainQ(int a){
      r = 1;
      s = 3.25;
      
-     //printf("a x r s\n");
      while (1){
-	  //printf("%d %g %d %g\n", a, x, r, s);
-	  
+	  //%%%traces: int a, double x, int r, double s
 	  if(!(x-s > 0.0)) break;
 	  
 	  //assert(((int)(4*r*r*r - 6*r*r + 3*r) + (int)(4*x - 4*a)) == 1); 

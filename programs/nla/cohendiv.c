@@ -13,10 +13,8 @@ int mainQ(int x, int y){
      int q=0;
      int r=x;
 
-     //printf("x y q a b r\n"); //inner vars
-     //printf("x y q r\n"); //outter vars
      while(1) {
-	  //printf("%d %d %d %d\n",x,y,q,r);
+	  //%%%traces: int x, int y, int q, int r	  
 	  if(!(r>=y)) break;
 	  int a=1;
 	  int b=y;
@@ -25,7 +23,7 @@ int mainQ(int x, int y){
 	       //assert(r>=2*y*a && b==y*a && x==q*y+r && r>=0);
 	       //%%%traces: int x, int y, int q, int a, int b, int r
 	       
-	       //printf("%d %d %d %d %d %d\n",x,y,q,a,b,r);
+
 	       if(!(r >= 2*b)) break;
 	       
 	       a = 2*a;

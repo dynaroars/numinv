@@ -12,22 +12,21 @@ int mainQ(int A, int R){
      v=1;
      r=R*R-A;
 
-     //printf("A R u v r\n");
+
      while (1){
 	  //assert(4*(A+r) == u*u-v*v-2*u+2*v);
 	  //%%%traces: int A, int R, int u, int v, int r
-	  //printf("%d %d %d %d %d\n",A, R, u, v, r);
 	  if(!(r!=0)) break;
 			   
 	  while (1){
-	       //printf("%d %d %d %d %d\n",A, R, u, v, r);
+	       //%%%traces: int A, int R, int u, int v, int r
 	       if(!(r>0 )) break;
 	       r=r-v;
 	       v=v+2;
 	  }
     
 	  while (1){
-	       //printf("%d %d %d %d %d\n",A, R, u, v, r);
+	       //%%%traces: int A, int R, int u, int v, int r
 	       if(!(r<0 )) break;
 	       r=r+u;
 	       u=u+2;

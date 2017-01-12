@@ -9,7 +9,6 @@ int mainQ(int a){
 
   n=0; x=0; y=1; z=6;
 
-  //printf("a n x y z\n");
   while(1){
        //assert(z == 6*n + 6);
        //assert(y == 3*n*n + 3*n + 1);

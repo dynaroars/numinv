@@ -10,12 +10,12 @@ int mainQ(int a, int b){
      y=b;
      u=b;
      v=a;
-     //printf("a b x y u v\n");
+
      while(1) {
-	  //printf("%d %d %d %d %d %d\n", a, b, x, y, u, v);
-	  if (!(x!=y)) break;
 	  //assert(x*u + y*v == 2*a*b);
 	  //%%%traces: int a, int b, int x, int y, int u, int v
+
+	  if (!(x!=y)) break;
 
 	  if (x>y){
 	       x=x-y;
