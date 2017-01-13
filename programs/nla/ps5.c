@@ -9,10 +9,9 @@ int mainQ(int k){
 
      while(1){
 	  assert(6*y*y*y*y*y + 15*y*y*y*y+ 10*y*y*y - 30*x - y == 0);
-	  //%%%traces: int x, int y, int k
+	  //%%%traces: int x, int y
 
 	  if (!(c < k)) break;
-    
 	  c = c +1 ;
 	  y=y +1;
 	  x=y*y*y*y+x;
