@@ -115,7 +115,6 @@ class Inv(object):
     def __init__(self, inv):
         assert inv == 0 or inv == 1 or inv.is_relational(), inv
         self.inv = inv
-        
         self.resetStat()
         
     def __str__(self, printStat=False):
@@ -196,7 +195,6 @@ class DInvs(dict):
             for inv in self[loc]:
                 inv.resetStat()
         
-
     def merge(self, dinvs):
         assert isinstance(dinvs, DInvs), dinvs
         merged_dinvs = DInvs()
@@ -270,33 +268,6 @@ class DIG2(object):
         CM.vcmd(cmd)
         #tracefile
         self.tcsFile =  "{}.tcs".format(self.printfSrc)
-        
-    def checkReach(self):
-        #check for reachability using inv False (0)
-        dinvs = DInvs.mkFalses(self.invdecls)        
-        inps = Inps()
-        
-        #use some initial inps first
-        rinps = miscs.genInitInps(len(self.inpdecls), IeqSolver.maxV)
-        for inp in rinps: inps.add(Inp(inp))
-            
-        traces = self.getTraces(inps)
-        
-        #update invs and reachable locs
-        unreach_locs = set()
-        for loc in dinvs:
-            if loc in traces:
-                for inv in dinvs[loc]:
-                    inv.stat = Inv.DISPROVED #reachable
-            else:
-                unreach_locs.add(loc)
-
-        if unreach_locs: #use reach tool to generate traces
-            unreach_dinvs = DInvs.mkFalses(unreach_locs)
-            unreachTraces = self.checkInvs(unreach_dinvs, inps, doSafe=True)
-            unreachTraces.update(traces)
-            
-        return dinvs, traces, inps
         
     def start(self, seed, maxdeg, maxterm, doEqts, doIeqs, ieqTyp):
         assert isinstance(seed, (int,float)), seed
@@ -465,6 +436,33 @@ class DIG2(object):
 
         traces = Trace.parse(self.tcsFile, self.invdecls)
         return traces
+
+    def checkReach(self):
+        #check for reachability using inv False (0)
+        dinvs = DInvs.mkFalses(self.invdecls)        
+        inps = Inps()
+        
+        #use some initial inps first
+        rinps = miscs.genInitInps(len(self.inpdecls), IeqSolver.maxV)
+        for inp in rinps: inps.add(Inp(inp))
+            
+        traces = self.getTraces(inps)
+        
+        #update invs and reachable locs
+        unreach_locs = set()
+        for loc in dinvs:
+            if loc in traces:
+                for inv in dinvs[loc]:
+                    inv.stat = Inv.DISPROVED #reachable
+            else:
+                unreach_locs.add(loc)
+
+        if unreach_locs: #use reach tool to generate traces
+            unreach_dinvs = DInvs.mkFalses(unreach_locs)
+            unreachTraces = self.checkInvs(unreach_dinvs, inps, doSafe=True)
+            unreachTraces.update(traces)
+            
+        return dinvs, traces, inps
         
     def checkInvs(self, dinvs, inps, doSafe):
         assert isinstance(dinvs, DInvs), dinvs
@@ -559,7 +557,7 @@ class DIG2(object):
                     invs = solver.solve(terms)
                     
                 else:  #ieqs
-                    solver = solverCls(ttraces)
+                    solver = solverCls(ttraces_)
                     if doWeak:
                         invs = solver.solveWeak(terms)
                     else:
