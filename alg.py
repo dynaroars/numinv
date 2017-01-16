@@ -34,6 +34,12 @@ class Inps(set):
         
 #Traces
 class Trace(tuple):
+    maxV = 10000
+    
+    def valOk(self):
+        minV = -1 * self.maxV
+        return all(minV <= v <= self.maxV for v in self)
+    
     @classmethod
     def parse(cls, tracefile, invdecls):
         """
@@ -73,8 +79,8 @@ class DTraces(dict):
         assert isinstance(loc, str), loc
         assert isinstance(trace, Trace), trace
 
-        if not miscs.checkVals(trace):
-            return
+        if not trace.valOk():
+            return False
 
         if loc not in self:
             self[loc] = Traces()
@@ -96,7 +102,7 @@ class DTraces(dict):
                 if notIn:
                     _ = newTraces.add(loc, trace)
                 else:
-                    logger.detail("{} exist".format(trace))
+                    logger.detail("{} exist or too large".format(trace))
         return newTraces
 
     @property
@@ -120,8 +126,7 @@ class Inv(object):
     def __str__(self, printStat=False):
         
         if is_sage_expr(self.inv):
-            inv = miscs.elim_denom(self.inv)
-            s = miscs.strOfExp(inv)
+            s = miscs.strOfExp(self.inv)
         else:
             s = str(self.inv)
 
@@ -301,7 +306,7 @@ class DIG2(object):
             len(mlocs), ', '.join(map(str, mlocs)))
             
         if doEqts:
-            logger.info("inferr eqts at {}".format(_f(traces.keys())))
+            logger.info("infer eqts at {}".format(_f(traces.keys())))
             eqts = self.approx(deg, traces, inps)
             dinvs.merge(eqts)
 
@@ -310,7 +315,10 @@ class DIG2(object):
             #         solverCls = OctSolver
             #     else:
             #         solverCls = RangeSolver
-            logger.info("inferr ieqs at {}".format(_f(traces.keys())))
+            logger.info("infer ieqs at {}".format(_f(traces.keys())))
+            binvs = self.genOcts(einps, etraces)
+            for inv in binvs: invs.add(inv)
+            
             dinvs_ = None
             dinvs.merge(dinvs_)
                 
@@ -444,6 +452,8 @@ class DIG2(object):
             unreachTraces = self.checkInvs(unreachInvs, inps, doSafe=True)
             unreachTraces.update(traces)
 
+            
+
         #remove FALSE invs indicating unreached locs
         for loc in traces:
             assert traces[loc]
@@ -509,9 +519,9 @@ class DIG2(object):
             #(this could be adding to or removing from dinvs, thus
             #deltas.siz could be 0, e.g., dinvs has a, b and dinvs_ has a)
             if deltas:
-                logger.debug("{} new invs:\n{}"
-                             .format(deltas.siz,
-                                     deltas.__str__(printStat=True)))
+                logger.debug("{} new invs".format(deltas.siz))
+                if deltas.siz:
+                    logger.debug(deltas.__str__(printStat=True))
             else:
                 logger.debug("no new invs")
                 break
@@ -553,3 +563,82 @@ class DIG2(object):
                 locsMoreTraces.append(loc)
 
         return dinvs, locsMoreTraces
+
+
+    #Ieqs
+    def guessCheck(self, term, etraces, minV, maxV, oMinV, oMaxV):
+        assert minV <= maxV, (minV, maxV)
+        assert oMinV < oMaxV, (oMinV, oMaxV)
+        assert isinstance(etraces, set), etraces
+        
+        if minV == maxV:
+            return maxV
+        elif maxV - minV == 1:
+            inv = Inv(term <= minV)
+            print 'final rt {}'.format(inv)
+            disproved = self.checkRT(Invs.mk(inv), set(),
+                                     oMinV, oMaxV, quickbreak=True)
+            return maxV if disproved else minV
+            
+        v = sage.all.ceil((maxV + minV)/2.0)
+        inv = Inv(term <= v)
+        #print 'rt {}'.format(inv)
+        traces = self.check(Invs.mk(inv), set(), oMinV, oMaxV, dorandom=False)
+        print term, minV, maxV, 'checking ', inv
+        if traces: #disproved
+            minV = max(term.subs(tc._dict) for tc in traces)
+            for tc in traces: etraces.add(tc)
+            print 'disproved', minV
+        else:
+            maxV = v
+            print 'proved', maxV
+
+        return self.guessCheck(term, etraces, minV, maxV, oMinV, oMaxV)
+
+
+    def genOcts(self, einps, etraces):
+        logger.debug("generate octagonal invs")
+
+        mminV, mmaxV = self.minV + 1, self.maxV - 1
+        #octagonal invs        
+        solvercls = solver.OctSolver()
+        octTerms = solvercls.getTerms(self.ss)  #x,-x, x-y, -x+y, ..
+        # print octTerms
+        # CM.pause()
+        
+        octInvs = [Inv(ot <= mmaxV) for ot in octTerms]
+            
+        octD = dict(zip(octInvs, octTerms))
+
+        octInvs = Invs.mk(octInvs)
+        for oInv in octInvs:
+            print oInv
+        CM.pause()
+        disproved = self.checkRT(octInvs, einps,
+                                 self.unboundMinV, self.unboundMaxV,
+                                 quickbreak=False)
+
+        print disproved
+        CM.pause("disproved")
+        octInvs.removeDisproved(disproved)
+        invs = Invs()
+        for octInv in octInvs:
+            octTerm = octD[octInv]            
+            logger.detail("refine {} (compute upperbound for '{}')"
+                          .format(octInv, octTerm))
+
+            mminV = max(octTerm.subs(tc._dict) for tc in etraces)
+            boundV = self.guessCheck(octTerm, etraces,
+                                     mminV, mmaxV,
+                                     self.unboundMinV, self.unboundMaxV)
+            inv = Inv(octTerm <= boundV)
+            print 'obtained', inv
+            invs.add(inv)
+            logger.detail("{}".format(inv))            
+
+        if invs:
+            logger.info("{} ieqs (rtCalls {})\n{}"
+                        .format(len(invs), self.rtCalls, invs))
+            
+        return invs
+    

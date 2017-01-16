@@ -50,11 +50,10 @@ def reducePoly(ps):
     sage: rs =  reducePoly([x*x==4,x==2])
     sage: assert set(rs) == set([x == 2, x^2 == 4])
     """
-    assert (p.operator() == sage.all.operator.eq for p in ps), ps
-
-    if not ps:
+    if len(ps) <= 1:
         return ps
-    
+
+    assert (p.operator() == sage.all.operator.eq for p in ps), ps
     try:
         Q = sage.all.PolynomialRing(sage.all.QQ, sageutil.get_vars(ps))
         I = Q*ps
@@ -126,13 +125,11 @@ class EqtSolver(Solver):
 
     @classmethod
     def refine(cls, sols):
-        if len(sols) <= 1:
-            return sols
-
-        #don't allow large coefs 
-        sols = [s for s in sols if all(abs(c) <= 100 for c in getCoefs(s))]
+        if not sols: return sols
         sols = reducePoly(sols)
-        
+        sols = [miscs.elimDenom(s) for s in sols]
+        #don't allow large coefs
+        sols = [s for s in sols if all(abs(c) <= 100 for c in getCoefs(s))]
         return sols
 
 class IeqSolver(Solver):

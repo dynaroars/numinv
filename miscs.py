@@ -109,7 +109,7 @@ def strOfExp(p):
     return s
 
 
-def elim_denom(p):
+def elimDenom(p):
     """
     Eliminate (Integer) denominators in expression operands.
     Will not eliminate if denominators is a var (e.g.,  (3*x)/(y+2)).
@@ -119,16 +119,16 @@ def elim_denom(p):
     sage: var('x y z')
     (x, y, z)
 
-    sage: elim_denom(3/4*x^2 + 7/5*y^3)
+    sage: elimDenom(3/4*x^2 + 7/5*y^3)
     28*y^3 + 15*x^2
 
-    sage: elim_denom(-3/2*x^2 - 1/24*z^2 >= (y + 1/7))
+    sage: elimDenom(-3/2*x^2 - 1/24*z^2 >= (y + 1/7))
     -252*x^2 - 7*z^2 >= 168*y + 24
 
-    sage: elim_denom(-3/(y+2)*x^2 - 1/24*z^2 >= (y + 1/7))
+    sage: elimDenom(-3/(y+2)*x^2 - 1/24*z^2 >= (y + 1/7))
     -1/24*z^2 - 3*x^2/(y + 2) >= y + 1/7
 
-    sage: elim_denom(x + y == 0)
+    sage: elimDenom(x + y == 0)
     x + y == 0
 
     """
@@ -140,14 +140,6 @@ def elim_denom(p):
         return p
 
 
-def checkVals(vs):
-    """
-    check for big values (likely to cause overflow)
-    """
-    bigV = 10000
-    return all(-1*bigV <= v <= bigV for v in vs)
-
-        
 def getDeg(nvs, nts, max_deg=7):
     """
     Generates a degree wrt to a (maximum) number of terms (nss)
