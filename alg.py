@@ -195,16 +195,14 @@ class DInvs(dict):
             for inv in self[loc]:
                 inv.resetStat()
         
-    def merge(self, dinvs):
-        assert isinstance(dinvs, DInvs), dinvs
-        merged_dinvs = DInvs()
-        for dinvs_ in [self, dinvs]:
-            for loc in dinvs_:
-                for inv in dinvs_[loc]:
-                    if not inv.isDisproved: 
-                        merged_dinvs.add(loc, inv)
-                        
-        return merged_dinvs
+    def merge(self, invs):
+        assert isinstance(invs, DInvs), invs
+        mergedInvs = DInvs()
+        
+        for loc in invs:
+            for inv in invs[loc]:
+                if not inv.isDisproved: 
+                    self.add(loc, inv)
 
     def removeDisproved(self):
         dinvs = DInvs()
@@ -274,8 +272,6 @@ class DIG2(object):
         assert isinstance(doEqts, bool), doEqts
         assert isinstance(doIeqs, bool), doIeqs
 
-        #initialize
-        ##seed
         import random
         random.seed(seed)
         sage.all.set_random_seed(seed)
@@ -296,34 +292,28 @@ class DIG2(object):
             logger.info("autodeg {}".format(deg))
         
 
-        logger.info("checking reachability")
+        logger.info("check reachability")
         dinvs, traces, inps = self.checkReach()
-        if traces:                                          
-            def _infer(solverCls):
-                infer_f = lambda deg, locs, traces, doWeak: self.infer(
-                    deg, locs, traces, solverCls, doWeak)
-                dinvs = self.approx(deg, traces, inps, infer_f)
-                return dinvs
+        if not traces:
+            return dinvs
 
-            locs_s = "{} locs: {}".format(
-                len(traces), ', '.join(map(str, traces)))
+        _f = lambda mlocs: "{} locs: {}".format(
+            len(mlocs), ', '.join(map(str, mlocs)))
+            
+        if doEqts:
+            logger.info("inferr eqts at {}".format(_f(traces.keys())))
+            eqts = self.approx(deg, traces, inps)
+            dinvs.merge(eqts)
 
-
-            if doEqts:
-                logger.info("inferring eqts at {}".format(locs_s))
-                dinvs_ = _infer(EqtSolver)
-                dinvs = dinvs.merge(dinvs_)
-
-
-            if doIeqs:
-                logger.info("inferring {} ieqs at {}".format(ieqTyp, locs_s))
-                if ieqTyp.startswith("oct"):
-                    solverCls = OctSolver
-                else:
-                    solverCls = RangeSolver
-                dinvs_ = _infer(solverCls)
-                dinvs = dinvs.merge(dinvs_)                
-        
+        if doIeqs:
+            # if ieqTyp.startswith("oct"):
+            #         solverCls = OctSolver
+            #     else:
+            #         solverCls = RangeSolver
+            logger.info("inferr ieqs at {}".format(_f(traces.keys())))
+            dinvs_ = None
+            dinvs.merge(dinvs_)
+                
         logger.info("final check {} invs".format(dinvs.siz))
         logger.detail(dinvs.__str__(printStat=True))
         
@@ -441,27 +431,24 @@ class DIG2(object):
         #check for reachability using inv False (0)
         dinvs = DInvs.mkFalses(self.invdecls)        
         inps = Inps()
-        
+
         #use some initial inps first
         rinps = miscs.genInitInps(len(self.inpdecls), IeqSolver.maxV)
         for inp in rinps: inps.add(Inp(inp))
-            
         traces = self.getTraces(inps)
-        
-        #update invs and reachable locs
-        unreach_locs = set()
-        for loc in dinvs:
-            if loc in traces:
-                for inv in dinvs[loc]:
-                    inv.stat = Inv.DISPROVED #reachable
-            else:
-                unreach_locs.add(loc)
-
-        if unreach_locs: #use reach tool to generate traces
-            unreach_dinvs = DInvs.mkFalses(unreach_locs)
-            unreachTraces = self.checkInvs(unreach_dinvs, inps, doSafe=True)
+        unreachLocs = [loc for loc in dinvs if loc not in traces]
+        if unreachLocs:
+            logger.debug("use RT to generate traces for {}".format(
+                ','.join(map(str, unreachLocs))))
+            unreachInvs = DInvs.mkFalses(unreachLocs)
+            unreachTraces = self.checkInvs(unreachInvs, inps, doSafe=True)
             unreachTraces.update(traces)
-            
+
+        #remove FALSE invs indicating unreached locs
+        for loc in traces:
+            assert traces[loc]
+            dinvs[loc].clear()
+
         return dinvs, traces, inps
         
     def checkInvs(self, dinvs, inps, doSafe):
@@ -480,7 +467,7 @@ class DIG2(object):
                          .format(newDTraces.siz, len(newInps)))
             return newDTraces
 
-    def approx(self, deg, traces, inps, infer_f):
+    def approx(self, deg, traces, inps):
         """iterative refinment algorithm"""
         
         assert deg >= 1, deg
@@ -489,13 +476,17 @@ class DIG2(object):
 
         dinvs = DInvs()
         locs = traces.keys()
+        vss = dict((loc, [sage.all.var(k) for k in self.invdecls[loc]])
+                   for loc in locs)
+        terms = dict((loc, miscs.getTerms(vss[loc], deg)) for loc in vss)
+        
         curIter = 0
         while True:
             if not locs:
                 logger.debug("no new traces")
                 break
 
-            dinvs_, locsMoreTraces = infer_f(deg, locs, traces, curIter==0)
+            dinvs_, locsMoreTraces = self.inferEqts(deg, locs, terms, traces)
             deltas = dinvs_.update(dinvs)
             
             curIter += 1
@@ -530,10 +521,12 @@ class DIG2(object):
             locs = newTraces.keys()
             
         return dinvs
-        
-    def infer(self, deg, locs, traces, solverCls, doWeak):
+
+
+    #Eqts
+    def inferEqts(self, deg, locs, terms, traces):
         """
-        call DIG's algorithm to infer invariants from traces
+        call DIG's algorithm to infer eqts from traces
         """
         assert isinstance(locs, list) and locs, locs
         assert isinstance(traces, DTraces) and traces, traces        
@@ -542,34 +535,21 @@ class DIG2(object):
         dinvs = DInvs()
         for loc in locs:
             assert traces[loc], loc
-            
-            terms = [sage.all.var(k) for k in self.invdecls[loc]]
-            logger.debug("loc {}, vars {}, deg {}, traces {}".format(
-                loc, len(terms), deg, len(traces[loc])))
+            terms_ = terms[loc]
+            logger.debug("loc {}, terms {}, deg {}, traces {}".format(
+                loc, len(terms_), deg, len(traces[loc])))
             try:
                 #cache ?
                 traces_ = (dict(zip(self.invdecls[loc], tracevals))
-                          for tracevals in traces[loc])
-                #print list(mtraces)
-                if issubclass(solverCls, EqtSolver): #eqts
-                    terms = miscs.getTerms(terms, deg)
-                    solver = solverCls(traces_)
-                    invs = solver.solve(terms)
-                    
-                else:  #ieqs
-                    solver = solverCls(ttraces_)
-                    if doWeak:
-                        invs = solver.solveWeak(terms)
-                    else:
-                        invs = solver.solve(terms)
-
-                invs = solverCls.refine(invs)
+                           for tracevals in traces[loc])
+                solver = EqtSolver(traces_)
+                invs = solver.solve(terms_)
+                invs = EqtSolver.refine(invs)
                 for inv in invs:
                     dinvs.add(loc, Inv(inv))
                     
             except miscs.NotEnoughTraces as ex:
-                logger.detail("loc {}: {}".format(loc, ex))         
+                logger.info("loc {}: {}".format(loc, ex))         
                 locsMoreTraces.append(loc)
 
         return dinvs, locsMoreTraces
-        

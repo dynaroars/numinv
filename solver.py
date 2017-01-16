@@ -50,8 +50,11 @@ def reducePoly(ps):
     sage: rs =  reducePoly([x*x==4,x==2])
     sage: assert set(rs) == set([x == 2, x^2 == 4])
     """
-    assert ps, ps
     assert (p.operator() == sage.all.operator.eq for p in ps), ps
+
+    if not ps:
+        return ps
+    
     try:
         Q = sage.all.PolynomialRing(sage.all.QQ, sageutil.get_vars(ps))
         I = Q*ps
@@ -62,17 +65,11 @@ def reducePoly(ps):
 
     return ps
 
-def getCoefsLen(p):
-    try:
-        Q = sage.all.PolynomialRing(sage.all.QQ, sageutil.get_vars(ps))
-        rs = Q(p.lhs()).coefficients()
-        rs = (abs(r_.n()).str(skip_zeroes=True)
-              for r_ in rs if r_ != 0.0)
-        rs = (sum(map(len,r_.split('.'))) for r_ in rs)
-        rs = sum(rs)
-        return rs
-    except Exception:
-        return len(str(p))
+def getCoefs(p):
+    Q = sage.all.PolynomialRing(sage.all.QQ, sageutil.get_vars(p))
+    rs = Q(p.lhs()).coefficients()
+    return rs
+
 
 #### Solvers for different forms of invariants ###
 class Solver(object):
@@ -85,9 +82,7 @@ class Solver(object):
     def solve(self): return
 
 class EqtSolver(Solver):
-
     RATE = 1.7  # RATE * terms
-    
     def __init__(self, traces):
         super(EqtSolver, self).__init__(traces)
 
@@ -134,8 +129,10 @@ class EqtSolver(Solver):
         if len(sols) <= 1:
             return sols
 
+        #don't allow large coefs 
+        sols = [s for s in sols if all(abs(c) <= 100 for c in getCoefs(s))]
         sols = reducePoly(sols)
-        sols = [s for s in sols if getCoefsLen(s) <= 100]
+        
         return sols
 
 class IeqSolver(Solver):
