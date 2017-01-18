@@ -5,7 +5,7 @@
 void mainQ(int x, int y){
      assert (x >= 2);
      assert (y >= 5);
-     assert (2*x == 5*y);
+     //assert (2*x == 5*y);
      //%%%traces: int x, int y
 }
 

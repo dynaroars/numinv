@@ -11,7 +11,7 @@ from sageutil import is_sage_expr
 import miscs
 from src import Src
 from klee import KLEE 
-from solver import EqtSolver, RangeSolver, OctSolver, IeqSolver
+import solver
 
 import settings
 logger = CM.VLog('alg')
@@ -34,11 +34,18 @@ class Inps(set):
         
 #Traces
 class Trace(tuple):
-    maxV = 10000
-    
+    ieqMaxV = 100000
+    valMaxV = 10000
+    inpMaxV = 1000
+
+    filterTrace = True
     def valOk(self):
-        minV = -1 * self.maxV
-        return all(minV <= v <= self.maxV for v in self)
+        if self.filterTrace:
+            maxV = self.valMaxV
+            minV = -1 * self.valMaxV
+            return all(minV <= v <= maxV for v in self)
+        else:
+            return True
     
     @classmethod
     def parse(cls, tracefile, invdecls):
@@ -70,8 +77,11 @@ class Traces(set):
         assert isinstance(trace, Trace), trace
         return super(Traces, self).add(trace)
 
-    def __str__(self, printStat=False):
-        return ", ".join(map(str, sorted(self)))
+    def __str__(self, printDetails=False):
+        if printDetails:
+            return ", ".join(map(str, sorted(self)))
+        else:
+            return str(len(self))
 
 
 class DTraces(dict):
@@ -108,9 +118,9 @@ class DTraces(dict):
     @property
     def siz(self): return sum(map(len, self.itervalues()))
 
-    def __str__(self):
-        return "\n".join("{}: {}".format(loc, len(traces))
-                         for loc, traces in self.iteritems())    
+    def __str__(self, printDetails=False):
+        return "\n".join("{}: {}".format(loc, traces.__str__(printDetails))
+                         for loc, traces in self.iteritems())
     
     
 class Inv(object):
@@ -157,6 +167,9 @@ class Inv(object):
     def mkFalse(cls): return cls(0)
 
 class Invs(set):
+    def __str__(self, printStat=False):
+        return ", ".join(map(lambda inv: inv.__str__(printStat), sorted(self)))
+
     def __contains__(self, inv):
         assert isinstance(inv, Inv), inv
         return super(Invs, self).__contains__(inv)
@@ -169,9 +182,14 @@ class Invs(set):
             super(Invs, self).add(inv)
         return notIn
 
-    def __str__(self, printStat=False):
-        return ", ".join(map(lambda inv: inv.__str__(printStat), sorted(self)))
-
+    @classmethod
+    def mk(cls, invs):
+        newInvs = Invs()
+        for inv in invs:
+            assert isinstance(inv, Inv)
+            newInvs.add(inv)
+        return newInvs
+    
 class DInvs(dict):
     @property
     def siz(self): return sum(map(len, self.itervalues()))
@@ -188,7 +206,6 @@ class DInvs(dict):
             self[loc] = Invs()
         return self[loc].add(inv)
     
-
     def __setitem__(self, loc, invs):
         assert isinstance(loc, str), loc
         assert isinstance(invs, Invs), invs
@@ -247,8 +264,16 @@ class DInvs(dict):
         for loc in locs:
             dinvs.add(loc, Inv.mkFalse())
         return dinvs
+
+    @classmethod
+    def mk(cls, loc, invs):
+        assert isinstance(invs, Invs)
+        newInvs = DInvs()
+        newInvs[loc] = invs
+        return newInvs
         
 
+    
 class DIG2(object):
     def __init__(self, filename):
         assert os.path.isfile(filename), filename
@@ -307,29 +332,22 @@ class DIG2(object):
             
         if doEqts:
             logger.info("infer eqts at {}".format(_f(traces.keys())))
-            eqts = self.approx(deg, traces, inps)
+            eqts = self.getEqts(deg, traces, inps)
             dinvs.merge(eqts)
+            
+            logger.info("final check {} invs".format(dinvs.siz))
+            logger.detail(dinvs.__str__(printStat=True))
+            #final tests
+            dinvs.resetStats()
+            _ = self.getInpsNoRange(dinvs, inps)
+            dinvs = dinvs.removeDisproved()
 
         if doIeqs:
-            # if ieqTyp.startswith("oct"):
-            #         solverCls = OctSolver
-            #     else:
-            #         solverCls = RangeSolver
             logger.info("infer ieqs at {}".format(_f(traces.keys())))
-            binvs = self.genOcts(einps, etraces)
-            for inv in binvs: invs.add(inv)
-            
-            dinvs_ = None
-            dinvs.merge(dinvs_)
+            ieqs = self.getIeqs(traces, inps)
+            dinvs.merge(ieqs)
+            #no need to do final check for ieqs
                 
-        logger.info("final check {} invs".format(dinvs.siz))
-        logger.detail(dinvs.__str__(printStat=True))
-        
-        #final tests
-        dinvs.resetStats()
-        _ = self.getInpsNoRange(dinvs, inps)
-        dinvs = dinvs.removeDisproved()
-
         logger.info("got {} invs\n{} (test {})"
                     .format(dinvs.siz, dinvs.__str__(printStat=True),
                             sage.all.randint(0,100)))
@@ -410,12 +428,8 @@ class DIG2(object):
 
         return newInps
                     
-    def getInpsRange(self, dinvs, inps, doSafe):
-        minv, maxv = IeqSolver.minV, IeqSolver.maxV, 
-        return self.getInps(dinvs, inps, minv, maxv, doSafe)
-
     def getInpsNoRange(self, dinvs, inps):
-        minv, maxv = IeqSolver.minV*10, IeqSolver.maxV*10, 
+        minv, maxv = -1*Trace.inpMaxV*10, Trace.inpMaxV*10, 
         return self.getInps(dinvs, inps, minv, maxv, doSafe=True)
                             
     def getTraces(self, inps):
@@ -435,13 +449,44 @@ class DIG2(object):
         traces = Trace.parse(self.tcsFile, self.invdecls)
         return traces
 
+    def check(self, dinvs, traces, inps, minv, maxv, doSafe):
+        """
+        Check invs.
+        Also update traces, inps
+        """
+        assert isinstance(dinvs, DInvs), dinvs
+        assert isinstance(inps, Inps), inps        
+        assert isinstance(doSafe, bool), doSafe
+        
+        logger.detail("checking {} invs:\n{}".format(
+            dinvs.siz, dinvs.__str__(printStat=True)))
+        newInps = self.getInps(dinvs, inps, minv, maxv, doSafe)
+        
+        if not newInps:
+            return DTraces()
+
+        newTraces = self.getTraces(newInps)
+        logger.debug("got {} traces from {} inps"
+                     .format(newTraces.siz, len(newInps)))
+        newTraces = newTraces.update(traces)
+        
+        return newTraces
+
+    def checkRange(self, dinvs, traces, inps, doSafe):
+        minv, maxv = -1*Trace.inpMaxV, Trace.inpMaxV,         
+        return self.check(dinvs, traces, inps, minv, maxv, doSafe)
+
+    def checkNoRange(self, dinvs, traces, inps):
+        minv, maxv = -1*Trace.inpMaxV*10, Trace.inpMaxV*10, 
+        return self.check(dinvs, traces, inps, minv, maxv, doSafe=True)
+
     def checkReach(self):
         #check for reachability using inv False (0)
         dinvs = DInvs.mkFalses(self.invdecls)        
         inps = Inps()
 
         #use some initial inps first
-        rinps = miscs.genInitInps(len(self.inpdecls), IeqSolver.maxV)
+        rinps = miscs.genInitInps(len(self.inpdecls), Trace.inpMaxV)
         for inp in rinps: inps.add(Inp(inp))
         traces = self.getTraces(inps)
         unreachLocs = [loc for loc in dinvs if loc not in traces]
@@ -449,10 +494,9 @@ class DIG2(object):
             logger.debug("use RT to generate traces for {}".format(
                 ','.join(map(str, unreachLocs))))
             unreachInvs = DInvs.mkFalses(unreachLocs)
-            unreachTraces = self.checkInvs(unreachInvs, inps, doSafe=True)
-            unreachTraces.update(traces)
-
-            
+            _ = self.checkRange(
+                unreachInvs, traces, inps, doSafe=True)
+            #unreachTraces.update(traces)
 
         #remove FALSE invs indicating unreached locs
         for loc in traces:
@@ -460,24 +504,9 @@ class DIG2(object):
             dinvs[loc].clear()
 
         return dinvs, traces, inps
-        
-    def checkInvs(self, dinvs, inps, doSafe):
-        assert isinstance(dinvs, DInvs), dinvs
-        assert isinstance(inps, Inps), inps        
 
-        logger.detail("checking {} invs:\n{}".format(
-            dinvs.siz, dinvs.__str__(printStat=True)))
-        newInps = self.getInpsRange(dinvs, inps, doSafe)
-        
-        if not newInps:
-            return DTraces()
-        else:
-            newDTraces = self.getTraces(newInps)
-            logger.debug("got {} traces from {} inps"
-                         .format(newDTraces.siz, len(newInps)))
-            return newDTraces
 
-    def approx(self, deg, traces, inps):
+    def getEqts(self, deg, traces, inps):
         """iterative refinment algorithm"""
         
         assert deg >= 1, deg
@@ -510,8 +539,8 @@ class DIG2(object):
                              .format(len(locsMoreTraces),
                                      ",".join(map(str, locsMoreTraces))))
                 dinvsFalse = DInvs.mkFalses(locsMoreTraces)
-                traces_ = self.checkInvs(dinvsFalse, inps, doSafe=False)
-                newTraces = traces_.update(traces)
+                newTraces = self.checkRange(dinvsFalse, traces, inps, doSafe=False)
+                #newTraces = traces_.update(traces)
                 locs = newTraces.keys()
                 continue
 
@@ -526,8 +555,8 @@ class DIG2(object):
                 logger.debug("no new invs")
                 break
 
-            traces_ = self.checkInvs(dinvs, inps, doSafe=False)
-            newTraces = traces_.update(traces)
+            newTraces = self.checkRange(dinvs, traces, inps, doSafe=False)
+            #newTraces = traces_.update(traces)
             locs = newTraces.keys()
             
         return dinvs
@@ -552,9 +581,9 @@ class DIG2(object):
                 #cache ?
                 traces_ = (dict(zip(self.invdecls[loc], tracevals))
                            for tracevals in traces[loc])
-                solver = EqtSolver(traces_)
-                invs = solver.solve(terms_)
-                invs = EqtSolver.refine(invs)
+                esolver = solver.EqtSolver(traces_)
+                invs = esolver.solve(terms_)
+                invs = solver.EqtSolver.refine(invs)
                 for inv in invs:
                     dinvs.add(loc, Inv(inv))
                     
@@ -566,79 +595,136 @@ class DIG2(object):
 
 
     #Ieqs
-    def guessCheck(self, term, etraces, minV, maxV, oMinV, oMaxV):
+    def guessCheck(self, loc, term, traces, inps, minV, maxV, ubMinV, ubMaxV, proved):
         assert minV <= maxV, (minV, maxV)
-        assert oMinV < oMaxV, (oMinV, oMaxV)
-        assert isinstance(etraces, set), etraces
+        assert ubMinV < ubMaxV, (ubMinV, ubMaxV)
+        assert isinstance(traces, DTraces), traces
+
+        #print 'enter', term, minV, maxV, ubMinV, ubMaxV
         
         if minV == maxV:
             return maxV
         elif maxV - minV == 1:
+            #print 'final rt {}'.format(inv)
+            if minV in proved:
+                return minV
             inv = Inv(term <= minV)
-            print 'final rt {}'.format(inv)
-            disproved = self.checkRT(Invs.mk(inv), set(),
-                                     oMinV, oMaxV, quickbreak=True)
-            return maxV if disproved else minV
+            inv_ = DInvs.mk(loc, Invs.mk([inv]))
+            cexs = self.check(inv_, traces, inps, ubMinV, ubMaxV, doSafe=True)
+            if loc in cexs:
+                assert cexs[loc]
+                # print self.invdecls[loc]
+                # print cexs[loc].__str__(True)
+                return maxV
+            else:
+                assert len(inv_[loc]) == 1
+                if list(inv_[loc])[0].isProved:
+                    print 'added {} to proved1'.format(minV)
+                    proved.add(minV)
+                    
+                return minV
+
+            
             
         v = sage.all.ceil((maxV + minV)/2.0)
         inv = Inv(term <= v)
         #print 'rt {}'.format(inv)
-        traces = self.check(Invs.mk(inv), set(), oMinV, oMaxV, dorandom=False)
-        print term, minV, maxV, 'checking ', inv
-        if traces: #disproved
-            minV = max(term.subs(tc._dict) for tc in traces)
-            for tc in traces: etraces.add(tc)
-            print 'disproved', minV
+        inv_ = DInvs.mk(loc, Invs.mk([inv]))
+        cexs = self.check(inv_, traces, inps, ubMinV, ubMaxV, doSafe=True)
+
+        if loc in cexs: #disproved
+            assert cexs[loc]
+            traces_ = (dict(zip(self.invdecls[loc], tracevals))
+                       for tracevals in cexs[loc])
+            minV = max(term.subs(tc) for tc in traces_)
+            #print 'disproved', minV
         else:
+            assert v not in proved, v
+            assert len(inv_[loc]) == 1
+            if list(inv_[loc])[0].isProved:
+                print 'added {} to proved'.format(v)
+                proved.add(v)
             maxV = v
-            print 'proved', maxV
-
-        return self.guessCheck(term, etraces, minV, maxV, oMinV, oMaxV)
-
-
-    def genOcts(self, einps, etraces):
-        logger.debug("generate octagonal invs")
-
-        mminV, mmaxV = self.minV + 1, self.maxV - 1
-        #octagonal invs        
-        solvercls = solver.OctSolver()
-        octTerms = solvercls.getTerms(self.ss)  #x,-x, x-y, -x+y, ..
-        # print octTerms
-        # CM.pause()
-        
-        octInvs = [Inv(ot <= mmaxV) for ot in octTerms]
+            #print 'proved', maxV
             
-        octD = dict(zip(octInvs, octTerms))
 
-        octInvs = Invs.mk(octInvs)
-        for oInv in octInvs:
-            print oInv
+        return self.guessCheck(loc, term, traces, inps, minV, maxV, ubMinV, ubMaxV, proved)
+
+
+    def getIeqsLoc(self, loc, traces, inps):
+        assert isinstance(traces, DTraces), traces
+        assert isinstance(inps, Inps), inps
+
+        mymaxv  = 10
+        
+        maxV = mymaxv - 1
+        minV = -1*maxV
+        
+        ubmaxV = mymaxv
+        ubminV = -1*ubmaxV
+
+        vs = [sage.all.var(k) for k in self.invdecls[loc]]
+        terms = solver.getTermsFixedCoefs(vs, 1)
+        octInvs = [Inv(t <= maxV) for t in terms]        
+        octD = OrderedDict(zip(octInvs, terms))
+
+        octInvs = DInvs.mk(loc, Invs.mk(octInvs))
+        _ = self.check(octInvs, traces, inps, ubminV, ubmaxV, doSafe=True)
+        print octInvs.siz
+        octInvs = octInvs.removeDisproved()
+        print octInvs.siz
+        print octInvs.__str__(True)
         CM.pause()
-        disproved = self.checkRT(octInvs, einps,
-                                 self.unboundMinV, self.unboundMaxV,
-                                 quickbreak=False)
-
-        print disproved
-        CM.pause("disproved")
-        octInvs.removeDisproved(disproved)
         invs = Invs()
-        for octInv in octInvs:
-            octTerm = octD[octInv]            
-            logger.detail("refine {} (compute upperbound for '{}')"
-                          .format(octInv, octTerm))
+        if not octInvs:  return invs #no nontrivial invs
 
-            mminV = max(octTerm.subs(tc._dict) for tc in etraces)
-            boundV = self.guessCheck(octTerm, etraces,
-                                     mminV, mmaxV,
-                                     self.unboundMinV, self.unboundMaxV)
-            inv = Inv(octTerm <= boundV)
-            print 'obtained', inv
-            invs.add(inv)
-            logger.detail("{}".format(inv))            
+        logger.debug("{}: infer ieqs for {} terms: '{}'".format(
+            loc, len(octInvs[loc]), ', '.join(map(str, octInvs[loc]))))
+
+        for octInv in octInvs[loc]:
+            octTerm = octD[octInv]
+
+            traces_ = (dict(zip(self.invdecls[loc], tracevals))
+                       for tracevals in traces[loc])
+            ts = [octTerm.subs(tc) for tc in traces_]
+            try:
+                mminV = max(t for t in ts if t < maxV)
+            except ValueError:
+                mminV = minV
+
+            logger.info("refine {} (compute ub for '{}', start w/ min {})"
+                        .format(octInv, octTerm, mminV))
+
+            #print mminV, maxV, ubminV, ubmaxV
+            proved = set()
+            if octInv.isProved: proved.add(maxV)
+            boundV = self.guessCheck(loc, octTerm, traces, inps, 
+                                     mminV, maxV, ubminV, ubmaxV, proved)
+            if boundV in proved:
+                inv = Inv(octTerm <= boundV)
+                invs.add(inv)
+                logger.detail("added {}".format(inv))            
 
         if invs:
-            logger.info("{} ieqs (rtCalls {})\n{}"
-                        .format(len(invs), self.rtCalls, invs))
-            
+            logger.info("{} ieqs \n{}".format(len(invs), invs))
+
         return invs
+
+        
+    def getIeqs(self, traces, inps):
+        Trace.filterTrace = False
+        
+        assert isinstance(traces, DTraces) and traces, traces                
+        assert isinstance(inps, Inps), inps
+
+        dinvs = DInvs()
+        locs = traces.keys()
+        
+        for loc in locs:
+            ieqs = self.getIeqsLoc(loc, traces, inps)
+            dinvs[loc] = ieqs
+
+        return dinvs
+        
+            
     

@@ -25,7 +25,7 @@ def getTermsFixedCoefs(ss, subsetSiz):
     if len(ss) < subsetSiz: subsetSiz = len(ss)
     rs = []
     for ssSubset in itertools.combinations(ss, subsetSiz):
-        css = itertools.product(*([[-1, 0, 1]] * len(ssSubset)))
+        css = itertools.product(*([[0, -1, 1]] * len(ssSubset)))
         r = (sum(c*t for c,t in zip(ssSubset, cs))
              for cs in css if not all(c == 0 for c in cs))
         rs.extend(r)
@@ -132,80 +132,80 @@ class EqtSolver(Solver):
         sols = [s for s in sols if all(abs(c) <= 100 for c in getCoefs(s))]
         return sols
 
-class IeqSolver(Solver):
-    """
-    sage: var('x y z')
-    (x, y, z)
-    sage: traces = tcs=[{x:2,y:-8,z:-7}, {x:0,y:-15,z:88}, {x:15,y:5,z:0}]
-    sage: RangeSolver(traces).solve([x, y])
-    [-x + 15 >= 0, x >= 0, -y + 5 >= 0, y + 15 >= 0]
+# class IeqSolver(Solver):
+#     """
+#     sage: var('x y z')
+#     (x, y, z)
+#     sage: traces = tcs=[{x:2,y:-8,z:-7}, {x:0,y:-15,z:88}, {x:15,y:5,z:0}]
+#     sage: RangeSolver(traces).solve([x, y])
+#     [-x + 15 >= 0, x >= 0, -y + 5 >= 0, y + 15 >= 0]
 
-    sage: OctSolver(traces).solve([x, y, z])
-    [-x - y + 20 >= 0, -x + 15 >= 0, -x + y + 15 >= 0, -y + 5 >= 0,
-    y + 15 >= 0, x - y - 10 >= 0, x >= 0, x + y + 15 >= 0,
-    -x - z + 88 >= 0, -x + z + 15 >= 0,  -z + 88 >= 0, z + 7 >= 0,
-    x - z + 88 >= 0,  x + z + 5 >= 0, -y - z + 73 >= 0, -y + z + 5 >= 0,
-    y - z + 103 >= 0,  y + z + 15 >= 0]
+#     sage: OctSolver(traces).solve([x, y, z])
+#     [-x - y + 20 >= 0, -x + 15 >= 0, -x + y + 15 >= 0, -y + 5 >= 0,
+#     y + 15 >= 0, x - y - 10 >= 0, x >= 0, x + y + 15 >= 0,
+#     -x - z + 88 >= 0, -x + z + 15 >= 0,  -z + 88 >= 0, z + 7 >= 0,
+#     x - z + 88 >= 0,  x + z + 5 >= 0, -y - z + 73 >= 0, -y + z + 5 >= 0,
+#     y - z + 103 >= 0,  y + z + 15 >= 0]
 
-    sage: assert len(IeqSolver(traces).solve([x, y, z], subsetSiz=None)) == 26
-    """
+#     sage: assert len(IeqSolver(traces).solve([x, y, z], subsetSiz=None)) == 26
+#     """
 
-    minV = -1000
-    maxV =  1000
+#     minV = -1000
+#     maxV =  1000
 
-    def __init__(self, traces):
-        super(IeqSolver, self).__init__(traces)
+#     def __init__(self, traces):
+#         super(IeqSolver, self).__init__(traces)
         
-    def solve(self, terms, subsetSiz):
-        return self._solve(terms, self.traces, subsetSiz)
+#     def solve(self, terms, subsetSiz):
+#         return self._solve(terms, self.traces, subsetSiz)
     
-    def solveWeak(self, terms, subsetSiz):
-        return self._solveWeak(terms, subsetSiz)
+#     def solveWeak(self, terms, subsetSiz):
+#         return self._solveWeak(terms, subsetSiz)
     
-    @classmethod
-    def _solve(cls, terms, traces, subsetSiz):
-        if isIterator(traces):
-            traces = list(traces)
+#     @classmethod
+#     def _solve(cls, terms, traces, subsetSiz):
+#         if isIterator(traces):
+#             traces = list(traces)
         
-        terms = cls.getTermsFixedCoefs(terms, subsetSiz)
-        rs = []
-        for t in terms:
-            minTraceV = min(t.subs(trace) for trace in traces)
-            if minTraceV > cls.minV:
-                term = t - minTraceV >= 0
-                rs.append(term)
-        return rs
+#         terms = cls.getTermsFixedCoefs(terms, subsetSiz)
+#         rs = []
+#         for t in terms:
+#             minTraceV = min(t.subs(trace) for trace in traces)
+#             if minTraceV > cls.minV:
+#                 term = t - minTraceV >= 0
+#                 rs.append(term)
+#         return rs
 
-    @classmethod
-    def _solveWeak(cls, terms, subsetSiz):
-        """
-        Return very weak but likely true invs
-        """
-        terms = cls.getTermsFixedCoefs(terms, subsetSiz)
-        return [t - (cls.minV+1) >= 0 for t in terms]
+#     @classmethod
+#     def _solveWeak(cls, terms, subsetSiz):
+#         """
+#         Return very weak but likely true invs
+#         """
+#         terms = cls.getTermsFixedCoefs(terms, subsetSiz)
+#         return [t - (cls.minV+1) >= 0 for t in terms]
     
-    @classmethod
-    def refine(cls, sols): return sols
+#     @classmethod
+#     def refine(cls, sols): return sols
 
-    @classmethod
-    def getTermsFixedCoefs(cls, terms, subsetSiz):
-        terms = [t for t in terms if t != 1]
-        if not subsetSiz: subsetSiz = len(terms)
-        terms = getTermsFixedCoefs(terms, subsetSiz)
-        return terms
+#     @classmethod
+#     def getTermsFixedCoefs(cls, terms, subsetSiz):
+#         terms = [t for t in terms if t != 1]
+#         if not subsetSiz: subsetSiz = len(terms)
+#         terms = getTermsFixedCoefs(terms, subsetSiz)
+#         return terms
 
-class RangeSolver(IeqSolver):
-    def solve(self, terms):
-        return super(RangeSolver,self).solve(terms, subsetSiz=1)
+# class RangeSolver(IeqSolver):
+#     def solve(self, terms):
+#         return super(RangeSolver,self).solve(terms, subsetSiz=1)
     
-    def solveWeak(self, terms):
-        return super(RangeSolver,self).solveWeak(terms, subsetSiz=1)
+#     def solveWeak(self, terms):
+#         return super(RangeSolver,self).solveWeak(terms, subsetSiz=1)
     
-class OctSolver(IeqSolver):
-    def solve(self, terms):
-        return super(OctSolver,self).solve(terms, subsetSiz=2)
-    def solveWeak(self, terms):
-        return super(OctSolver,self).solveWeak(terms, subsetSiz=2)
+# class OctSolver(IeqSolver):
+#     def solve(self, terms):
+#         return super(OctSolver,self).solve(terms, subsetSiz=2)
+#     def solveWeak(self, terms):
+#         return super(OctSolver,self).solveWeak(terms, subsetSiz=2)
 
 class Template(object):
     def __init__(self, template):
