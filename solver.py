@@ -13,7 +13,6 @@ logger.level = settings.logger_level
 
 import miscs
 
-isIterator = lambda it: isinstance(it, collections.Iterator)
 def getTermsFixedCoefs(ss, subsetSiz):
     """
     sage: var('x y z t s u')
@@ -74,21 +73,22 @@ def getCoefs(p):
 class Solver(object):
     __metaclass__ = abc.ABCMeta
     def __init__(self, traces):
-        assert isIterator(traces) or traces, traces
+        assert isinstance(traces, collections.Iterator) or traces, traces
         self.traces = traces
 
     @abc.abstractmethod
-    def solve(self): return
+    def solve(self, terms, traces): return
 
 class EqtSolver(Solver):
-    RATE = 1.7  # RATE * terms
-    def __init__(self, traces):
-        super(EqtSolver, self).__init__(traces)
+    RATE = 1.7  #RATE * terms = number of traces
+    
+    def __init__(self):
+        pass
 
-    def solve(self, terms): return self._solve(terms, self.traces)
-
-    @classmethod
-    def _solve(cls, terms, traces):
+    def solve1(self, termIdxss, traces):
+        pass
+    
+    def solve(self, terms, traces, xtraces=None):
         """
         sage: var('x y')
         (x, y)
@@ -101,27 +101,35 @@ class EqtSolver(Solver):
         ...
         NotEnoughTraces: cannot solve 6 unknowns with only 2 eqts
         """
-        template, coefVars = Template.mk(terms, 0, retCoefVars=True)
-        assert len(terms) == len(coefVars), (terms, coefVars)
+        assert isinstance(terms, list) and terms, terms
+        
+        template, uks = Template.mk(terms, 0, retCoefVars=True)
+        assert len(terms) == len(uks), (terms, uks)
 
         minEqts = int(round(len(terms) * EqtSolver.RATE))
-        traces = list(traces)
-        eqts = list(template.instantiateTraces(traces, minEqts))
+        eqts = template.instantiateTraces(traces, minEqts)
+        if xtraces:
+            eqts_ = template.instantiateTraces(xtraces, nTraces=None)
+            for eqt in eqts_: eqts.add(eqt)
+        
         if  len(eqts) < minEqts:
             raise miscs.NotEnoughTraces(
                 "need more traces ({} unknowns, {} eqts, request {} eqts)"
                 .format(len(terms), len(eqts), minEqts))
-        
-        try:
-            logger.debug("solving {} unknowns using {} eqts"
-                         .format(len(coefVars), len(eqts)))
 
-            sols = sage.all.solve(eqts, coefVars, solution_dict=True)
-            sols = template.instantiateSols(sols)
-            return sols
+        sols = self._solveEqts(list(eqts), uks)
+        sols = template.instantiateSols(sols)
+        return sols
+        
+    @classmethod
+    def _solveEqts(cls, eqts, uks):
+        try:
+            logger.debug("solving {} unknowns using {} eqts".format(len(uks), len(eqts)))
+            return sage.all.solve(eqts, uks, solution_dict=True)
         except Exception as ex:
-            logger.warn(str(ex))
+            logger.error(str(ex))
             return []
+        
 
     @classmethod
     def refine(cls, sols):
@@ -132,80 +140,6 @@ class EqtSolver(Solver):
         sols = [s for s in sols if all(abs(c) <= 100 for c in getCoefs(s))]
         return sols
 
-# class IeqSolver(Solver):
-#     """
-#     sage: var('x y z')
-#     (x, y, z)
-#     sage: traces = tcs=[{x:2,y:-8,z:-7}, {x:0,y:-15,z:88}, {x:15,y:5,z:0}]
-#     sage: RangeSolver(traces).solve([x, y])
-#     [-x + 15 >= 0, x >= 0, -y + 5 >= 0, y + 15 >= 0]
-
-#     sage: OctSolver(traces).solve([x, y, z])
-#     [-x - y + 20 >= 0, -x + 15 >= 0, -x + y + 15 >= 0, -y + 5 >= 0,
-#     y + 15 >= 0, x - y - 10 >= 0, x >= 0, x + y + 15 >= 0,
-#     -x - z + 88 >= 0, -x + z + 15 >= 0,  -z + 88 >= 0, z + 7 >= 0,
-#     x - z + 88 >= 0,  x + z + 5 >= 0, -y - z + 73 >= 0, -y + z + 5 >= 0,
-#     y - z + 103 >= 0,  y + z + 15 >= 0]
-
-#     sage: assert len(IeqSolver(traces).solve([x, y, z], subsetSiz=None)) == 26
-#     """
-
-#     minV = -1000
-#     maxV =  1000
-
-#     def __init__(self, traces):
-#         super(IeqSolver, self).__init__(traces)
-        
-#     def solve(self, terms, subsetSiz):
-#         return self._solve(terms, self.traces, subsetSiz)
-    
-#     def solveWeak(self, terms, subsetSiz):
-#         return self._solveWeak(terms, subsetSiz)
-    
-#     @classmethod
-#     def _solve(cls, terms, traces, subsetSiz):
-#         if isIterator(traces):
-#             traces = list(traces)
-        
-#         terms = cls.getTermsFixedCoefs(terms, subsetSiz)
-#         rs = []
-#         for t in terms:
-#             minTraceV = min(t.subs(trace) for trace in traces)
-#             if minTraceV > cls.minV:
-#                 term = t - minTraceV >= 0
-#                 rs.append(term)
-#         return rs
-
-#     @classmethod
-#     def _solveWeak(cls, terms, subsetSiz):
-#         """
-#         Return very weak but likely true invs
-#         """
-#         terms = cls.getTermsFixedCoefs(terms, subsetSiz)
-#         return [t - (cls.minV+1) >= 0 for t in terms]
-    
-#     @classmethod
-#     def refine(cls, sols): return sols
-
-#     @classmethod
-#     def getTermsFixedCoefs(cls, terms, subsetSiz):
-#         terms = [t for t in terms if t != 1]
-#         if not subsetSiz: subsetSiz = len(terms)
-#         terms = getTermsFixedCoefs(terms, subsetSiz)
-#         return terms
-
-# class RangeSolver(IeqSolver):
-#     def solve(self, terms):
-#         return super(RangeSolver,self).solve(terms, subsetSiz=1)
-    
-#     def solveWeak(self, terms):
-#         return super(RangeSolver,self).solveWeak(terms, subsetSiz=1)
-    
-# class OctSolver(IeqSolver):
-#     def solve(self, terms):
-#         return super(OctSolver,self).solve(terms, subsetSiz=2)
-#     def solveWeak(self, terms):
-#         return super(OctSolver,self).solveWeak(terms, subsetSiz=2)
 
 class Template(object):
     def __init__(self, template):
@@ -232,7 +166,7 @@ class Template(object):
         uk_0 + 97*uk_1 + 30*uk_2 + 10*uk_3 + 22*uk_4 == 0,\
         uk_0 + 130*uk_1 + 41*uk_2 + 13*uk_3 + 28*uk_4 == 0}
         """
-        assert (traces and (isIterator(traces) or
+        assert (traces and (isinstance(traces, collections.Iterator) or
                             all(isinstance(t, dict) for t in traces))), traces
         assert nTraces is None or nTraces >= 1, nTraces
 
@@ -339,17 +273,17 @@ class Template(object):
         """
 
         if not prefix: prefix = "uk_"
-        coefVars = [sage.all.var(prefix + str(i)) for i in range(len(terms))]
+        uks = [sage.all.var(prefix + str(i)) for i in range(len(terms))]
 
-        assert not set(terms).intersection(set(coefVars)), 'name conflict'
+        assert not set(terms).intersection(set(uks)), 'name conflict'
 
-        template = sum(map(sage.all.prod, zip(coefVars, terms)))
+        template = sum(map(sage.all.prod, zip(uks, terms)))
 
         if rhsVal is not None:  #note, not None because rhsVal can be 0
             template = op(template, rhsVal)
 
         template = cls(template)
         if retCoefVars:
-            return template, coefVars
+            return template, uks
         else:
             return template

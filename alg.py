@@ -34,7 +34,6 @@ class Inps(set):
         
 #Traces
 class Trace(tuple):
-    ieqMaxV = 100000
     valMaxV = 10000
     inpMaxV = 1000
 
@@ -48,12 +47,11 @@ class Trace(tuple):
             return True
     
     @classmethod
-    def parse(cls, tracefile, invdecls):
+    def parse(cls, tracefile):
         """
         parse trace for new traces
         """
         assert isinstance(tracefile, str), tracefile        
-        assert isinstance(invdecls, dict) and invdecls, invdecls
 
         traces = DTraces()
         for l in CM.iread_strip(tracefile):
@@ -61,8 +59,6 @@ class Trace(tuple):
             parts = l.split(':')
             assert len(parts) == 2
             lineno = parts[0].strip()  #l22
-            assert lineno in invdecls, (lineno, invdecls)
-
             tracevals = parts[1].strip().split()
             tracevals = cls(map(miscs.ratOfStr, tracevals))
             traces.add(lineno, tracevals)
@@ -121,6 +117,16 @@ class DTraces(dict):
     def __str__(self, printDetails=False):
         return "\n".join("{}: {}".format(loc, traces.__str__(printDetails))
                          for loc, traces in self.iteritems())
+
+    # def getCexs(self, dinvs):
+    #     """
+    #     Return traces that violate these invariants
+    #     """
+    #     cexs = DTraces()
+    #     for loc in self:
+    #         invs = dinvs[loc]
+
+    #     return cexs
     
     
 class Inv(object):
@@ -378,7 +384,7 @@ class DIG2(object):
                                  for vname, vtyp in self.inpdecls.iteritems())
         else:
             inps_d = None
-        
+
         newInps = Inps()
         if doSafe:
             #prove individually
@@ -446,7 +452,9 @@ class DIG2(object):
             logger.detail(cmd)
             CM.vcmd(cmd)
 
-        traces = Trace.parse(self.tcsFile, self.invdecls)
+        traces = Trace.parse(self.tcsFile)
+        assert all(loc in self.invdecls for loc in traces), traces.keys()
+
         return traces
 
     def check(self, dinvs, traces, inps, minv, maxv, doSafe):
@@ -469,7 +477,6 @@ class DIG2(object):
         logger.debug("got {} traces from {} inps"
                      .format(newTraces.siz, len(newInps)))
         newTraces = newTraces.update(traces)
-        
         return newTraces
 
     def checkRange(self, dinvs, traces, inps, doSafe):
@@ -494,9 +501,7 @@ class DIG2(object):
             logger.debug("use RT to generate traces for {}".format(
                 ','.join(map(str, unreachLocs))))
             unreachInvs = DInvs.mkFalses(unreachLocs)
-            _ = self.checkRange(
-                unreachInvs, traces, inps, doSafe=True)
-            #unreachTraces.update(traces)
+            _ = self.checkRange(unreachInvs, traces, inps, doSafe=True)
 
         #remove FALSE invs indicating unreached locs
         for loc in traces:
@@ -504,7 +509,6 @@ class DIG2(object):
             dinvs[loc].clear()
 
         return dinvs, traces, inps
-
 
     def getEqts(self, deg, traces, inps):
         """iterative refinment algorithm"""
@@ -514,10 +518,13 @@ class DIG2(object):
         assert isinstance(inps, Inps), inps
 
         dinvs = DInvs()
+        xtraces = DTraces()
         locs = traces.keys()
         vss = dict((loc, [sage.all.var(k) for k in self.invdecls[loc]])
                    for loc in locs)
         terms = dict((loc, miscs.getTerms(vss[loc], deg)) for loc in vss)
+        termIdxss = dict((loc, miscs.getTermIdxss(len(vss[loc]), deg))
+                          for loc in vss)
         
         curIter = 0
         while True:
@@ -525,7 +532,7 @@ class DIG2(object):
                 logger.debug("no new traces")
                 break
 
-            dinvs_, locsMoreTraces = self.inferEqts(deg, locs, terms, traces)
+            dinvs_, locsMoreTraces = self.inferEqts(deg, locs, terms, termIdxss, traces, xtraces)
             deltas = dinvs_.update(dinvs)
             
             curIter += 1
@@ -540,7 +547,6 @@ class DIG2(object):
                                      ",".join(map(str, locsMoreTraces))))
                 dinvsFalse = DInvs.mkFalses(locsMoreTraces)
                 newTraces = self.checkRange(dinvsFalse, traces, inps, doSafe=False)
-                #newTraces = traces_.update(traces)
                 locs = newTraces.keys()
                 continue
 
@@ -556,14 +562,14 @@ class DIG2(object):
                 break
 
             newTraces = self.checkRange(dinvs, traces, inps, doSafe=False)
-            #newTraces = traces_.update(traces)
+            _ = newTraces.update(xtraces)
+            
             locs = newTraces.keys()
             
         return dinvs
 
-
     #Eqts
-    def inferEqts(self, deg, locs, terms, traces):
+    def inferEqts(self, deg, locs, terms, termIdxss, traces, xtraces):
         """
         call DIG's algorithm to infer eqts from traces
         """
@@ -575,17 +581,25 @@ class DIG2(object):
         for loc in locs:
             assert traces[loc], loc
             terms_ = terms[loc]
+            termIdxss_ = termIdxss[loc]
+            
             logger.debug("loc {}, terms {}, deg {}, traces {}".format(
                 loc, len(terms_), deg, len(traces[loc])))
             try:
+                esolver = solver.EqtSolver()
+                invs0 = esolver.solve1(termIdxss_, traces[loc])
+                
                 #cache ?
                 traces_ = (dict(zip(self.invdecls[loc], tracevals))
                            for tracevals in traces[loc])
-                esolver = solver.EqtSolver(traces_)
-                invs = esolver.solve(terms_)
-                invs = solver.EqtSolver.refine(invs)
-                for inv in invs:
-                    dinvs.add(loc, Inv(inv))
+
+                xtraces_ = None
+                if loc in xtraces:
+                    xtraces_ = (dict(zip(self.invdecls[loc], tracevals))
+                                for tracevals in xtraces[loc])
+                invs = esolver.solve(terms_, traces_, xtraces_)
+                invs = esolver.refine(invs)
+                for inv in invs: dinvs.add(loc, Inv(inv))
                     
             except miscs.NotEnoughTraces as ex:
                 logger.info("loc {}: {}".format(loc, ex))         
@@ -726,5 +740,3 @@ class DIG2(object):
 
         return dinvs
         
-            
-    

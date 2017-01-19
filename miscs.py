@@ -176,3 +176,14 @@ def genInitInps(nInps,maxV):
     a3 = (p75, maxV)
     ranges = [a1,a3]
     return gen(nInps, ranges)
+
+
+def getTermIdxss(ns, deg):
+    assert ns >= 0, ns
+    assert deg >= 1, deg
+
+    ss = [None] + range(ns)
+    combs = itertools.combinations_with_replacement(ss, deg)
+    combs = [[idx for idx in idxs if idx is not None] for idxs in combs]
+    combs = [tuple(idxs) for idxs in combs if idxs]
+    return combs
