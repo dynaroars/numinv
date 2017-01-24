@@ -225,8 +225,6 @@ class DInvs(dict):
         
     def merge(self, invs):
         assert isinstance(invs, DInvs), invs
-        mergedInvs = DInvs()
-        
         for loc in invs:
             for inv in invs[loc]:
                 if not inv.isDisproved: 
@@ -340,13 +338,14 @@ class DIG2(object):
             logger.info("infer eqts at {}".format(_f(traces.keys())))
             eqts = self.getEqts(deg, traces, inps)
             dinvs.merge(eqts)
-            
-            logger.info("final check {} invs".format(dinvs.siz))
-            logger.detail(dinvs.__str__(printStat=True))
-            #final tests
-            dinvs.resetStats()
-            _ = self.getInpsNoRange(dinvs, inps)
-            dinvs = dinvs.removeDisproved()
+
+            #final check
+            # logger.info("final check {} invs".format(dinvs.siz))
+            # logger.detail(dinvs.__str__(printStat=True))
+            # #final tests
+            # dinvs.resetStats()
+            # _ = self.getInpsNoRange(dinvs, inps)
+            # dinvs = dinvs.removeDisproved()
 
         if doIeqs:
             logger.info("infer ieqs at {}".format(_f(traces.keys())))
@@ -609,60 +608,49 @@ class DIG2(object):
 
 
     #Ieqs
-    def guessCheck(self, loc, term, traces, inps, minV, maxV, ubMinV, ubMaxV, proved):
+    def guessCheck(self, loc, term, traces, inps, minV, maxV, ubMinV, ubMaxV, disproves):
         assert minV <= maxV, (minV, maxV)
         assert ubMinV < ubMaxV, (ubMinV, ubMaxV)
         assert isinstance(traces, DTraces), traces
+        assert isinstance(disproves, set), disproveds
 
-        #print 'enter', term, minV, maxV, ubMinV, ubMaxV
+        #print term, minV, maxV
         
-        if minV == maxV:
-            return maxV
+        if minV == maxV: return maxV
         elif maxV - minV == 1:
-            #print 'final rt {}'.format(inv)
-            if minV in proved:
-                return minV
+            if minV in disproves:
+                return maxV
             inv = Inv(term <= minV)
             inv_ = DInvs.mk(loc, Invs.mk([inv]))
             cexs = self.check(inv_, traces, inps, ubMinV, ubMaxV, doSafe=True)
             if loc in cexs:
                 assert cexs[loc]
-                # print self.invdecls[loc]
-                # print cexs[loc].__str__(True)
+                disproves.add(minV)
                 return maxV
             else:
-                assert len(inv_[loc]) == 1
-                if list(inv_[loc])[0].isProved:
-                    print 'added {} to proved1'.format(minV)
-                    proved.add(minV)
-                    
+                # assert len(inv_[loc]) == 1
+                # if list(inv_[loc])[0].isProved: proved.add(minV)
                 return minV
 
-            
-            
         v = sage.all.ceil((maxV + minV)/2.0)
         inv = Inv(term <= v)
-        #print 'rt {}'.format(inv)
         inv_ = DInvs.mk(loc, Invs.mk([inv]))
         cexs = self.check(inv_, traces, inps, ubMinV, ubMaxV, doSafe=True)
 
         if loc in cexs: #disproved
             assert cexs[loc]
+            disproves.add(v)
             traces_ = (dict(zip(self.invdecls[loc], tracevals))
                        for tracevals in cexs[loc])
             minV = max(term.subs(tc) for tc in traces_)
-            #print 'disproved', minV
         else:
-            assert v not in proved, v
-            assert len(inv_[loc]) == 1
-            if list(inv_[loc])[0].isProved:
-                print 'added {} to proved'.format(v)
-                proved.add(v)
+            # assert v not in proved, v
+            # assert len(inv_[loc]) == 1
+            # if list(inv_[loc])[0].isProved: proved.add(v)
             maxV = v
-            #print 'proved', maxV
             
 
-        return self.guessCheck(loc, term, traces, inps, minV, maxV, ubMinV, ubMaxV, proved)
+        return self.guessCheck(loc, term, traces, inps, minV, maxV, ubMinV, ubMaxV, disproves)
 
 
     def getIeqsLoc(self, loc, traces, inps):
@@ -671,56 +659,60 @@ class DIG2(object):
 
         mymaxv  = 10
         
-        maxV = mymaxv - 1
+        maxV = mymaxv
         minV = -1*maxV
         
-        ubmaxV = mymaxv
+        ubmaxV = maxV+10
         ubminV = -1*ubmaxV
+        # ubmaxV = Trace.valMaxV
+        # ubminV = -1*ubmaxV
 
         vs = [sage.all.var(k) for k in self.invdecls[loc]]
         terms = solver.getTermsFixedCoefs(vs, 1)
-        octInvs = [Inv(t <= maxV) for t in terms]        
+        #terms = [t for t in terms if "-" in str(t)]
+        print terms
+        print maxV,minV,ubmaxV,ubminV
+        #CM.pause()
+        
+        octInvs = [Inv(t <= maxV) for t in terms]
         octD = OrderedDict(zip(octInvs, terms))
 
         octInvs = DInvs.mk(loc, Invs.mk(octInvs))
         _ = self.check(octInvs, traces, inps, ubminV, ubmaxV, doSafe=True)
-        print octInvs.siz
         octInvs = octInvs.removeDisproved()
-        print octInvs.siz
-        print octInvs.__str__(True)
-        CM.pause()
+
         invs = Invs()
         if not octInvs:  return invs #no nontrivial invs
 
-        logger.debug("{}: infer ieqs for {} terms: '{}'".format(
+        logger.info("{}: infer ieqs for {} terms: '{}'".format(
             loc, len(octInvs[loc]), ', '.join(map(str, octInvs[loc]))))
 
-        for octInv in octInvs[loc]:
-            octTerm = octD[octInv]
 
+        for octInv in octInvs[loc]:
             traces_ = (dict(zip(self.invdecls[loc], tracevals))
                        for tracevals in traces[loc])
+            octTerm = octD[octInv]
             ts = [octTerm.subs(tc) for tc in traces_]
             try:
                 mminV = max(t for t in ts if t < maxV)
+                mminV = max(mminV, minV)
             except ValueError:
                 mminV = minV
 
-            logger.info("refine {} (compute ub for '{}', start w/ min {})"
-                        .format(octInv, octTerm, mminV))
+            logger.info("refine {} (compute ub for '{}', start w/ min {}, maxV {})"
+                        .format(octInv, octTerm, mminV, maxV))
 
-            #print mminV, maxV, ubminV, ubmaxV
-            proved = set()
-            if octInv.isProved: proved.add(maxV)
+            disproves = set()
+            #if octInv.isProved: proved.add(maxV)
             boundV = self.guessCheck(loc, octTerm, traces, inps, 
-                                     mminV, maxV, ubminV, ubmaxV, proved)
-            if boundV in proved:
+                                     mminV, maxV, ubminV, ubmaxV, disproves)
+            if boundV not in disproves and boundV not in {maxV, minV}:
                 inv = Inv(octTerm <= boundV)
+                logger.debug("got {}".format(inv))
                 invs.add(inv)
-                logger.detail("added {}".format(inv))            
 
         if invs:
-            logger.info("{} ieqs \n{}".format(len(invs), invs))
+            logger.info("{}: {} ieqs \n{}".format(loc, len(invs), invs))
 
         return invs
 
