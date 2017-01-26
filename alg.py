@@ -351,7 +351,6 @@ class DIG2(object):
             logger.info("infer ieqs at {}".format(_f(traces.keys())))
             ieqs = self.getIeqs(traces, inps)
             dinvs.merge(ieqs)
-            #no need to do final check for ieqs
                 
         logger.info("got {} invs\n{} (test {})"
                     .format(dinvs.siz, dinvs.__str__(printStat=True),
@@ -650,8 +649,9 @@ class DIG2(object):
             maxV = v
             
 
-        return self.guessCheck(loc, term, traces, inps, minV, maxV, ubMinV, ubMaxV, disproves)
-
+        return self.guessCheck(loc, term, traces, inps,
+                               minV, maxV, ubMinV, ubMaxV,
+                               disproves)
 
     def getIeqsLoc(self, loc, traces, inps):
         assert isinstance(traces, DTraces), traces

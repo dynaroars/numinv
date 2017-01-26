@@ -9,7 +9,10 @@ import shutil
 import vu_common as CM
 import settings
 logger = CM.VLog('klee')
-logger.level = settings.logger_level
+if settings.logger_level > 0:
+    logger.level = settings.logger_level - 1
+else:
+    logger.level = settings.logger_level
 
 class KLEE(object):
 
