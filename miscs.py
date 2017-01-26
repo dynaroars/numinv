@@ -157,6 +157,20 @@ def getDeg(nvs, nts, max_deg=7):
         if nterms > nts:
             return d
 
+def getAutoDeg(maxdeg, maxterm, nvars):
+    if maxdeg and maxterm:
+        deg = maxdeg
+    elif maxdeg:
+        deg = maxdeg
+    else:
+        if maxterm:
+            deg = getDeg(len(maxvars), maxterm)
+        else:
+            deg = getDeg(len(maxvars), 200)
+            logger.debug("autodeg {}".format(deg))
+
+    return deg
+    
 
 def genInitInps(nInps,maxV):    
     #15,75=   0...15, 15..75, 75..100
