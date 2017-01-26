@@ -4,7 +4,7 @@ import random
 import vu_common as CM
 
 import settings
-logger = CM.VLog('alg')
+logger = CM.VLog('miscs')
 logger.level = settings.logger_level  
 
 #Exceptions
@@ -164,10 +164,10 @@ def getAutoDeg(maxdeg, maxterm, nvars):
         deg = maxdeg
     else:
         if maxterm:
-            deg = getDeg(len(maxvars), maxterm)
+            deg = getDeg(nvars, maxterm)
         else:
-            deg = getDeg(len(maxvars), 200)
-            logger.debug("autodeg {}".format(deg))
+            deg = getDeg(nvars, 200)
+            logger.info("autodeg {}".format(deg))
 
     return deg
     
