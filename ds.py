@@ -207,26 +207,45 @@ class DInvs(dict):
             for inv in self[loc]:
                 inv.resetStat()
         
-    def merge(self, invs):
-        assert isinstance(invs, DInvs), invs
-        for loc in invs:
-            for inv in invs[loc]:
+    def merge(self, dinvs):
+        assert isinstance(dinvs, DInvs), dinvs
+        for loc in dinvs:
+            for inv in dinvs[loc]:
                 if not inv.isDisproved: 
                     self.add(loc, inv)
 
     def removeDisproved(self):
-        dinvs = DInvs()
+        dinvs = self.__class__()
         for loc in self:
             for inv in self[loc]:
-                assert inv.stat is not None, inv
                 if not inv.isDisproved:
                     dinvs.add(loc, inv)
+        return dinvs
+
+    def testTraces(self, dtraces, invdecls):
+        assert isinstance(dtraces, DTraces)
+        assert isinstance(invdecls, dict)
+
+        dinvs = self.__class__()
+        for loc in self:
+            traces = [dict(zip(invdecls[loc], tracevals))
+                      for tracevals in dtraces[loc]]
+
+            assert loc not in dinvs
+            dinvs[loc] = Invs()
+            
+            for inv in self[loc]:
+                assert inv.inv.is_relational()
+                if all(bool(inv.inv.subs(trace)) for trace in traces):
+                    dinvs[loc].add(inv)
+                else:
+                    logger.warn("{}: {} disproved".format(loc, inv))
 
         return dinvs
-    
+        
     def update(self, dinvs):
         assert isinstance(dinvs, DInvs), dinvs
-        deltas = DInvs()
+        deltas = self.__class__()
         for loc in self:
             if loc not in dinvs:
                 dinvs[loc] = self[loc]
@@ -248,7 +267,7 @@ class DInvs(dict):
 
     @classmethod
     def mkFalses(cls, locs):
-        dinvs = DInvs()
+        dinvs = cls()
         for loc in locs:
             dinvs.add(loc, Inv.mkFalse())
         return dinvs
@@ -256,7 +275,7 @@ class DInvs(dict):
     @classmethod
     def mk(cls, loc, invs):
         assert isinstance(invs, Invs)
-        newInvs = DInvs()
+        newInvs = cls()
         newInvs[loc] = invs
         return newInvs
         

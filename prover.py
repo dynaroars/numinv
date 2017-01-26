@@ -11,10 +11,12 @@ logger = CM.VLog('prover')
 logger.level = settings.logger_level  
 
 from ds import Inp, Inps, Trace, DTraces, Inv,  DInvs
+from src import Src
 
 class Prover(object):
     def __init__(self, src, exeFile,
                  inpdecls, invdecls, tcsFile, tmpdir):
+        assert isinstance(src, Src), src
         self.src = src
         self.exeFile = exeFile
         self.inpdecls = inpdecls
@@ -26,6 +28,8 @@ class Prover(object):
         """
         return new inps (and also add them to inps)
         """
+        assert isinstance(dinvs, DInvs), dinvs
+        assert minV < maxV, (minV, maxV)
         assert isinstance(dinvs, DInvs), dinvs
         assert isinstance(inps, Inps), inps        
         assert isinstance(doSafe, bool), doSafe
