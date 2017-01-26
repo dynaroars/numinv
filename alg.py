@@ -134,17 +134,6 @@ class GenIeqs(Gen):
 
         dinvs = DInvs()
         locs = traces.keys()
-        
-        for loc in locs:
-            ieqs = self.genLoc(deg, loc, traces, inps)
-            dinvs[loc] = ieqs
-
-        return dinvs
-
-    def genLoc(self, deg, loc, traces, inps):
-        assert deg >= 1, deg
-        assert isinstance(traces, DTraces), traces
-        assert isinstance(inps, Inps), inps
 
         mymaxv  = 10
         
@@ -153,6 +142,17 @@ class GenIeqs(Gen):
         
         ubmaxV = maxV+10
         ubminV = -1*ubmaxV
+
+        for loc in locs:
+            ieqs = self.genLoc(deg, loc, traces, inps, minV, maxV, ubminV, ubmaxV)
+            dinvs[loc] = ieqs
+
+        return dinvs
+
+    def genLoc(self, deg, loc, traces, inps, minV, maxV, ubminV, ubmaxV):
+        assert deg >= 1, deg
+        assert isinstance(traces, DTraces), traces
+        assert isinstance(inps, Inps), inps
 
         vs = [sage.all.var(k) for k in self.invdecls[loc]]
         terms = solver.getTermsFixedCoefs(vs, 1)
@@ -165,14 +165,15 @@ class GenIeqs(Gen):
         octInvs = DInvs.mk(loc, Invs.mk(octInvs))
         _ = self.prover.check(octInvs, traces, inps, ubminV, ubmaxV, doSafe=True)
         octInvs = octInvs.removeDisproved()
-        if not octInvs:  return invs #no nontrivial invs
+
+        if not octInvs: return invs #no nontrivial invs
         
         logger.info("{}: compute upperbounds for {} terms: {}".format(
             loc, len(octInvs[loc]),
             ', '.join(map(str, [octD[inv] for inv in octInvs[loc]]))))
 
         invs = Invs()
-        for octInv in octInvs[loc]:
+        for octInv in octInvs[loc]:            
             traces_ = (dict(zip(self.invdecls[loc], tracevals))
                        for tracevals in traces[loc])
             octTerm = octD[octInv]
@@ -187,7 +188,6 @@ class GenIeqs(Gen):
                         .format(octInv, octTerm, mminV, maxV))
 
             disproves = set()
-            #if octInv.isProved: proved.add(maxV)
             boundV = self.guessCheck(loc, octTerm, traces, inps, 
                                      mminV, maxV, ubminV, ubmaxV, disproves)
             if boundV not in disproves and boundV not in {maxV, minV}:
@@ -202,7 +202,7 @@ class GenIeqs(Gen):
     
     def guessCheck(self, loc, term, traces, inps, minV, maxV,
                    ubMinV, ubMaxV, disproves):
-        assert minV <= maxV, (minV, maxV)
+        assert minV <= maxV, (minV, maxV, term)
         assert ubMinV < ubMaxV, (ubMinV, ubMaxV)
         assert isinstance(traces, DTraces), traces
         assert isinstance(disproves, set), disproveds

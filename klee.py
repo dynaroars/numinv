@@ -38,7 +38,6 @@ class KLEE(object):
         clangOpts =  "-emit-llvm -c"
         obj = os.path.basename(self.filename) + os.extsep + 'o'
         obj = os.path.join(self.tmpdir, obj)
-
         cmd = ("clang -I {} {} {} -o {}"
                .format(includePath, clangOpts, self.filename, obj))
         logger.detail("$ {}".format(cmd))

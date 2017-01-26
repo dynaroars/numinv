@@ -1,5 +1,6 @@
 import os.path
 from collections import OrderedDict
+import time
 
 import vu_common as CM
 import miscs
@@ -23,6 +24,106 @@ class Prover(object):
         self.invdecls = invdecls
         self.tmpdir = tmpdir
         self.tcsFile = tcsFile #todo parallel
+
+    def addInps(self, klInps, newInps, inps):
+        for inp in klInps:
+            if self.inpdecls:
+                assert inp and len(self.inpdecls) == len(inp)
+                inp = Inp(inp)
+            else:
+                inp = Inp()
+            #assert inp not in inps, inp
+            if inp not in inps:
+                inps.add(inp)
+                newInps.add(inp)
+
+    def getInpsSafe(self, dinvs, inps, inpsd):
+        """call verifier on each inv"""
+            
+        tasks = [(loc, inv) for loc in dinvs for inv in dinvs[loc]
+                 if inv.stat is None]
+
+        do_parallel = len(tasks) >= 2
+        myrefs = dict((str(inv), inv) for _,inv in tasks)
+
+        def wprocess(tasks, Q):
+            myinps = set() #inps #Faster when using few constraints
+            rs = [(loc, inv, self.src.instrAsserts({loc:set([inv])}, myinps, inpsd))
+                     for loc, inv in tasks]
+            rs = [(loc, inv, KLEE(isrc, self.tmpdir).getDInps())
+                  for loc, inv, isrc in rs]
+
+            if Q is None: #no multiprocessing
+                return rs
+            else:
+                Q.put(rs)
+
+        if do_parallel:
+            from vu_common import get_workloads
+            from multiprocessing import (Process, Queue, 
+                                         current_process, cpu_count)
+            Q=Queue()
+            workloads = get_workloads(tasks, 
+                                      max_nprocesses=cpu_count(),
+                                      chunksiz=2)
+
+            logger.debug("workloads 'prove' {}: {}"
+                         .format(len(workloads),map(len,workloads)))
+
+            workers = [Process(target=wprocess,args=(wl,Q))
+                       for wl in workloads]
+
+            for w in workers: w.start()
+            wrs = []
+            for _ in workers: wrs.extend(Q.get())
+        else:
+            wrs = wprocess(tasks, Q=None)
+
+        #merge results
+        newInps = Inps()
+        for loc, inv, (klDInps, isSucc) in wrs:
+            rinv = myrefs[str(inv)]
+            try:                    
+                klInps = klDInps[loc][str(inv)]
+                self.addInps(klInps, newInps, inps)
+                rinv.stat = Inv.DISPROVED
+            except KeyError:
+                rinv.stat = Inv.PROVED if isSucc else Inv.UNKNOWN
+
+        assert all(inv.stat is not None
+                   for loc in dinvs for inv in dinvs[loc])
+
+        return newInps
+
+    def getInpsUnsafe(self, dinvs, inps, inpsd):
+        """
+        call verifier on all invs
+        """                
+        dinvs_ = DInvs()
+        for loc, invs in dinvs.iteritems():
+            for inv in invs:
+                if inv.stat is None:
+                    dinvs_.add(loc, inv)
+
+        klSrc = self.src.instrAsserts(dinvs_, inps, inpsd)
+        klDInps, _ = KLEE(klSrc, self.tmpdir).getDInps()
+
+        #IMPORTANT: getDInps() returns an isSucc flag (false if timeout),
+        #but it's not useful here (when haveing multiple klee_asserts)
+        #because even if isSucc, it doesn't guarantee to generate cex
+        #for a failed assertions (that means we can't claim if an assertion
+        #without cex is proved).
+        newInps = Inps()
+        for loc, invs in dinvs.iteritems():
+            for inv in invs:
+                if inv.stat is not None: continue
+                try:
+                    klInps = klDInps[loc][str(inv)]
+                    self.addInps(klInps, newInps, inps)
+                    inv.stat = Inv.DISPROVED
+                except KeyError:
+                    pass
+        return newInps
     
     def getInps(self, dinvs, inps, minV, maxV, doSafe):
         """
@@ -34,69 +135,16 @@ class Prover(object):
         assert isinstance(inps, Inps), inps        
         assert isinstance(doSafe, bool), doSafe
 
-        def addInps(klInps, newInps, inps):
-            for inp in klInps:
-                if self.inpdecls:
-                    assert inp and len(self.inpdecls) == len(inp)
-                    inp = Inp(inp)
-                else:
-                    inp = Inp()
-                assert inp not in inps, inp                
-                inps.add(inp)
-                newInps.add(inp)
-
         if self.inpdecls:
-            inps_d = OrderedDict((vname, (vtyp, (minV, maxV)))
-                                 for vname, vtyp in self.inpdecls.iteritems())
+            inpsd = OrderedDict((vname, (vtyp, (minV, maxV)))
+                                for vname, vtyp in self.inpdecls.iteritems())
         else:
-            inps_d = None
+            inpsd = None
 
-        newInps = Inps()
         if doSafe:
-            #prove individually
-            for loc,invs in dinvs.iteritems():
-                for inv in invs:
-                    if inv.stat is not None: continue
-
-                    dinvs_ = DInvs()
-                    dinvs_.add(loc, inv)
-                    klSrc = self.src.instrAsserts(dinvs_, inps, inps_d)  #todo parallel
-                    klDInps, isSucc = KLEE(klSrc, self.tmpdir).getDInps()
-                    try:
-                        klInps = klDInps[loc][str(inv)]
-                        addInps(klInps, newInps, inps)
-                        inv.stat = Inv.DISPROVED
-                    except KeyError:
-                        inv.stat = Inv.PROVED if isSucc else Inv.UNKNOWN
-
-            for loc,invs in dinvs.iteritems():
-                assert(inv.stat is not None for inv in invs)
-
+            return self.getInpsSafe(dinvs, inps, inpsd)
         else:
-            #do all at once
-            dinvs_ = DInvs()
-            for loc, invs in dinvs.iteritems():
-                for inv in invs:
-                    if inv.stat is None:
-                        dinvs_.add(loc, inv)
-
-            klSrc = self.src.instrAsserts(dinvs_, inps, inps_d)
-            klDInps, _ = KLEE(klSrc, self.tmpdir).getDInps()
-            
-            #IMPORTANT: getDInps() returns an isSucc flag (false if timeout),
-            #but it's not useful here (when haveing multiple klee_asserts)
-            #because even if isSucc, it doesn't guarantee to generate cex
-            #for a failed assertions (that means we can't claim if an assertion
-            #without cex is proved).
-            for loc, invs in dinvs.iteritems():
-                for inv in invs:
-                    if inv.stat is not None: continue
-                    try:
-                        klInps = klDInps[loc][str(inv)]
-                        addInps(klInps, newInps, inps)
-                        inv.stat = Inv.DISPROVED
-                    except KeyError:
-                        pass
+            return self.getInpsUnsafe(dinvs, inps, inpsd)
 
         return newInps    
 

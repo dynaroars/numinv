@@ -22,16 +22,17 @@ class Src(object):
         assert isinstance(invdecls, dict) and invdecls, invdecls
         return self.instr(self.filename, ".printf.c", invdecls, self.mkPrintfs)
     
-    def instrAsserts(self, invs, inps, inps_d, startFun="mainQ"):
+    def instrAsserts(self, invs, inps, inpsd, startFun="mainQ"):
         assert isinstance(invs, dict), invs
-        assert (inps_d is None or
-                (isinstance(inps_d, OrderedDict) and inps_d)), inps_d
+        assert (inpsd is None or
+                (isinstance(inpsd, OrderedDict) and inpsd)), inpsd
         assert isinstance(inps, set), inps
 
-        if inps_d:
-            parts = self.mkPrintfArgs(inps_d)
+        if inpsd:
+            parts = self.mkPrintfArgs(inpsd)
         else:
             parts = (None, None)
+
         _mk = lambda invs, loc: KLEE.mkAssertInvs(invs, loc, parts)
         stmts = self.mkProgStmts(self.filename, invs, _mk)
         #comment startFun(..argv[]) and add symbolic input
@@ -40,7 +41,7 @@ class Src(object):
             if startFun in stmt and "argv" in stmt:
                 # stmt = "//" + stmt
                 # stmts_.append(stmt)
-                for varname, (vartyp, (minV, maxV)) in inps_d.iteritems():
+                for varname, (vartyp, (minV, maxV)) in inpsd.iteritems():
                     stmt = KLEE.mkSymbolic(varname, vartyp)
                     stmts_.append(stmt)
                     if minV is not None and maxV is not None:
@@ -49,7 +50,7 @@ class Src(object):
 
                 #klee_assume(x!=0 || y!=1); klee_assume(x!=2 || y!=3);
                 if inps:
-                    ss = inps_d.keys()
+                    ss = inpsd.keys()
                     #so that assertions are in order
                     #(KLEE will give diff outputs based on order)
                     inps = sorted(inps)
@@ -58,7 +59,7 @@ class Src(object):
                     
                 #call mainQ(inp0, ..);
                 stmt = "{}({});".format(
-                    startFun, ",".join(map(str, inps_d.iterkeys())))
+                    startFun, ",".join(map(str, inpsd.iterkeys())))
                 stmts_.append(stmt)
             else:
                 stmts_.append(stmt)
@@ -67,8 +68,8 @@ class Src(object):
             
         #add header
         stmts = ["#include <klee/klee.h>"] + stmts
-        
-        fname = self.filename + ".klee_assert.c"
+        uid = str(hash(str(invs))).replace("-", "_")
+        fname = "{}_{}.{}".format(self.filename, uid, "klee_assert.c")
         CM.vwrite(fname, '\n'.join(stmts))
         CM.vcmd("astyle -Y {}".format(fname))
         return fname
