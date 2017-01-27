@@ -154,8 +154,9 @@ class Prover(object):
         """
         assert isinstance(inps, Inps) and inps, inps
 
-        tcsFile = "_{}".format(hash(str(inps))).replace("-","_")
-        assert not os.path.isfile(self.tcsFile)
+        tcsFile = "{}_{}".format(self.tcsFile, hash(str(inps))).replace("-","_")
+        print tcsFile
+        assert not os.path.isfile(tcsFile)
         
         for inp in inps:
             inp_ = ' '.join(map(str, inp))
