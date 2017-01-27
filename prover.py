@@ -148,22 +148,22 @@ class Prover(object):
 
         return newInps    
 
-
     def getTraces(self, inps):
         """
         Run program on inps and get traces
         """
         assert isinstance(inps, Inps) and inps, inps
-        
-        if os.path.isfile(self.tcsFile): os.remove(self.tcsFile)
+
+        tcsFile = "_{}".format(hash(str(inps))).replace("-","_")
+        assert not os.path.isfile(self.tcsFile)
         
         for inp in inps:
             inp_ = ' '.join(map(str, inp))
-            cmd = "{} {} >> {}".format(self.exeFile, inp_, self.tcsFile)
+            cmd = "{} {} >> {}".format(self.exeFile, inp_, tcsFile)
             logger.detail(cmd)
             CM.vcmd(cmd)
 
-        traces = Trace.parse(self.tcsFile)
+        traces = Trace.parse(tcsFile)
         assert all(loc in self.invdecls for loc in traces), traces.keys()
         return traces
 
