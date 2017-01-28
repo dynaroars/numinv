@@ -39,12 +39,6 @@ class Prover(object):
 
     def getInpsSafe(self, dinvs, inps, inpsd):
         """call verifier on each inv"""
-            
-        tasks = [(loc, inv) for loc in dinvs for inv in dinvs[loc]
-                 if inv.stat is None]
-
-        do_parallel = len(tasks) >= 2
-        myrefs = dict((str(inv), inv) for _,inv in tasks)
 
         def wprocess(tasks, Q):
             myinps = set() #inps #Faster when using few constraints
@@ -52,12 +46,18 @@ class Prover(object):
                      for loc, inv in tasks]
             rs = [(loc, inv, KLEE(isrc, self.tmpdir).getDInps())
                   for loc, inv, isrc in rs]
-
             if Q is None: #no multiprocessing
                 return rs
             else:
                 Q.put(rs)
 
+
+            
+        tasks = [(loc, inv) for loc in dinvs for inv in dinvs[loc]
+                 if inv.stat is None]
+        do_parallel = len(tasks) >= 2
+        myrefs = dict(((loc, str(inv)), inv) for loc,inv in tasks)
+        
         if do_parallel:
             from vu_common import get_workloads
             from multiprocessing import (Process, Queue, 
@@ -82,13 +82,14 @@ class Prover(object):
         #merge results
         newInps = Inps()
         for loc, inv, (klDInps, isSucc) in wrs:
-            rinv = myrefs[str(inv)]
+            rinv = myrefs[loc, str(inv)]
             try:                    
                 klInps = klDInps[loc][str(inv)]
                 self.addInps(klInps, newInps, inps)
                 rinv.stat = Inv.DISPROVED
             except KeyError:
                 rinv.stat = Inv.PROVED if isSucc else Inv.UNKNOWN
+
 
         assert all(inv.stat is not None
                    for loc in dinvs for inv in dinvs[loc])
@@ -131,7 +132,6 @@ class Prover(object):
         """
         assert isinstance(dinvs, DInvs), dinvs
         assert minV < maxV, (minV, maxV)
-        assert isinstance(dinvs, DInvs), dinvs
         assert isinstance(inps, Inps), inps        
         assert isinstance(doSafe, bool), doSafe
 
@@ -155,7 +155,6 @@ class Prover(object):
         assert isinstance(inps, Inps) and inps, inps
 
         tcsFile = "{}_{}".format(self.tcsFile, hash(str(inps))).replace("-","_")
-        print tcsFile
         assert not os.path.isfile(tcsFile)
         
         for inp in inps:
