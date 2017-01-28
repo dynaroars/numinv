@@ -3,7 +3,7 @@
 #include <stdlib.h>  //required for afloat to work
 
 void mainQ(int xinp){
-  assert (xinp >= 10);
+  assert (xinp >= 6);
   int x = xinp + 2;
   
   while (1){

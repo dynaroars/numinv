@@ -42,7 +42,8 @@ class Prover(object):
 
         def wprocess(tasks, Q):
             myinps = set() #inps #Faster when using few constraints
-            rs = [(loc, inv, self.src.instrAsserts({loc:set([inv])}, myinps, inpsd))
+            rs = [(loc, inv,
+                   self.src.instrAsserts({loc:set([inv])}, myinps, inpsd))
                      for loc, inv in tasks]
             rs = [(loc, inv, KLEE(isrc, self.tmpdir).getDInps())
                   for loc, inv, isrc in rs]
@@ -155,15 +156,16 @@ class Prover(object):
         assert isinstance(inps, Inps) and inps, inps
 
         tcsFile = "{}_{}".format(self.tcsFile, hash(str(inps))).replace("-","_")
-        assert not os.path.isfile(tcsFile)
-        
-        for inp in inps:
-            inp_ = ' '.join(map(str, inp))
-            cmd = "{} {} >> {}".format(self.exeFile, inp_, tcsFile)
-            logger.detail(cmd)
-            CM.vcmd(cmd)
-
-        traces = Trace.parse(tcsFile)
+        if os.path.isfile(tcsFile):  #need to check for parallism
+            traces = Trace.parse(tcsFile)
+        else:
+            for inp in inps:
+                inp_ = ' '.join(map(str, inp))
+                cmd = "{} {} >> {}".format(self.exeFile, inp_, tcsFile)
+                logger.detail(cmd)
+                CM.vcmd(cmd)
+            traces = Trace.parse(tcsFile)
+            
         assert all(loc in self.invdecls for loc in traces), traces.keys()
         return traces
 

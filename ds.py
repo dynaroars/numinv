@@ -101,7 +101,8 @@ class DTraces(dict):
                 if notIn:
                     _ = newTraces.add(loc, trace)
                 else:
-                    logger.detail("{} exist or too large".format(trace))
+                    logger.detail("{} exist".format(trace))
+        
         return newTraces
 
     @property
