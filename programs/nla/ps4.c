@@ -2,10 +2,10 @@
 #include <assert.h>
 
 int mainQ(int k){
+     assert (k>=0);     
      int y = 0;
      int x = 0;
      int c = 0;
-
 
      while(1){
 	  //assert(4*x-(y*y*y*y)-2*(y*y*y)-(y*y) == 0);

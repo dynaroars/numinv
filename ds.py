@@ -24,20 +24,38 @@ class Inps(set):
         assert isinstance(inp, Inp), inp
         return super(Inps, self).add(inp)
 
-
-
-class Trace(tuple):
+class Trace(tuple):    
     valMaxV = 10000
     inpMaxV = 1000
 
-    filterTrace = True
-    def valOk(self):
-        if self.filterTrace:
-            maxV = self.valMaxV
-            minV = -1 * self.valMaxV
-            return all(minV <= v <= maxV for v in self)
-        else:
-            return True
+    def mydict(self, vs):
+        assert isinstance(vs, tuple) and vs, vs
+        try:
+            return self._mydict[vs]
+        except AttributeError:
+            self._mydict = {vs: dict(zip(vs, self))}
+        except KeyError:
+            self._mydict[vs] = dict(zip(vs, self))
+        return self._mydict[vs]
+
+    def valOk(self, minmaxv=None):
+
+        def _f(minmaxv):
+            assert minmaxv is None or \
+                (isinstance(minmaxv, tuple) and len(minmaxv) == 2), minmaxv
+            if minmaxv is None:
+                minv,maxv = -1 * self.valMaxV, self.valMaxV
+            else:
+                minv,maxv = minmaxv
+            return all(minv <= v <= maxv for v in self)
+        
+        try:
+            return self._valOk[minmaxv]
+        except AttributeError:
+            self._valOk = {minmaxv: _f(minmaxv)}
+        except KeyError:
+            self._valOk[minmaxv] = _f(minmaxv)
+        return self._valOk[minmaxv]
     
     @classmethod
     def parse(cls, tracefile):
@@ -74,20 +92,22 @@ class Traces(set):
 
 
 class DTraces(dict):
+    """
+    {loc: Traces}
+    """
+    def __init__(self):
+        super(DTraces, self).__init__(dict())
+        self.allTraces = dict()
+
     def add(self, loc, trace):
         assert isinstance(loc, str), loc
         assert isinstance(trace, Trace), trace
 
-        if not trace.valOk():
-            return False
-
         if loc not in self:
             self[loc] = Traces()
 
-        notIn = False
-        if trace not in self[loc]:
-            self[loc].add(trace)
-            notIn = True
+        notIn = trace not in self[loc]
+        if notIn: self[loc].add(trace)
         return notIn
 
     def update(self, traces):

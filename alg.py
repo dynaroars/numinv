@@ -38,14 +38,21 @@ class GenEqts(Gen):
         termIdxss = dict((loc, miscs.getTermIdxss(len(vss[loc]), deg))
                           for loc in vss)
         curIter = 0
+        minmaxv = None
         while True:
             if not locs:
                 logger.debug("no new traces ({} existing traces)"
                              .format(traces.siz))
-                break
-                
+
+                if not dinvs and not minmaxv:
+                    minmaxv = -1000*Trace.valMaxV, 1000*Trace.valMaxV
+                    locs = traces.keys()
+                else:
+                    break
+
+            print 'hihi', traces
             dinvs_, locsMoreTraces = self.infer(deg, locs, terms, termIdxss,
-                                                traces, xtraces)
+                                                traces, xtraces, minmaxv)
 
             deltas = dinvs_.update(dinvs)
             
@@ -84,7 +91,7 @@ class GenEqts(Gen):
         return dinvs
 
     def infer(self, deg, locs, terms, termIdxss,
-              traces, xtraces):
+              traces, xtraces, minmaxv):
         """
         call DIG's algorithm to infer eqts from traces
         """
@@ -97,22 +104,19 @@ class GenEqts(Gen):
             assert traces[loc], loc
             terms_ = terms[loc]
             termIdxss_ = termIdxss[loc]
-            
+            vs = tuple(self.invdecls[loc])
             logger.debug("loc {}, terms {}, deg {}, traces {}".format(
                 loc, len(terms_), deg, len(traces[loc])))
             try:
                 esolver = solver.EqtSolver()
                 invs0 = esolver.solve1(termIdxss_, traces[loc])
-                
-                #cache ?
-                traces_ = (dict(zip(self.invdecls[loc], tracevals))
-                           for tracevals in traces[loc])
+                traces_ = (trace.mydict(vs) for trace in traces[loc]
+                           if trace.valOk(minmaxv))
                 xtraces_ = None
                 if loc in xtraces:
-                    xtraces_ = (dict(zip(self.invdecls[loc], tracevals))
-                                for tracevals in xtraces[loc])
-                    
-                invs = esolver.solve(terms_, traces_, xtraces_)
+                    xtraces_ = (trace.mydict(vs) for trace in xtraces[loc]
+                                if trace.valOk(minmaxv))
+                invs = esolver.solve(terms_, traces_, xtraces_, useRate=minmaxv is None)
                 invs = esolver.refine(invs)
                 for inv in invs: dinvs.add(loc, Inv(inv))
                     
@@ -132,7 +136,6 @@ class GenIeqs(Gen):
         assert isinstance(traces, DTraces), traces
         assert isinstance(inps, Inps), inps
 
-        Trace.filterTrace = False
         assert isinstance(traces, DTraces) and traces, traces                
         assert isinstance(inps, Inps), inps
 
