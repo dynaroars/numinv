@@ -88,7 +88,7 @@ class EqtSolver(Solver):
     def solve1(self, termIdxss, traces):
         pass
     
-    def solve(self, terms, traces, xtraces=None, useRate=True):
+    def solve(self, terms, traces, xtraces=None):
         """
         sage: var('x y')
         (x, y)
@@ -106,8 +106,7 @@ class EqtSolver(Solver):
         template, uks = Template.mk(terms, 0, retCoefVars=True)
         assert len(terms) == len(uks), (terms, uks)
 
-        rate = EqtSolver.RATE if useRate else 1.0
-        minEqts = int(round(len(terms) * rate))
+        minEqts = int(round(len(terms) * EqtSolver.RATE))
         eqts = template.instantiateTraces(traces, minEqts)
         if xtraces:
             eqts_ = template.instantiateTraces(xtraces, nTraces=None)
@@ -126,7 +125,6 @@ class EqtSolver(Solver):
     def _solveEqts(cls, eqts, uks):
         try:
             logger.debug("solving {} unknowns using {} eqts".format(len(uks), len(eqts)))
-            print eqts
             return sage.all.solve(eqts, uks, solution_dict=True)
 
         except Exception as ex:

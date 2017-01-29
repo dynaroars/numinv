@@ -38,22 +38,14 @@ class GenEqts(Gen):
         termIdxss = dict((loc, miscs.getTermIdxss(len(vss[loc]), deg))
                           for loc in vss)
         curIter = 0
-        minmaxv = None
         while True:
             if not locs:
                 logger.debug("no new traces ({} existing traces)"
                              .format(traces.siz))
+                break
 
-                if not dinvs and not minmaxv:
-                    minmaxv = -1000*Trace.valMaxV, 1000*Trace.valMaxV
-                    locs = traces.keys()
-                else:
-                    break
-
-            print 'hihi', traces
             dinvs_, locsMoreTraces = self.infer(deg, locs, terms, termIdxss,
-                                                traces, xtraces, minmaxv)
-
+                                                traces, xtraces)
             deltas = dinvs_.update(dinvs)
             
             curIter += 1
@@ -91,7 +83,7 @@ class GenEqts(Gen):
         return dinvs
 
     def infer(self, deg, locs, terms, termIdxss,
-              traces, xtraces, minmaxv):
+              traces, xtraces):
         """
         call DIG's algorithm to infer eqts from traces
         """
@@ -111,12 +103,12 @@ class GenEqts(Gen):
                 esolver = solver.EqtSolver()
                 invs0 = esolver.solve1(termIdxss_, traces[loc])
                 traces_ = (trace.mydict(vs) for trace in traces[loc]
-                           if trace.valOk(minmaxv))
+                           if trace.valOk())
                 xtraces_ = None
                 if loc in xtraces:
                     xtraces_ = (trace.mydict(vs) for trace in xtraces[loc]
-                                if trace.valOk(minmaxv))
-                invs = esolver.solve(terms_, traces_, xtraces_, useRate=minmaxv is None)
+                                if trace.valOk())
+                invs = esolver.solve(terms_, traces_, xtraces_)
                 invs = esolver.refine(invs)
                 for inv in invs: dinvs.add(loc, Inv(inv))
                     
