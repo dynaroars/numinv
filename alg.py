@@ -100,15 +100,20 @@ class GenEqts(Gen):
             logger.debug("loc {}, terms {}, deg {}, traces {}".format(
                 loc, len(terms_), deg, len(traces[loc])))
             try:
+                print 'gh'
                 esolver = solver.EqtSolver()
+                print 'gh1'
                 invs0 = esolver.solve1(termIdxss_, traces[loc])
                 traces_ = (trace.mydict(vs) for trace in traces[loc]
                            if trace.valOk())
+                print 'gh2'
                 xtraces_ = None
                 if loc in xtraces:
-                    xtraces_ = (trace.mydict(vs) for trace in xtraces[loc]
-                                if trace.valOk())
+                    xtraces_ = [trace.mydict(vs) for trace in xtraces[loc]
+                                if trace.valOk()]
+                print 'gh3'                    
                 invs = esolver.solve(terms_, traces_, xtraces_)
+                print 'gh4'                    
                 invs = esolver.refine(invs)
                 for inv in invs: dinvs.add(loc, Inv(inv))
                     
@@ -285,6 +290,8 @@ class DIG2(object):
 
         self.prover = Prover(src, exeFile,
                              self.inpdecls, self.invdecls, tcsFile, tmpdir)
+
+        logger.info("analyze {}".format(filename))
         
     def start(self, seed, maxdeg, maxterm, doEqts, doIeqs, ieqTyp):
         assert isinstance(seed, (int,float)), seed
@@ -336,10 +343,9 @@ class DIG2(object):
                     
 
         dinvs = dinvs_
-        logger.info("got {} invs in total (test {}): \n{}"
-                    .format(dinvs.siz, sage.all.randint(0,100),
+        logger.info("got {} invs, {} inps (test {}): \n{}"
+                    .format(dinvs.siz, len(inps), sage.all.randint(0,100),
                             dinvs))
-                    
         return dinvs
 
 
@@ -352,6 +358,7 @@ class DIG2(object):
 
         #Remove "longer" property first (i.e. those with more variables)
         #ps = sorted(ps, reverse=True, key=lambda p: len(get_vars(p)))
+        print ps
         rs = list(ps) #make a copy
         for p in ps:
             if p in rs:
@@ -360,7 +367,7 @@ class DIG2(object):
 
                 if SMT_Z3.imply(xclude_p,p):
                     rs = xclude_p
-
+        print rs
         return rs
         
 

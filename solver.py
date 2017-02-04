@@ -102,31 +102,42 @@ class EqtSolver(Solver):
         NotEnoughTraces: cannot solve 6 unknowns with only 2 eqts
         """
         assert isinstance(terms, list) and terms, terms
-        
+
+        print 'boo'
         template, uks = Template.mk(terms, 0, retCoefVars=True)
         assert len(terms) == len(uks), (terms, uks)
 
+        print 'boo1'
         minEqts = int(round(len(terms) * EqtSolver.RATE))
+        print 'boo2'
         eqts = template.instantiateTraces(traces, minEqts)
+        print 'boo3, {} eqts'.format(len(eqts))
         if xtraces:
+            print '{} xtraces'.format(len(xtraces))
             eqts_ = template.instantiateTraces(xtraces, nTraces=None)
+            print 'boo gh gh eqts_ {}'.format(len(eqts_))
             for eqt in eqts_: eqts.add(eqt)
-        
+        print 'boo4'
         if  len(eqts) < minEqts:
             raise miscs.NotEnoughTraces(
                 "need more traces ({} unknowns, {} eqts, request {} eqts)"
                 .format(len(terms), len(eqts), minEqts))
-
+        print 'boo5'
         sols = self._solveEqts(list(eqts), uks)
+        print 'boo6'
         sols = template.instantiateSols(sols)
+        print 'boo7'
         return sols
         
     @classmethod
     def _solveEqts(cls, eqts, uks):
         try:
+            print 'hihi'
             logger.debug("solving {} unknowns using {} eqts".format(len(uks), len(eqts)))
-            return sage.all.solve(eqts, uks, solution_dict=True)
-
+            print 'hihi1'
+            rs = sage.all.solve(eqts, uks, solution_dict=True)
+            print 'hihi2'
+            return rs
         except Exception as ex:
             logger.error(str(ex))
             return []

@@ -29,6 +29,10 @@ if __name__ == "__main__":
     aparser.add_argument("--noEqts", "-noEqts",
                          action="store_true")
 
+    aparser.add_argument("--printTime", "-printTime",
+                         default=False,
+                         action="store_true")
+
     aparser.add_argument("--noIeqs", "-noIeqs",
                          action="store_true")
 
@@ -45,9 +49,10 @@ if __name__ == "__main__":
     
     import settings
     settings.logger_level = args.logger_level
+    settings.logger_printTime = args.printTime
     logger = CM.VLog("dig2")
     logger.level = settings.logger_level
-
+    logger.PRINT_TIME = settings.logger_printTime
     if __debug__: logger.warn("DEBUG MODE ON. Can be slow !")
     seed = round(time(), 2) if args.seed is None else float(args.seed)
 

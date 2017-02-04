@@ -23,7 +23,7 @@ class Prover(object):
         self.inpdecls = inpdecls
         self.invdecls = invdecls
         self.tmpdir = tmpdir
-        self.tcsFile = tcsFile #todo parallel
+        self.tcsFile = tcsFile
 
     def addInps(self, klInps, newInps, inps):
         for inp in klInps:
@@ -58,7 +58,7 @@ class Prover(object):
                  if inv.stat is None]
         do_parallel = len(tasks) >= 2
         myrefs = dict(((loc, str(inv)), inv) for loc,inv in tasks)
-        
+
         if do_parallel:
             from vu_common import get_workloads
             from multiprocessing import (Process, Queue, 
@@ -179,8 +179,8 @@ class Prover(object):
         assert isinstance(inps, Inps), inps        
         assert isinstance(doSafe, bool), doSafe
         
-        logger.detail("checking {} invs:\n{}".format(
-            dinvs.siz, dinvs.__str__(printStat=True)))
+        logger.detail("checking {} invs (doSafe {}):\n{}".format(
+            dinvs.siz, doSafe, dinvs.__str__(printStat=True)))
         newInps = self.getInps(dinvs, inps, minv, maxv, doSafe)
         
         if not newInps:

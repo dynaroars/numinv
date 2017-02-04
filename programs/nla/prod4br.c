@@ -2,8 +2,8 @@
 #include <assert.h>
 
 int mainQ(int x, int y){
-     /* assert(x>=0); */
-     /* assert(y>=0); */
+     assert(x>=1);
+     assert(y>=1); 
 
      int a,b,p,q;
 
