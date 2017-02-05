@@ -10,7 +10,7 @@ int mainQ(int k){
      while(1){
 	  assert(6*y*y*y*y*y + 15*y*y*y*y+ 10*y*y*y - 30*x - y == 0);
 	  //printf("%d %d\n", x,y);
-	  //%%%traces: int x, int y
+	  //%%%traces: int x, int y, int k
 
 	  if (!(c < k)) break;
 	  c = c +1 ;

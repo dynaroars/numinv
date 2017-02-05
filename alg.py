@@ -35,8 +35,6 @@ class GenEqts(Gen):
         vss = dict((loc, [sage.all.var(k) for k in self.invdecls[loc]])
                    for loc in locs)
         terms = dict((loc, miscs.getTerms(vss[loc], deg)) for loc in vss)
-        termIdxss = dict((loc, miscs.getTermIdxss(len(vss[loc]), deg))
-                          for loc in vss)
         curIter = 0
         while True:
             if not locs:
@@ -44,8 +42,8 @@ class GenEqts(Gen):
                              .format(traces.siz))
                 break
 
-            dinvs_, locsMoreTraces = self.infer(deg, locs, terms, termIdxss,
-                                                traces, xtraces)
+            dinvs_, locsMoreTraces = self.infer(deg, locs, terms, traces, xtraces)
+                                                
             deltas = dinvs_.update(dinvs)
             
             curIter += 1
@@ -82,8 +80,7 @@ class GenEqts(Gen):
             
         return dinvs
 
-    def infer(self, deg, locs, terms, termIdxss,
-              traces, xtraces):
+    def infer(self, deg, locs, terms, traces, xtraces):
         """
         call DIG's algorithm to infer eqts from traces
         """
@@ -95,25 +92,18 @@ class GenEqts(Gen):
         for loc in locs:
             assert traces[loc], loc
             terms_ = terms[loc]
-            termIdxss_ = termIdxss[loc]
             vs = tuple(self.invdecls[loc])
             logger.debug("loc {}, terms {}, deg {}, traces {}".format(
                 loc, len(terms_), deg, len(traces[loc])))
             try:
-                print 'gh'
                 esolver = solver.EqtSolver()
-                print 'gh1'
-                invs0 = esolver.solve1(termIdxss_, traces[loc])
                 traces_ = (trace.mydict(vs) for trace in traces[loc]
                            if trace.valOk())
-                print 'gh2'
                 xtraces_ = None
                 if loc in xtraces:
                     xtraces_ = [trace.mydict(vs) for trace in xtraces[loc]
                                 if trace.valOk()]
-                print 'gh3'                    
                 invs = esolver.solve(terms_, traces_, xtraces_)
-                print 'gh4'                    
                 invs = esolver.refine(invs)
                 for inv in invs: dinvs.add(loc, Inv(inv))
                     
@@ -272,28 +262,23 @@ class DIG2(object):
 
         import tempfile
         tmpdir = tempfile.mkdtemp(dir=settings.tmpdir, prefix="DIG2_")
-        self.filename = filename
-        basename = os.path.basename(self.filename)
+        basename = os.path.basename(filename)
         src = os.path.join(tmpdir, basename)
-        _, rs_err = CM.vcmd("astyle -Y < {} > {}".format(self.filename, src))
+        _, rs_err = CM.vcmd("astyle -Y < {} > {}".format(filename, src))
         assert not rs_err, rs_err
         logger.debug("src: {}".format(src))
         src = Src(src)
         self.inpdecls, self.invdecls = src.parse()
-        
         printfSrc = src.instrPrintfs(self.invdecls)
         exeFile = "{}.exe".format(printfSrc)
-        #-lm for math.h to work
-        cmd = "gcc -lm {} -o {}".format(printfSrc, exeFile) 
+        cmd = "gcc -lm {} -o {}".format(printfSrc, exeFile) #-lm for math.h
         CM.vcmd(cmd)
         tcsFile =  "{}.tcs".format(printfSrc) #tracefile
 
-        self.prover = Prover(src, exeFile,
-                             self.inpdecls, self.invdecls, tcsFile, tmpdir)
-
+        self.prover = Prover(src, self.inpdecls, self.invdecls, exeFile, tcsFile, tmpdir)
         logger.info("analyze {}".format(filename))
         
-    def start(self, seed, maxdeg, maxterm, doEqts, doIeqs, ieqTyp):
+    def start(self, seed, maxdeg, maxterm, doEqts, doIeqs):
         assert isinstance(seed, (int,float)), seed
         assert isinstance(doEqts, bool), doEqts
         assert isinstance(doIeqs, bool), doIeqs

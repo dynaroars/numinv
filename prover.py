@@ -15,8 +15,9 @@ from ds import Inp, Inps, Trace, DTraces, Inv,  DInvs
 from src import Src
 
 class Prover(object):
-    def __init__(self, src, exeFile,
-                 inpdecls, invdecls, tcsFile, tmpdir):
+    def __init__(self, src, inpdecls, invdecls,
+                 exeFile, tcsFile, tmpdir):
+                 
         assert isinstance(src, Src), src
         self.src = src
         self.exeFile = exeFile
