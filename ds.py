@@ -1,6 +1,6 @@
 import vu_common as CM
 from sageutil import is_sage_expr
-import miscs
+from miscs import Miscs
 import settings
 logger = CM.VLog('ds')
 logger.level = settings.logger_level  
@@ -25,38 +25,19 @@ class Inps(set):
         return super(Inps, self).add(inp)
 
 class Trace(tuple):    
-    valMaxV = 10000
     inpMaxV = 1000
 
     def mydict(self, vs):
         assert isinstance(vs, tuple) and vs, vs
         try:
-            return self._mydict[vs]
+            d = self._mydict[vs]
+            return d
         except AttributeError:
             self._mydict = {vs: dict(zip(vs, self))}
         except KeyError:
             self._mydict[vs] = dict(zip(vs, self))
         return self._mydict[vs]
 
-    def valOk(self, minmaxv=None):
-
-        def _f(minmaxv):
-            assert minmaxv is None or \
-                (isinstance(minmaxv, tuple) and len(minmaxv) == 2), minmaxv
-            if minmaxv is None:
-                minv,maxv = -1 * self.valMaxV, self.valMaxV
-            else:
-                minv,maxv = minmaxv
-            return all(minv <= v <= maxv for v in self)
-        
-        try:
-            return self._valOk[minmaxv]
-        except AttributeError:
-            self._valOk = {minmaxv: _f(minmaxv)}
-        except KeyError:
-            self._valOk[minmaxv] = _f(minmaxv)
-        return self._valOk[minmaxv]
-    
     @classmethod
     def parse(cls, tracefile):
         """
@@ -71,7 +52,7 @@ class Trace(tuple):
             assert len(parts) == 2
             lineno = parts[0].strip()  #l22
             tracevals = parts[1].strip().split()
-            tracevals = cls(map(miscs.ratOfStr, tracevals))
+            tracevals = cls(map(Miscs.ratOfStr, tracevals))
             traces.add(lineno, tracevals)
         return traces
 
@@ -147,7 +128,7 @@ class Inv(object):
     def __str__(self, printStat=False):
         
         if is_sage_expr(self.inv):
-            s = miscs.strOfExp(self.inv)
+            s = Miscs.strOfExp(self.inv)
         else:
             s = str(self.inv)
 

@@ -4,7 +4,7 @@ import sage.all
 
 import vu_common as CM
 
-import miscs
+from miscs import Miscs, NotEnoughTraces
 from src import Src
 import solver
 
@@ -34,7 +34,7 @@ class GenEqts(Gen):
         locs = traces.keys()
         vss = dict((loc, [sage.all.var(k) for k in self.invdecls[loc]])
                    for loc in locs)
-        terms = dict((loc, miscs.getTerms(vss[loc], deg)) for loc in vss)
+        terms = dict((loc, Miscs.getTerms(vss[loc], deg)) for loc in vss)
         curIter = 0
         while True:
             if not locs:
@@ -97,17 +97,15 @@ class GenEqts(Gen):
                 loc, len(terms_), deg, len(traces[loc])))
             try:
                 esolver = solver.EqtSolver()
-                traces_ = (trace.mydict(vs) for trace in traces[loc]
-                           if trace.valOk())
+                traces_ = (trace.mydict(vs) for trace in traces[loc])
                 xtraces_ = None
                 if loc in xtraces:
-                    xtraces_ = [trace.mydict(vs) for trace in xtraces[loc]
-                                if trace.valOk()]
+                    xtraces_ = [trace.mydict(vs) for trace in xtraces[loc]]
                 invs = esolver.solve(terms_, traces_, xtraces_)
                 invs = esolver.refine(invs)
                 for inv in invs: dinvs.add(loc, Inv(inv))
                     
-            except miscs.NotEnoughTraces as ex:
+            except NotEnoughTraces as ex:
                 logger.info("loc {}: {}".format(loc, ex))         
                 locsMoreTraces.append(loc)
 
@@ -291,7 +289,7 @@ class DIG2(object):
 
         ##determine degree
         maxvars = max(self.invdecls.itervalues(), key=lambda d: len(d))
-        deg = miscs.getAutoDeg(maxdeg, maxterm, len(maxvars))
+        deg = Miscs.getAutoDeg(maxdeg, maxterm, len(maxvars))
 
         logger.info("check reachability")
         dinvs, traces, inps = self.prover.checkReach()

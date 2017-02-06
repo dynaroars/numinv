@@ -11,7 +11,7 @@ import settings
 logger = CM.VLog('solver')
 logger.level = settings.logger_level  
 
-import miscs
+from miscs import Miscs, NotEnoughTraces
 
 def getTermsFixedCoefs(ss, subsetSiz):
     """
@@ -114,7 +114,7 @@ class EqtSolver(Solver):
             print 'boo gh gh eqts_ {}'.format(len(eqts_))
             for eqt in eqts_: eqts.add(eqt)
         if  len(eqts) < minEqts:
-            raise miscs.NotEnoughTraces(
+            raise NotEnoughTraces(
                 "need more traces ({} unknowns, {} eqts, request {} eqts)"
                 .format(len(terms), len(eqts), minEqts))
         sols = self._solveEqts(list(eqts), uks)
@@ -138,7 +138,7 @@ class EqtSolver(Solver):
     def refine(cls, sols):
         if not sols: return sols
         sols = reducePoly(sols)
-        sols = [miscs.elimDenom(s) for s in sols]
+        sols = [Miscs.elimDenom(s) for s in sols]
         #don't allow large coefs
         sols = [s for s in sols if all(abs(c) <= 100 for c in getCoefs(s))]
         return sols

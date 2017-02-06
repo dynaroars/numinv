@@ -1,8 +1,6 @@
 import os
 from collections import OrderedDict
 import sage.all
-
-import miscs
 from klee import KLEE
 
 import vu_common as CM
@@ -10,6 +8,8 @@ import settings
 logger = CM.VLog('src')
 logger.level = settings.logger_level
 
+
+stripTo = lambda s, to_s: s[s.find(to_s) + 1:].strip() #e.g., ...:x  -> x
 class Src(object):
     
     def __init__(self, filename):
@@ -103,7 +103,7 @@ class Src(object):
                 inpdecls = mkVarsDict(l)
 
             elif l.startswith(traceIndicator):
-                vars_d = mkVarsDict(miscs.stripTo(l, ':'))
+                vars_d = mkVarsDict(stripTo(l, ':'))
                 linePrefix = 'l' + str(i)
                 invdecls[linePrefix] = vars_d
                 

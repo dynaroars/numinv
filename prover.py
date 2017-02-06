@@ -3,7 +3,7 @@ from collections import OrderedDict
 import time
 
 import vu_common as CM
-import miscs
+from miscs import Miscs
 
 from klee import KLEE
 
@@ -207,7 +207,7 @@ class Prover(object):
         inps = Inps()
 
         #use some initial inps first
-        rinps = miscs.genInitInps(len(self.inpdecls), Trace.inpMaxV)
+        rinps = Miscs.genInitInps(len(self.inpdecls), Trace.inpMaxV)
         for inp in rinps: inps.add(Inp(inp))
         traces = self.getTraces(inps)
         unreachLocs = [loc for loc in dinvs if loc not in traces]

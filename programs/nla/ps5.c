@@ -3,6 +3,7 @@
 
 int mainQ(int k){
      assert (k>=0);
+     assert (k <= 30); //if too large then will cause overflow
      int y = 0;
      int x = 0;
      int c = 0;

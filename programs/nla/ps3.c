@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <assert.h>
 int mainQ(int k){
-     assert (k>=0);          
+     assert (k>=0);
+     assert (k<=30);
+     
      int y = 0;
      int x = 0;
      int c = 0;
