@@ -1,5 +1,6 @@
 import itertools
 import sage.all
+from sage.all import cached_function
 import random
 import vu_common as CM
 
@@ -10,11 +11,8 @@ logger.level = settings.logger_level
 # #Exceptions
 class NotEnoughTraces(Exception): pass
 
-
-
 class Miscs(object):
-
-    @staticmethod
+    @cached_function
     def ratOfStr(s):
         """
         Convert the input 's' to a rational number if possible.
@@ -81,67 +79,7 @@ class Miscs(object):
         terms = [sage.all.prod(c) for c in combs]
         return terms
 
-    @staticmethod
-    def strOfExp(p):
-        """
-        -p^3 => -(p*p*p)
-        n*p^4 => n*(p*p*p*p)
-        ab^3 => (ab*ab*ab)
-        x*y*z^3 => x*y*(z*z*z)
-        """
 
-        def getPow(p):
-            try:
-                oprs = p.operands()
-            except Exception:
-                return []
-
-            if p.operator() == sage.all.operator.pow:
-                x,y = oprs
-                pow_s = '*'.join([str(x)
-                                  if x.is_symbol() else "({})".format(x)] * int(y))
-                return [(str(p), '({})'.format(pow_s))]
-
-            else:
-                return [xy for o in oprs for xy in getPow(o)]
-
-        s = str(p)
-        if '^' not in s:
-            return s
-        rs = getPow(p)
-        for (x,y) in rs: s = s.replace(x,y)
-        return s
-
-    @staticmethod
-    def elimDenom(p):
-        """
-        Eliminate (Integer) denominators in expression operands.
-        Will not eliminate if denominators is a var (e.g.,  (3*x)/(y+2)).
-
-        Examples:
-
-        sage: var('x y z')
-        (x, y, z)
-
-        sage: elimDenom(3/4*x^2 + 7/5*y^3)
-        28*y^3 + 15*x^2
-
-        sage: elimDenom(-3/2*x^2 - 1/24*z^2 >= (y + 1/7))
-        -252*x^2 - 7*z^2 >= 168*y + 24
-
-        sage: elimDenom(-3/(y+2)*x^2 - 1/24*z^2 >= (y + 1/7))
-        -1/24*z^2 - 3*x^2/(y + 2) >= y + 1/7
-
-        sage: elimDenom(x + y == 0)
-        x + y == 0
-
-        """
-        try:
-            f = lambda g : [sage.all.Integer(o.denominator()) for o in g.operands()]
-            denoms = f(p.lhs()) + f(p.rhs()) if p.is_relational() else f(p)
-            return p * sage.all.lcm(denoms)
-        except TypeError:
-            return p
 
     @staticmethod
     def getDeg(nvs, nts, max_deg=7):
@@ -169,9 +107,9 @@ class Miscs(object):
             deg = maxdeg
         else:
             if maxterm:
-                deg = getDeg(nvars, maxterm)
+                deg = Miscs.getDeg(nvars, maxterm)
             else:
-                deg = getDeg(nvars, 200)
+                deg = Miscs.getDeg(nvars, 200)
                 logger.info("autodeg {}".format(deg))
 
         return deg
@@ -185,10 +123,10 @@ class Miscs(object):
             """
             genInps(3,[(0,20), (20,120), (120,150)])
             """
-            inps = itertools.product(*itertools.repeat(range(len(ranges)), nInps))
-            return [[random.randrange(ranges[p][0], ranges[p][1]) for p in inp]
-                    for inp in inps]
-
+            inps = itertools.product(*itertools.repeat(range(len(ranges)),
+                                                       nInps))
+            return [[random.randrange(ranges[p][0], ranges[p][1])
+                     for p in inp] for inp in inps]
         assert maxV >= 0
         p15 = int(maxV*.10)
         p75 = int(maxV*.90)

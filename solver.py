@@ -11,7 +11,7 @@ import settings
 logger = CM.VLog('solver')
 logger.level = settings.logger_level  
 
-from miscs import Miscs, NotEnoughTraces
+from miscs import NotEnoughTraces
 
 def getTermsFixedCoefs(ss, subsetSiz):
     """
@@ -68,25 +68,41 @@ def getCoefs(p):
     rs = Q(p.lhs()).coefficients()
     return rs
 
+def elimDenom(p):
+    """
+    Eliminate (Integer) denominators in expression operands.
+    Will not eliminate if denominators is a var (e.g.,  (3*x)/(y+2)).
+
+    Examples:
+
+    sage: var('x y z')
+    (x, y, z)
+
+    sage: elimDenom(3/4*x^2 + 7/5*y^3)
+    28*y^3 + 15*x^2
+
+    sage: elimDenom(-3/2*x^2 - 1/24*z^2 >= (y + 1/7))
+    -252*x^2 - 7*z^2 >= 168*y + 24
+
+    sage: elimDenom(-3/(y+2)*x^2 - 1/24*z^2 >= (y + 1/7))
+    -1/24*z^2 - 3*x^2/(y + 2) >= y + 1/7
+
+    sage: elimDenom(x + y == 0)
+    x + y == 0
+
+    """
+    try:
+        f = lambda g : [sage.all.Integer(o.denominator())
+                        for o in g.operands()]
+        denoms = f(p.lhs()) + f(p.rhs()) if p.is_relational() else f(p)
+        return p * sage.all.lcm(denoms)
+    except TypeError:
+        return p
+
 
 #### Solvers for different forms of invariants ###
-class Solver(object):
-    __metaclass__ = abc.ABCMeta
-    def __init__(self, traces):
-        assert isinstance(traces, collections.Iterator) or traces, traces
-        self.traces = traces
-
-    @abc.abstractmethod
-    def solve(self, terms, traces): return
-
-class EqtSolver(Solver):
+class EqtSolver(object):
     RATE = 1.5  #RATE * terms = number of traces
-    
-    def __init__(self):
-        pass
-
-    def solve1(self, termIdxss, traces):
-        pass
     
     def solve(self, terms, traces, xtraces=None):
         """
@@ -138,7 +154,7 @@ class EqtSolver(Solver):
     def refine(cls, sols):
         if not sols: return sols
         sols = reducePoly(sols)
-        sols = [Miscs.elimDenom(s) for s in sols]
+        sols = [elimDenom(s) for s in sols]
         #don't allow large coefs
         sols = [s for s in sols if all(abs(c) <= 100 for c in getCoefs(s))]
         return sols

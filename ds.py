@@ -1,3 +1,4 @@
+from sage.all import cached_function
 import vu_common as CM
 from sageutil import is_sage_expr
 from miscs import Miscs
@@ -9,7 +10,6 @@ logger.level = settings.logger_level
 Data structures
 """
 
-#Inputs
 class Inp(tuple):
     pass
 
@@ -71,15 +71,10 @@ class Traces(set):
         else:
             return str(len(self))
 
-
 class DTraces(dict):
     """
     {loc: Traces}
     """
-    def __init__(self):
-        super(DTraces, self).__init__(dict())
-        self.allTraces = dict()
-
     def add(self, loc, trace):
         assert isinstance(loc, str), loc
         assert isinstance(trace, Trace), trace
@@ -93,7 +88,7 @@ class DTraces(dict):
 
     def update(self, traces):
         """
-        Update dtraces to contain conents of self and return diffs
+        Update dtraces to contain contents of self and return diffs
         """
         newTraces = DTraces()
         for loc in self:
@@ -114,7 +109,6 @@ class DTraces(dict):
                          for loc, traces in self.iteritems())    
 
 
-
 class Inv(object):
     PROVED = "p"
     DISPROVED = "d"
@@ -126,9 +120,9 @@ class Inv(object):
         self.resetStat()
         
     def __str__(self, printStat=False):
-        
+
         if is_sage_expr(self.inv):
-            s = Miscs.strOfExp(self.inv)
+            s = self.strOfExp(self.inv)
         else:
             s = str(self.inv)
 
@@ -157,6 +151,38 @@ class Inv(object):
 
     @classmethod
     def mkFalse(cls): return cls(0)
+
+    @cached_function
+    def strOfExp(p):
+        """
+        -p^3 => -(p*p*p)
+        n*p^4 => n*(p*p*p*p)
+        ab^3 => (ab*ab*ab)
+        x*y*z^3 => x*y*(z*z*z)
+        """
+        assert is_sage_expr(p), p
+        
+        def getPow(p):
+            try:
+                oprs = p.operands()
+            except Exception:
+                return []
+
+            if p.operator() == sage.all.operator.pow:
+                x,y = oprs
+                pow_s = '*'.join(
+                    [str(x) if x.is_symbol() else "({})".format(x)] * int(y))
+                return [(str(p), '({})'.format(pow_s))]
+
+            else:
+                return [xy for o in oprs for xy in getPow(o)]
+
+        s = str(p)
+        if '^' not in s:
+            return s
+        rs = getPow(p)
+        for (x,y) in rs: s = s.replace(x,y)
+        return s    
 
 class Invs(set):
     def __str__(self, printStat=False):

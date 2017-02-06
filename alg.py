@@ -73,13 +73,15 @@ class GenEqts(Gen):
                 logger.debug("no new invs")
                 break
 
-            newTraces = self.prover.checkRange(dinvs, traces, inps, doSafe=False)
+            newTraces = self.prover.checkRange(dinvs, traces, inps,
+                                               doSafe=False)
             _ = newTraces.update(xtraces)
             
             locs = newTraces.keys()
             
         return dinvs
 
+    
     def infer(self, deg, locs, terms, traces, xtraces):
         """
         call DIG's algorithm to infer eqts from traces
@@ -91,10 +93,11 @@ class GenEqts(Gen):
         dinvs = DInvs()
         for loc in locs:
             assert traces[loc], loc
-            terms_ = terms[loc]
-            vs = tuple(self.invdecls[loc])
+            terms_ = terms[loc]            
             logger.debug("loc {}, terms {}, deg {}, traces {}".format(
                 loc, len(terms_), deg, len(traces[loc])))
+            vs = tuple(self.invdecls[loc])
+            #eqtTemplate = solver.Template.mk(terms_, 0, retCoefVars=True)
             try:
                 esolver = solver.EqtSolver()
                 traces_ = (trace.mydict(vs) for trace in traces[loc])
@@ -227,7 +230,8 @@ class GenIeqs(Gen):
                 return maxV
             inv = Inv(term <= minV)
             inv_ = DInvs.mk(loc, Invs.mk([inv]))
-            cexs = self.prover.check(inv_, traces, inps, ubMinV, ubMaxV, doSafe=True)
+            cexs = self.prover.check(inv_, traces, inps, ubMinV, ubMaxV,
+                                     doSafe=True)
             if loc in cexs:
                 assert cexs[loc]
                 disproves.add(minV)
@@ -238,7 +242,8 @@ class GenIeqs(Gen):
         v = sage.all.ceil((maxV + minV)/2.0)
         inv = Inv(term <= v)
         inv_ = DInvs.mk(loc, Invs.mk([inv]))
-        cexs = self.prover.check(inv_, traces, inps, ubMinV, ubMaxV, doSafe=True)
+        cexs = self.prover.check(inv_, traces, inps, ubMinV, ubMaxV,
+                                 doSafe=True)
 
         if loc in cexs: #disproved
             assert cexs[loc]
@@ -273,7 +278,8 @@ class DIG2(object):
         CM.vcmd(cmd)
         tcsFile =  "{}.tcs".format(printfSrc) #tracefile
 
-        self.prover = Prover(src, self.inpdecls, self.invdecls, exeFile, tcsFile, tmpdir)
+        self.prover = Prover(src, self.inpdecls, self.invdecls,
+                             exeFile, tcsFile, tmpdir)
         logger.info("analyze {}".format(filename))
         
     def start(self, seed, maxdeg, maxterm, doEqts, doIeqs):
