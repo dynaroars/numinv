@@ -82,6 +82,7 @@ class GenEqts(Gen):
         return dinvs
 
     
+    
     def infer(self, deg, locs, terms, traces, xtraces):
         """
         call DIG's algorithm to infer eqts from traces
