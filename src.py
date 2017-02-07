@@ -8,7 +8,6 @@ import settings
 logger = CM.VLog('src')
 logger.level = settings.logger_level
 
-
 stripTo = lambda s, to_s: s[s.find(to_s) + 1:].strip() #e.g., ...:x  -> x
 class Src(object):
     
@@ -22,18 +21,18 @@ class Src(object):
         assert isinstance(invdecls, dict) and invdecls, invdecls
         return self.instr(self.filename, ".printf.c", invdecls, self.mkPrintfs)
     
-    def instrAsserts(self, invs, inps, inpsd, startFun="mainQ"):
+    def instrAsserts(self, invs, inps, inpsd, invdecls, startFun="mainQ"):
         assert isinstance(invs, dict), invs
         assert (inpsd is None or
                 (isinstance(inpsd, OrderedDict) and inpsd)), inpsd
+        assert isinstance(invdecls, OrderedDict) and invdecls, invdecls
         assert isinstance(inps, set), inps
 
-        if inpsd:
-            parts = self.mkPrintfArgs(inpsd)
-        else:
-            parts = (None, None)
-
-        _mk = lambda invs, loc: KLEE.mkAssertInvs(invs, loc, parts)
+        inpParts = self.mkPrintfArgs(inpsd) if inpsd else (None, None)
+        
+        _mk = lambda invs, loc: KLEE.mkAssertInvs(
+            invs, loc, inpParts, self.mkPrintfArgs(invdecls[loc]))
+        
         stmts = self.mkProgStmts(self.filename, invs, _mk)
         #comment startFun(..argv[]) and add symbolic input
         stmts_ = []

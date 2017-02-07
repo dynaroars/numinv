@@ -1,3 +1,4 @@
+import sage.all
 from sage.all import cached_function
 import vu_common as CM
 from sageutil import is_sage_expr
@@ -25,7 +26,7 @@ class Inps(set):
         return super(Inps, self).add(inp)
 
 class Trace(tuple):    
-    inpMaxV = 1000
+    inpMaxV = 500
 
     def mydict(self, vs):
         assert isinstance(vs, tuple) and vs, vs
@@ -223,7 +224,7 @@ class DInvs(dict):
         if loc not in self:
             self[loc] = Invs()
         return self[loc].add(inv)
-    
+
     def __setitem__(self, loc, invs):
         assert isinstance(loc, str), loc
         assert isinstance(invs, Invs), invs
@@ -302,7 +303,7 @@ class DInvs(dict):
 
     @classmethod
     def mk(cls, loc, invs):
-        assert isinstance(invs, Invs)
+        assert isinstance(invs, Invs), invs
         newInvs = cls()
         newInvs[loc] = invs
         return newInvs

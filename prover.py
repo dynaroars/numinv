@@ -40,11 +40,11 @@ class Prover(object):
 
     def getInpsSafe(self, dinvs, inps, inpsd):
         """call verifier on each inv"""
-
         def wprocess(tasks, Q):
             myinps = set() #inps #Faster when using few constraints
             rs = [(loc, inv,
-                   self.src.instrAsserts({loc:set([inv])}, myinps, inpsd))
+                   self.src.instrAsserts(
+                       {loc:set([inv])}, myinps, inpsd,self.invdecls))
                      for loc, inv in tasks]
             rs = [(loc, inv, KLEE(isrc, self.tmpdir).getDInps())
                   for loc, inv, isrc in rs]
@@ -53,8 +53,6 @@ class Prover(object):
             else:
                 Q.put(rs)
 
-
-            
         tasks = [(loc, inv) for loc in dinvs for inv in dinvs[loc]
                  if inv.stat is None]
         do_parallel = len(tasks) >= 2
@@ -83,7 +81,7 @@ class Prover(object):
 
         #merge results
         newInps = Inps()
-        for loc, inv, (klDInps, isSucc) in wrs:
+        for loc, inv, (klDInps, klDCexs, isSucc) in wrs:
             rinv = myrefs[loc, str(inv)]
             try:                    
                 klInps = klDInps[loc][str(inv)]
@@ -92,24 +90,21 @@ class Prover(object):
             except KeyError:
                 rinv.stat = Inv.PROVED if isSucc else Inv.UNKNOWN
 
-
         assert all(inv.stat is not None
                    for loc in dinvs for inv in dinvs[loc])
 
-        return newInps
+        return newInps, klDCexs
 
     def getInpsUnsafe(self, dinvs, inps, inpsd):
         """
         call verifier on all invs
-        """                
+        """
+        
         dinvs_ = DInvs()
-        for loc, invs in dinvs.iteritems():
-            for inv in invs:
-                if inv.stat is None:
-                    dinvs_.add(loc, inv)
-
-        klSrc = self.src.instrAsserts(dinvs_, inps, inpsd)
-        klDInps, _ = KLEE(klSrc, self.tmpdir).getDInps()
+        _ = [dinvs_.add(loc, inv) for loc in dinvs
+             for inv in dinvs[loc] if inv.stat is None]
+        klSrc = self.src.instrAsserts(dinvs_, inps, inpsd, self.invdecls)
+        klDInps, klDCexs, _ = KLEE(klSrc, self.tmpdir).getDInps()
 
         #IMPORTANT: getDInps() returns an isSucc flag (false if timeout),
         #but it's not useful here (when haveing multiple klee_asserts)
@@ -121,18 +116,19 @@ class Prover(object):
             for inv in invs:
                 if inv.stat is not None: continue
                 try:
-                    klInps = klDInps[loc][str(inv)]
+                    sinv = str(inv)
+                    klInps = klDInps[loc][sinv]
                     self.addInps(klInps, newInps, inps)
                     inv.stat = Inv.DISPROVED
                 except KeyError:
                     pass
-        return newInps
+        return newInps, klDCexs
     
     def getInps(self, dinvs, inps, minV, maxV, doSafe):
         """
         return new inps (and also add them to inps)
         """
-        assert isinstance(dinvs, DInvs), dinvs
+        assert isinstance(dinvs, DInvs) and dinvs.siz, dinvs
         assert minV < maxV, (minV, maxV)
         assert isinstance(inps, Inps), inps        
         assert isinstance(doSafe, bool), doSafe
@@ -148,7 +144,6 @@ class Prover(object):
         else:
             return self.getInpsUnsafe(dinvs, inps, inpsd)
 
-        return newInps    
 
     def getTraces(self, inps):
         """
@@ -171,7 +166,7 @@ class Prover(object):
         return traces
 
 
-    def check(self, dinvs, traces, inps, minv, maxv, doSafe):
+    def check(self, dinvs, traces, inps, minv, maxv, doSafe, doExec):
         """
         Check invs.
         Also update traces, inps
@@ -179,25 +174,26 @@ class Prover(object):
         assert isinstance(dinvs, DInvs), dinvs
         assert isinstance(inps, Inps), inps        
         assert isinstance(doSafe, bool), doSafe
-        
+        assert isinstance(doExec, bool), doExec
         logger.detail("checking {} invs (doSafe {}):\n{}".format(
             dinvs.siz, doSafe, dinvs.__str__(printStat=True)))
-        newInps = self.getInps(dinvs, inps, minv, maxv, doSafe)
-        
-        if not newInps:
-            return DTraces()
+        newInps, dcexs = self.getInps(dinvs, inps, minv, maxv, doSafe)
 
-        newTraces = self.getTraces(newInps)
-        logger.debug("got {} traces from {} inps"
-                     .format(newTraces.siz, len(newInps)))
-        newTraces = newTraces.update(traces)
-        return newTraces
+        if doExec and newInps: 
+            newTraces = self.getTraces(newInps)
+            logger.debug("got {} traces from {} inps"
+                         .format(newTraces.siz, len(newInps)))
+            newTraces = newTraces.update(traces)
+        else:
+            newTraces = DTraces()
+            
+        return newTraces, dcexs            
 
-    def checkRange(self, dinvs, traces, inps, doSafe):
+    def checkRange(self, dinvs, traces, inps, doSafe, doExec):
         minv, maxv = -1*Trace.inpMaxV, Trace.inpMaxV,         
-        return self.check(dinvs, traces, inps, minv, maxv, doSafe)
+        return self.check(dinvs, traces, inps, minv, maxv, doSafe, doExec)
 
-    def checkNoRange(self, dinvs, traces, inps):
+    def checkNoRange(self, dinvs, traces, inps, doExec):
         minv, maxv = -1*Trace.inpMaxV*10, Trace.inpMaxV*10, 
         return self.check(dinvs, traces, inps, minv, maxv, doSafe=True)
 
@@ -215,7 +211,7 @@ class Prover(object):
             logger.debug("use RT to generate traces for {}".format(
                 ','.join(map(str, unreachLocs))))
             unreachInvs = DInvs.mkFalses(unreachLocs)
-            _ = self.checkRange(unreachInvs, traces, inps, doSafe=True)
+            _ = self.checkRange(unreachInvs, traces, inps, doSafe=True, doExec=True)
 
         #remove FALSE invs indicating unreached locs
         for loc in traces:

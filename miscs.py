@@ -116,7 +116,7 @@ class Miscs(object):
 
 
     @staticmethod
-    def genInitInps(nInps,maxV):    
+    def genInitInps(nInps, maxV):    
         #15,75=   0...15, 15..75, 75..100
 
         def gen(nInps, ranges):

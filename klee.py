@@ -91,8 +91,8 @@ class KLEE(object):
                          'GOAL: ']        
 
         lines = [line for line in rs.split('\n') if line]
-        
         dinps = {}
+        dcexs = {}
         isSucc = True
         for line in lines:
             if all(x not in line for x in
@@ -101,23 +101,59 @@ class KLEE(object):
 
             #input refuting ...: v1, v2
             if cls.cexStr in line:
-                loc, inv, inp = cls.parseCex(line)
+                #loc, inv, inp = cls.parseCex(line)
+                rs = cls.parseCex1(line)
+                loc = rs['loc']
+                inv = rs['inv']
+                inp = rs['inp'] if 'inp' in rs else None
+                cex = rs['cex']
+                
                 if loc not in dinps: dinps[loc] = {}
                 if inv not in dinps[loc]: dinps[loc][inv] = set()
+
+                if loc not in dcexs: dcexs[loc] = {}
+                if inv not in dcexs[loc]: dcexs[loc][inv] = set()
                 dinps[loc][inv].add(inp)
+                dcexs[loc][inv].add(cex)
                 
             elif any(s in line for s in [cls.haltStr, cls.failedStr]):
                 isSucc = False
 
-        return dinps, isSucc
+        return dinps, dcexs, isSucc
     
 
     def getDInps(self):
         obj = self.compile()
         rs = self.run(obj)
-        dinps, isSucc = self.parseLog(rs)
-        return dinps, isSucc
+        dinps, dcexs, isSucc = self.parseLog(rs)
+        return dinps, dcexs, isSucc
 
+    @classmethod
+    def parseCex1(cls, s):
+        """
+        sage: KLEE.parseCex1("counterexample @ loc : l8 @ inv : 0 @ inp : 512 65 @ cex : 1 78 9 1")
+        {'cex': ['1', '78', '9'], 'inp': ['512', '65'], 'inv': '0', 'loc': 'l8'}
+        sage: KLEE.parseCex1("counterexample @ loc : l0 @ inv : x + 1 > 0 @ inp : 512 65")
+        {'inp': ['512', '65'], 'inv': 'x + 1 > 0', 'loc': 'l0'}
+        sage: KLEE.parseCex1("counterexample @ loc : l0 @ inv: 0 + 1 > 0")
+        {'inv': '0 + 1 > 0', 'loc': 'l0'}
+        """
+        parts = s.split("@")
+        #[[' loc ', ' l8 '], [' inv ', ' 0 '], [' inp ', ' 512 65 '], [' cex ', ' 1 78 9 ']]
+        parts = [p.split(':') for p in parts if ':' in p]
+        #[('loc', ['l8']), ('inv', ['0']), ('inp', ['512', '65']), ('cex', ['1', '78', '9'])]
+        parts = [(p[0].strip(),p[1].strip()) for p in parts]
+
+
+        singleSet = set(['loc', 'inv'])
+        #[('loc', 'l8'), ('inv', '0'), ('inp', ['512', '65']), ('cex', ['1', '78', '9'])]
+        d = dict((key, (contents if key in singleSet else tuple(contents.split())))
+                 for key, contents in parts)
+
+        assert d['loc']
+        assert d['inv']
+        return d
+    
     @classmethod
     def parseCex(cls, s):
         """
@@ -195,7 +231,7 @@ class KLEE(object):
         
 
     @classmethod
-    def mkAssertInvs(cls, invs, loc, (p1,p2)):
+    def mkAssertInvs(cls, invs, loc, inpParts, invParts):
         """
         sage: print '\n'.join(KLEE.mkAssertInvs(["z>=0", "k==1"], "l2", (None, None)))
         if (!(z>=0)){printf("counterexample @ l2 @ z>=0\n");
@@ -213,17 +249,20 @@ class KLEE(object):
         klee_assert(0);
         }
         """
-
-        if p1 and p2:
-            s = 'printf("{} @ {} @ {}: {}\\n", {});\n'
-            _mkPrintf = lambda inv: s.format(cls.cexStr, loc, inv, p1, p2)
+        
+        (inpPart1,inpPart2) = inpParts
+        (invPart1,invPart2) = invParts        
+        if inpPart1 and inpPart2:
+            s = 'printf("{} @ loc: {} @ inv: {} @ cex: {} @ inp: {}\\n", {});\n'
+            _mkPrintf = lambda inv: s.format(cls.cexStr, loc, inv,
+                                             invPart1, inpPart1, invPart2 + ", " + inpPart2)
         else:
-            s = 'printf("{} @ {} @ {}\\n");\n'
-            _mkPrintf = lambda inv: s.format(cls.cexStr, loc, inv)
+            s = 'printf("{} @ loc: {} @ inv: {} @ cex: {} \\n", {});\n'
+            _mkPrintf = lambda inv: s.format(cls.cexStr, loc, inv, invPart1, invPart2)
 
-        _mkKleeAssert = lambda inv: ("if (!({})){{".format(inv) +
-                                     _mkPrintf(inv) + 
-                                     "klee_assert(0);\n}")
+        _mkKleeAssert = lambda inv: (
+            "if (!({})){{".format(inv) + _mkPrintf(inv) + "klee_assert(0);\n}")
+            
         stmts = []
         for inv in invs:
             assertStmt = _mkKleeAssert(inv)
