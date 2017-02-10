@@ -10,6 +10,8 @@ import vu_common as CM
 import settings
 logger = CM.VLog('klee')
 logger.level = settings.logger_level
+logger.printtime = settings.logger_printtime
+
 # if settings.logger_level > 0:
 #     logger.level = settings.logger_level - 1
 # else:

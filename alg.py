@@ -1,7 +1,6 @@
 #Todo: eqts, after generate candidates first time, check them against init traces
 #then add the cex traces to exprs
-#Todo 2:  make dCexs has the same format as newTraces, i.e., of Trace class
-#Todo 3: Klee getInps return newInps (don't do the adding to inps var in Klee)
+#Todo 4: no need to exclude inps when checking inv
 
 from collections import OrderedDict
 import os.path
@@ -15,6 +14,7 @@ from src import Src
 import settings
 logger = CM.VLog('alg')
 logger.level = settings.logger_level  
+logger.printtime = settings.logger_printtime
 
 from ds import Inp, Inps, Traces, DTraces, Inv, Invs, DInvs
 from prover import Prover

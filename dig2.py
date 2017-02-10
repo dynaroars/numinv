@@ -12,7 +12,7 @@ if __name__ == "__main__":
                          choices=range(5),
                          default = 2)
 
-    aparser.add_argument("--printTime", "-printTime",
+    aparser.add_argument("--printtime", "-printtime",
                          default=False,
                          action="store_true")
 
@@ -41,12 +41,11 @@ if __name__ == "__main__":
     
     import settings
     settings.logger_level = args.logger_level
-    settings.logger_printTime = args.printTime
+    settings.logger_printtime = args.printtime
     logger = CM.VLog("dig2")
     logger.level = settings.logger_level
-    logger.PRINT_TIME = settings.logger_printTime
+    logger.printtime = settings.logger_printtime
     if __debug__: logger.warn("DEBUG MODE ON. Can be slow !")
-    
     seed = round(time(), 2) if args.seed is None else float(args.seed)
     import alg
     st = time()

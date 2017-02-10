@@ -11,6 +11,7 @@ import sageutil
 import settings
 logger = CM.VLog('miscs')
 logger.level = settings.logger_level  
+logger.printtime = settings.logger_printtime
 
 class Miscs(object):
     @cached_function

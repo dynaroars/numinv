@@ -6,6 +6,7 @@ from miscs import Miscs
 import settings
 logger = CM.VLog('ds')
 logger.level = settings.logger_level  
+logger.printtime = settings.logger_printtime
 
 """
 Data structures

@@ -10,6 +10,7 @@ from klee import KLEE
 import settings
 logger = CM.VLog('prover')
 logger.level = settings.logger_level  
+logger.printtime = settings.logger_printtime
 
 from ds import Inp, Inps, DTraces, Inv,  DInvs
 from src import Src
