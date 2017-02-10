@@ -56,10 +56,12 @@ class KLEE(object):
 
         #"-optimize "  causes problems with prod4br
         timeout = 5
-        kleeOpts = ("--allow-external-sym-calls "                    
-                    "--max-time={}. "
+        kleeOpts = ("-allow-external-sym-calls "
+                    "-solver-backend=z3 "
+                    "-max-solver-time={}. "
+                    "-max-time={}. "                    
                     "-output-dir={} "
-                    .format(timeout,kleeOutdir))
+                    .format(timeout,timeout, kleeOutdir))
 
         cmd = "klee {} {}".format(kleeOpts, obj).strip()
         logger.detail("$ {}".format(cmd))
@@ -100,9 +102,10 @@ class KLEE(object):
                 logger.detail("rs: {}".format(line))
 
             #input refuting ...: v1, v2
-            if cls.cexStr in line:
-                #loc, inv, inp = cls.parseCex(line)
-                rs = cls.parseCex1(line)
+            if cls.cexStr in line and \
+               all(x in line for x in ["loc", "inv", "inp", "cex"]):
+                
+                rs = cls.parseCex(line)
                 loc = rs['loc']
                 inv = rs['inv']
                 inp = rs['inp'] if 'inp' in rs else None
@@ -129,13 +132,15 @@ class KLEE(object):
         return dinps, dcexs, isSucc
 
     @classmethod
-    def parseCex1(cls, s):
+    def parseCex(cls, s):
         """
-        sage: KLEE.parseCex1("counterexample @ loc : l8 @ inv : 0 @ inp : 512 65 @ cex : 1 78 9 1")
+        s: could be incomplete in the case SMT solver timeout
+
+        sage: KLEE.parseCex("counterexample @ loc : l8 @ inv : 0 @ inp : 512 65 @ cex : 1 78 9 1")
         {'cex': ['1', '78', '9'], 'inp': ['512', '65'], 'inv': '0', 'loc': 'l8'}
-        sage: KLEE.parseCex1("counterexample @ loc : l0 @ inv : x + 1 > 0 @ inp : 512 65")
+        sage: KLEE.parseCex("counterexample @ loc : l0 @ inv : x + 1 > 0 @ inp : 512 65")
         {'inp': ['512', '65'], 'inv': 'x + 1 > 0', 'loc': 'l0'}
-        sage: KLEE.parseCex1("counterexample @ loc : l0 @ inv: 0 + 1 > 0")
+        sage: KLEE.parseCex("counterexample @ loc : l0 @ inv: 0 + 1 > 0")
         {'inv': '0 + 1 > 0', 'loc': 'l0'}
         """
         parts = s.split("@")
@@ -152,37 +157,9 @@ class KLEE(object):
 
         assert d['loc']
         assert d['inv']
+        assert d['inp']
+        assert d['cex']
         return d
-    
-    @classmethod
-    def parseCex(cls, s):
-        """
-        sage: KLEE.parseCex("counterexample @ l8 @ 0 : 512 65")
-        ('l8', '0', ('512', '65'))
-
-        sage: KLEE.parseCex("counterexample @ l0 @ 0 + 1 > 0: 512 65")
-        ('l0', '0 + 1 > 0', ('512', '65'))
-
-        sage: KLEE.parseCex("counterexample @ l0 @ 0 + 1 > 0")
-        ('l0', '0 + 1 > 0', None)
-        """
-        assert cls.cexStr in s, s
-
-        if ":" in s:
-            p1,p2 = s.split(":")
-            inp = tuple(p2.strip().split())
-        else:
-            p1 = s
-            inp = None
-        _,loc,inv = map(lambda x: x.strip(), p1.strip().split("@"))
-        
-        assert loc, loc
-        assert inv, inv
-        if ':' in s: assert inp
-        else: assert inp is None
-
-        return loc, inv, inp
-        
 
     #Make klee statements
     @classmethod

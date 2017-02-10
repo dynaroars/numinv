@@ -11,11 +11,10 @@ logger.level = settings.logger_level
 Data structures
 """
 
-class Inp(tuple):
-    pass
+class Inp(tuple): pass
 
 class Inps(set):
-    def __init__(self): super(Inps, self).__init__(set())
+    def __init__(self, myset=set()): super(Inps, self).__init__(myset)
 
     def __contains__(self, inp):
         assert isinstance(inp, Inp), inp
@@ -25,9 +24,8 @@ class Inps(set):
         assert isinstance(inp, Inp), inp
         return super(Inps, self).add(inp)
 
-class Trace(tuple):    
-    inpMaxV = 500
-
+class _Trace(tuple):
+    #private class
     def mydict(self, vs):
         assert isinstance(vs, tuple) and vs, vs
         try:
@@ -39,76 +37,113 @@ class Trace(tuple):
             self._mydict[vs] = dict(zip(vs, self))
         return self._mydict[vs]
 
-    @classmethod
-    def parse(cls, tracefile):
-        """
-        parse trace for new traces
-        """
-        assert isinstance(tracefile, str), tracefile        
-
-        traces = DTraces()
-        for l in CM.iread_strip(tracefile):
-            #l22: 8460 16 0 1 16 8460
-            parts = l.split(':')
-            assert len(parts) == 2
-            lineno = parts[0].strip()  #l22
-            tracevals = parts[1].strip().split()
-            tracevals = cls(map(Miscs.ratOfStr, tracevals))
-            traces.add(lineno, tracevals)
-        return traces
+    def test(self, inv, vs):
+        assert inv.is_relational()
+        return bool(inv.subs(self.mydict(vs)))
 
 class Traces(set):
+    def __init__(self, myset=set()): super(Traces, self).__init__(myset)
+    
+    @property
+    def vs(self): return self._vs
+    @vs.setter
+    def vs(self, myvs):
+        assert myvs, myvs
+        self._vs = myvs
+        
     def __contains__(self, trace):
-        assert isinstance(trace, Trace), trace
+        assert isinstance(trace, _Trace), trace
         return super(Traces, self).__contains__(trace)
 
     def add(self, trace):
-        assert isinstance(trace, Trace), trace
+        assert isinstance(trace, _Trace), trace
         return super(Traces, self).add(trace)
 
+    def test(self, inv):
+        assert inv.is_relational()
+        for trace in self:
+            if not trace.test(inv, self.vs):
+                return trace
+        return None
+            
     def __str__(self, printDetails=False):
         if printDetails:
             return ", ".join(map(str, sorted(self)))
         else:
             return str(len(self))
 
+    @property
+    def mydicts(self):
+        return (trace.mydict(self.vs) for trace in self)
+    
 class DTraces(dict):
     """
     {loc: Traces}
     """
-    def add(self, loc, trace):
-        assert isinstance(loc, str), loc
-        assert isinstance(trace, Trace), trace
-
-        if loc not in self:
-            self[loc] = Traces()
-
-        notIn = trace not in self[loc]
-        if notIn: self[loc].add(trace)
-        return notIn
-
-    def update(self, traces):
-        """
-        Update dtraces to contain contents of self and return diffs
-        """
-        newTraces = DTraces()
-        for loc in self:
-            for trace in self[loc]:
-                notIn = traces.add(loc, trace)
-                if notIn:
-                    _ = newTraces.add(loc, trace)
-                else:
-                    logger.detail("{} exist".format(trace))
-        
-        return newTraces
+    inpMaxV = 500
 
     @property
     def siz(self): return sum(map(len, self.itervalues()))
 
     def __str__(self, printDetails=False):
         return "\n".join("{}: {}".format(loc, traces.__str__(printDetails))
-                         for loc, traces in self.iteritems())    
+                         for loc, traces in self.iteritems())
+    
+    def add(self, loc, trace, invdecls):
+        assert isinstance(loc, str), loc
+        assert isinstance(trace, _Trace), trace
 
+        if loc not in self:
+            traces = Traces()
+            traces.vs = tuple(invdecls[loc])
+            self[loc] = traces
+            
+        notIn = trace not in self[loc]
+        if notIn: self[loc].add(trace)
+        return notIn
+
+    def update(self, traces, invdecls):
+        """
+        Update dtraces to contain contents of self and return diffs
+        """
+        assert isinstance(traces, DTraces), traces
+        assert isinstance(invdecls, dict) and invdecls, invdecls
+        
+        newTraces = DTraces()
+        for loc in self:
+            for trace in self[loc]:
+                notIn = traces.add(loc, trace, invdecls)
+                if notIn:
+                    _ = newTraces.add(loc, trace, invdecls)
+                else:
+                    logger.detail("{} exist".format(trace))
+        
+        return newTraces
+
+    @classmethod
+    def parse(cls, tracefile, invdecls):
+        """
+        parse trace for new traces
+        """
+        assert isinstance(tracefile, str), tracefile        
+        assert isinstance(invdecls, dict) and invdecls, invdecls
+        
+        dtraces = DTraces()
+        for l in CM.iread_strip(tracefile):
+            #l22: 8460 16 0 1 16 8460
+            parts = l.split(':')
+            assert len(parts) == 2
+            lineno = parts[0].strip()  #l22
+            tracevals = parts[1].strip().split()
+            trace = cls.parseTraceVals(tracevals)
+            dtraces.add(lineno, trace, invdecls)
+        return dtraces
+
+
+    @classmethod
+    def parseTraceVals(cls, tracevals):
+        assert isinstance(tracevals, (tuple, list)), tracevals
+        return _Trace(map(Miscs.ratOfStr, tracevals))        
 
 class Inv(object):
     PROVED = "p"
@@ -129,7 +164,7 @@ class Inv(object):
 
         if printStat: s = "{} {}".format(s, self.stat)
         return s
-    
+   
     def __hash__(self): return hash(self.inv)
     def __repr__(self): return repr(self.inv)
     def __eq__(self, o): return self.inv.__eq__(o.inv)
@@ -251,21 +286,15 @@ class DInvs(dict):
                     dinvs.add(loc, inv)
         return dinvs
 
-    def testTraces(self, dtraces, invdecls):
+    def testTraces(self, dtraces):
         assert isinstance(dtraces, DTraces)
-        assert isinstance(invdecls, dict)
 
         dinvs = self.__class__()
         for loc in self:
-            traces = [dict(zip(invdecls[loc], tracevals))
-                      for tracevals in dtraces[loc]]
-
             assert loc not in dinvs
             dinvs[loc] = Invs()
-            
             for inv in self[loc]:
-                assert inv.inv.is_relational()
-                if all(bool(inv.inv.subs(trace)) for trace in traces):
+                if dtraces[loc].test(inv.inv) is None: #all pass
                     dinvs[loc].add(inv)
                 else:
                     logger.warn("{}: {} disproved".format(loc, inv))
@@ -307,5 +336,3 @@ class DInvs(dict):
         newInvs = cls()
         newInvs[loc] = invs
         return newInvs
-        
-    

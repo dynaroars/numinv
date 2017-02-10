@@ -118,3 +118,47 @@
 
         return dinvs, locsMoreTraces
 
+
+
+    def addInps(self, klInps, newInps, inps):
+        for inp in klInps:
+            if self.inpdecls:
+                assert inp and len(self.inpdecls) == len(inp)
+                inp = Inp(inp)
+            else:
+                inp = Inp()
+            #assert inp not in inps, inp
+            if inp not in inps:
+                inps.add(inp)
+                newInps.add(inp)    
+
+    @classmethod
+    def parseCex(cls, s):
+        """
+        sage: KLEE.parseCex("counterexample @ l8 @ 0 : 512 65")
+        ('l8', '0', ('512', '65'))
+
+        sage: KLEE.parseCex("counterexample @ l0 @ 0 + 1 > 0: 512 65")
+        ('l0', '0 + 1 > 0', ('512', '65'))
+
+        sage: KLEE.parseCex("counterexample @ l0 @ 0 + 1 > 0")
+        ('l0', '0 + 1 > 0', None)
+        """
+        assert cls.cexStr in s, s
+
+        if ":" in s:
+            p1,p2 = s.split(":")
+            inp = tuple(p2.strip().split())
+        else:
+            p1 = s
+            inp = None
+        _,loc,inv = map(lambda x: x.strip(), p1.strip().split("@"))
+        
+        assert loc, loc
+        assert inv, inv
+        if ':' in s: assert inp
+        else: assert inp is None
+
+        return loc, inv, inp
+        
+                

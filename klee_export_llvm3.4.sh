@@ -1,6 +1,6 @@
 export DEVEL=/home/tnguyen/Src/Devel
 export KLEE_BASE=$DEVEL/KLEE/
-export KLEE=$KLEE_BASE/klee/Release+Asserts
+export KLEE=$KLEE_BASE/klee_build_dir
 export PATH=$PATH:$KLEE/bin
 export SAGE=$DEVEL/SAGE/sage
 export Z3=$DEVEL/Z3/z3

@@ -11,8 +11,21 @@ import settings
 logger = CM.VLog('prover')
 logger.level = settings.logger_level  
 
-from ds import Inp, Inps, Trace, DTraces, Inv,  DInvs
+from ds import Inp, Inps, DTraces, Inv,  DInvs
 from src import Src
+
+def merge(ds):
+    newD = {}
+    for d in ds:
+        for loc in d:
+            assert d[loc]
+            if loc not in newD: newD[loc] = {}
+            for inv in d[loc]:
+                assert d[loc][inv]
+                if inv not in newD[loc]: newD[loc][inv] = set()
+                for e in d[loc][inv]:
+                    newD[loc][inv].add(e)
+    return newD
 
 class Prover(object):
     def __init__(self, src, inpdecls, invdecls,
@@ -25,18 +38,6 @@ class Prover(object):
         self.invdecls = invdecls
         self.tmpdir = tmpdir
         self.tcsFile = tcsFile
-
-    def addInps(self, klInps, newInps, inps):
-        for inp in klInps:
-            if self.inpdecls:
-                assert inp and len(self.inpdecls) == len(inp)
-                inp = Inp(inp)
-            else:
-                inp = Inp()
-            #assert inp not in inps, inp
-            if inp not in inps:
-                inps.add(inp)
-                newInps.add(inp)
 
     def getInpsSafe(self, dinvs, inps, inpsd):
         """call verifier on each inv"""
@@ -81,11 +82,13 @@ class Prover(object):
 
         #merge results
         newInps = Inps()
+        mInps, mCexs = [], []
         for loc, inv, (klDInps, klDCexs, isSucc) in wrs:
+            mInps.append(klDInps)
+            mCexs.append(klDCexs)
             rinv = myrefs[loc, str(inv)]
             try:                    
                 klInps = klDInps[loc][str(inv)]
-                self.addInps(klInps, newInps, inps)
                 rinv.stat = Inv.DISPROVED
             except KeyError:
                 rinv.stat = Inv.PROVED if isSucc else Inv.UNKNOWN
@@ -93,7 +96,9 @@ class Prover(object):
         assert all(inv.stat is not None
                    for loc in dinvs for inv in dinvs[loc])
 
-        return newInps, klDCexs
+        mInps = merge(mInps)
+        mCexs = merge(mCexs)
+        return mInps, mCexs
 
     def getInpsUnsafe(self, dinvs, inps, inpsd):
         """
@@ -112,17 +117,16 @@ class Prover(object):
         #for a failed assertions (that means we can't claim if an assertion
         #without cex is proved).
         newInps = Inps()
-        for loc, invs in dinvs.iteritems():
-            for inv in invs:
+        for loc in dinvs:
+            for inv in dinvs[loc]:
                 if inv.stat is not None: continue
                 try:
                     sinv = str(inv)
                     klInps = klDInps[loc][sinv]
-                    self.addInps(klInps, newInps, inps)
                     inv.stat = Inv.DISPROVED
                 except KeyError:
                     pass
-        return newInps, klDCexs
+        return klDInps, klDCexs
     
     def getInps(self, dinvs, inps, minV, maxV, doSafe):
         """
@@ -139,11 +143,16 @@ class Prover(object):
         else:
             inpsd = None
 
-        if doSafe:
-            return self.getInpsSafe(dinvs, inps, inpsd)
-        else:
-            return self.getInpsUnsafe(dinvs, inps, inpsd)
+        _f = self.getInpsSafe if doSafe else self.getInpsUnsafe
+        dInps, dCexs = _f(dinvs, inps, inpsd)
 
+        newInps = (Inp(inp) for loc in dInps
+                    for inv in dInps[loc]
+                    for inp in dInps[loc][inv])
+        
+        newInps = Inps(inp for inp in newInps if inp not in inps)        
+        for inp in newInps: inps.add(inp)
+        return newInps, dCexs
 
     def getTraces(self, inps):
         """
@@ -153,14 +162,14 @@ class Prover(object):
 
         tcsFile = "{}_{}".format(self.tcsFile, hash(str(inps))).replace("-","_")
         if os.path.isfile(tcsFile):  #need to check for parallism
-            traces = Trace.parse(tcsFile)
+            traces = DTraces.parse(tcsFile, self.invdecls)
         else:
             for inp in inps:
                 inp_ = ' '.join(map(str, inp))
                 cmd = "{} {} >> {}".format(self.exeFile, inp_, tcsFile)
                 logger.detail(cmd)
                 CM.vcmd(cmd)
-            traces = Trace.parse(tcsFile)
+            traces = DTraces.parse(tcsFile, self.invdecls)
             
         assert all(loc in self.invdecls for loc in traces), traces.keys()
         return traces
@@ -172,29 +181,31 @@ class Prover(object):
         Also update traces, inps
         """
         assert isinstance(dinvs, DInvs), dinvs
+        assert isinstance(traces, DTraces), traces
         assert isinstance(inps, Inps), inps        
         assert isinstance(doSafe, bool), doSafe
         assert isinstance(doExec, bool), doExec
-        logger.detail("checking {} invs (doSafe {}):\n{}".format(
-            dinvs.siz, doSafe, dinvs.__str__(printStat=True)))
+        
+        logger.detail("checking {} invs (doSafe {}, doExec {}):\n{}".format(
+            dinvs.siz, doSafe, doExec, dinvs.__str__(printStat=True)))
         newInps, dcexs = self.getInps(dinvs, inps, minv, maxv, doSafe)
 
         if doExec and newInps: 
             newTraces = self.getTraces(newInps)
             logger.debug("got {} traces from {} inps"
                          .format(newTraces.siz, len(newInps)))
-            newTraces = newTraces.update(traces)
+            newTraces = newTraces.update(traces, self.invdecls)
         else:
             newTraces = DTraces()
             
         return newTraces, dcexs            
 
     def checkRange(self, dinvs, traces, inps, doSafe, doExec):
-        minv, maxv = -1*Trace.inpMaxV, Trace.inpMaxV,         
+        minv, maxv = -1*DTraces.inpMaxV, DTraces.inpMaxV,         
         return self.check(dinvs, traces, inps, minv, maxv, doSafe, doExec)
 
     def checkNoRange(self, dinvs, traces, inps, doExec):
-        minv, maxv = -1*Trace.inpMaxV*10, Trace.inpMaxV*10, 
+        minv, maxv = -1*DTraces.inpMaxV*10, DTraces.inpMaxV*10, 
         return self.check(dinvs, traces, inps, minv, maxv, doSafe=True)
 
     def checkReach(self):
@@ -203,7 +214,7 @@ class Prover(object):
         inps = Inps()
 
         #use some initial inps first
-        rinps = Miscs.genInitInps(len(self.inpdecls), Trace.inpMaxV)
+        rinps = Miscs.genInitInps(len(self.inpdecls), DTraces.inpMaxV)
         for inp in rinps: inps.add(Inp(inp))
         traces = self.getTraces(inps)
         unreachLocs = [loc for loc in dinvs if loc not in traces]

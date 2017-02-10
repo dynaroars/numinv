@@ -1,15 +1,16 @@
+import random
 import itertools
+import collections
+
 import sage.all
 from sage.all import cached_function
-import random
+
 import vu_common as CM
+import sageutil
 
 import settings
 logger = CM.VLog('miscs')
 logger.level = settings.logger_level  
-
-# #Exceptions
-class NotEnoughTraces(Exception): pass
 
 class Miscs(object):
     @cached_function
@@ -80,7 +81,6 @@ class Miscs(object):
         return terms
 
 
-
     @staticmethod
     def getDeg(nvs, nts, max_deg=7):
         """
@@ -134,5 +134,266 @@ class Miscs(object):
         a3 = (p75, maxV)
         ranges = [a1,a3]
         return gen(nInps, ranges)
+
+
+    @staticmethod
+    def getTermsFixedCoefs(ss, subsetSiz):
+        """
+        sage: var('x y z t s u')
+        (x, y, z, t, s, u)
+
+        sage: getTermsFixedCoefs([x,y^2], 2)
+        [-y^2 - x, -x, y^2 - x, -y^2, y^2, -y^2 + x, x, y^2 + x]
+        """
+        if len(ss) < subsetSiz: subsetSiz = len(ss)
+        rs = []
+        for ssSubset in itertools.combinations(ss, subsetSiz):
+            css = itertools.product(*([[0, -1, 1]] * len(ssSubset)))
+            r = (sum(c*t for c,t in zip(ssSubset, cs))
+                 for cs in css if not all(c == 0 for c in cs))
+            rs.extend(r)
+
+        return CM.vset(rs)
+
+    @staticmethod
+    def reduceEqts(ps):
+        """
+        Return the basis (e.g., a min subset of ps that implies ps) 
+        of the set of eqts input ps using Groebner basis
+
+        sage: var('a y b q k')
+        (a, y, b, q, k)
+
+        sage: rs =  reducePoly([a*y-b==0,q*y+k-x==0,a*x-a*k-b*q==0])
+        sage: assert set(rs) == set([a*y - b == 0, q*y + k - x == 0])
+
+        sage: rs =  reducePoly([x*y==6,y==2,x==3])
+        sage: assert set(rs) == set([x - 3 == 0, y - 2 == 0])
+
+        #Attribute error occurs when only 1 var, thus return as is
+        sage: rs =  reducePoly([x*x==4,x==2])
+        sage: assert set(rs) == set([x == 2, x^2 == 4])
+        """
+        if len(ps) <= 1:
+            return ps
+
+        assert (p.operator() == sage.all.operator.eq for p in ps), ps
+        try:
+            Q = sage.all.PolynomialRing(sage.all.QQ, sageutil.get_vars(ps))
+            I = Q*ps
+            ps = I.radical().interreduced_basis()
+            ps = [(sage.all.SR(p) == 0) for p in ps]
+        except AttributeError:
+            pass
+
+        return ps
+
+    @staticmethod
+    def reduceSMT(ps):
+        if len(ps) <= 1: return ps
+        from smt_z3py import SMT_Z3
+        #Remove "longer" property first (i.e. those with more variables)
+        #ps = sorted(ps, reverse=True, key=lambda p: len(get_vars(p)))
+        rs = list(ps) #make a copy
+        for p in ps:
+            if p in rs:
+                #note, the use of set makes things in non order
+                xclude_p = CM.vsetdiff(rs,[p])
+
+                if SMT_Z3.imply(xclude_p,p):
+                    rs = xclude_p
+        return rs    
+    
+
+    @staticmethod
+    def elimDenom(p):
+        """
+        Eliminate (Integer) denominators in expression operands.
+        Will not eliminate if denominators is a var (e.g.,  (3*x)/(y+2)).
+
+        Examples:
+
+        sage: var('x y z')
+        (x, y, z)
+
+        sage: elimDenom(3/4*x^2 + 7/5*y^3)
+        28*y^3 + 15*x^2
+
+        sage: elimDenom(-3/2*x^2 - 1/24*z^2 >= (y + 1/7))
+        -252*x^2 - 7*z^2 >= 168*y + 24
+
+        sage: elimDenom(-3/(y+2)*x^2 - 1/24*z^2 >= (y + 1/7))
+        -1/24*z^2 - 3*x^2/(y + 2) >= y + 1/7
+
+        sage: elimDenom(x + y == 0)
+        x + y == 0
+
+        """
+        try:
+            f = lambda g : [sage.all.Integer(o.denominator())
+                            for o in g.operands()]
+            denoms = f(p.lhs()) + f(p.rhs()) if p.is_relational() else f(p)
+            return p * sage.all.lcm(denoms)
+        except TypeError:
+            return p    
+
+    @staticmethod
+    def getCoefs(p):
+        """
+        Return coefficients of an expression
+        """
+        Q = sage.all.PolynomialRing(sage.all.QQ, sageutil.get_vars(p))
+        rs = Q(p.lhs()).coefficients()
+        return rs
+
+
+class Template(object):
+    def __init__(self, template):
+        assert sageutil.is_sage_expr(template), template
+        
+        self.template = template
+    def __str__(self): return str(self.template)
+    def __repr__(self): return repr(self.template)
+
+    def instantiateTraces(self, traces, nTraces):
+        """
+        Instantiate a (potentially nonlinear) template with traces to obtain
+        a set of linear expressions.
+
+        sage: var('a,b,x,y,uk_0,uk_1,uk_2,uk_3,uk_4')
+        (a, b, x, y, uk_0, uk_1, uk_2, uk_3, uk_4)
+
+        sage: traces = [{y: 4, b: 2, a: 13, x: 1}, {y: 6, b: 1, a: 10, x: 2}, {y: 8, b: 0, a: 7, x: 3}, {y: 10, b: 4, a: 19, x: 4}, {y: 22, b: 30, a: 97, x: 10}, {y: 28, b: 41, a: 130, x: 13}]
+        sage: exprs = Template(uk_1*a + uk_2*b + uk_3*x + uk_4*y + uk_0 == 0).instantiateTraces(traces, nTraces=None)
+        sage: assert exprs == {uk_0 + 13*uk_1 + 2*uk_2 + uk_3 + 4*uk_4 == 0,\
+        uk_0 + 10*uk_1 + uk_2 + 2*uk_3 + 6*uk_4 == 0,\
+        uk_0 + 7*uk_1 + 3*uk_3 + 8*uk_4 == 0,\
+        uk_0 + 19*uk_1 + 4*uk_2 + 4*uk_3 + 10*uk_4 == 0,\
+        uk_0 + 97*uk_1 + 30*uk_2 + 10*uk_3 + 22*uk_4 == 0,\
+        uk_0 + 130*uk_1 + 41*uk_2 + 13*uk_3 + 28*uk_4 == 0}
+        """
+        assert (traces and (isinstance(traces, collections.Iterator) or
+                            all(isinstance(t, dict) for t in traces))), traces
+        assert nTraces is None or nTraces >= 1, nTraces
+
+        #random.shuffle(traces)
+        
+        if nTraces is None:
+            exprs = set(self.template.subs(t) for t in traces)
+        else:
+            exprs = set()
+            for i,t in enumerate(traces):
+                expr = self.template.subs(t)
+                if expr not in exprs:
+                    exprs.add(expr)
+                    if len(exprs) > nTraces:
+                        break
+                        
+        return exprs
+
+    def instantiateSols(self, sols):
+        """
+        Instantiate a template with solved coefficient values
+
+        sage: var('uk_0,uk_1,uk_2,uk_3,uk_4,r14,r15,a,b,y')
+        (uk_0, uk_1, uk_2, uk_3, uk_4, r14, r15, a, b, y)
+
+        #when sols are in dict form
+        sage: sols = [{uk_0: -2*r14 + 7/3*r15, uk_1: -1/3*r15, uk_4: r14, uk_2: r15, uk_3: -2*r14}]
+        sage: Template(uk_1*a + uk_2*b + uk_3*x + uk_4*y + uk_0 == 0).instantiateSols(sols)
+        [-2*x + y - 2 == 0, -1/3*a + b + 7/3 == 0]
+
+        # #when sols are not in dict form
+        sage: sols = [[uk_0== -2*r14 + 7/3*r15, uk_1== -1/3*r15, uk_4== r14, uk_2== r15, uk_3== -2*r14]]
+        sage: Template(uk_1*a + uk_2*b + uk_3*x + uk_4*y + uk_0 == 0).instantiateSols(sols)
+        [-2*x + y - 2 == 0, -1/3*a + b + 7/3 == 0]
+
+        sage: Template(uk_1*a + uk_2*b + uk_3*x + uk_4*y + uk_0 == 0).instantiateSols([])
+        []
+        """
+
+        if not sols: return []
+
+        if len(sols) > 1:
+            logger.warn('instantiateTemplateWithSols: len(sols) = {}'
+                        .format(len(sols)))
+            logger.warn(str(sols))
+
+        def f_eq(d):
+            if isinstance(d, list):
+                f_ = self.template
+                for d_ in d:
+                    f_ = f_.subs(d_)
+                rhsVals = CM.vset([d_.rhs() for d_ in d])
+                uk_vars = sageutil.get_vars(rhsVals)
+            else:
+                f_ = self.template(d)
+                uk_vars = sageutil.get_vars(d.values()) #e.g., r15,r16 ...
+
+            if not uk_vars: return f_
+
+            iM = sage.all.identity_matrix(len(uk_vars)) #standard basis
+            rs = [dict(zip(uk_vars,l)) for l in iM.rows()]
+            rs = [f_(r) for r in rs]
+            return rs
+
+        sols = sage.all.flatten([f_eq(s) for s in sols])
+
+        #remove trivial (tautology) str(x) <=> str(x)
+        sols = [s for s in sols
+                if not (s.is_relational() and str(s.lhs()) == str(s.rhs()))]
+
+        return sols
+
+    @classmethod
+    def mk(cls, terms, rhsVal,
+           op=sage.all.operator.eq,
+           prefix=None, retCoefVars=False):
+        """
+        get a template from terms.
+
+        Examples:
+
+        sage: var('a,b,x,y')
+        (a, b, x, y)
+
+        sage: Template.mk([1, a, b, x, y],0,prefix=None)
+        a*uk_1 + b*uk_2 + uk_3*x + uk_4*y + uk_0 == 0
+
+        sage: Template.mk([1, x, y],0,\
+        op=operator.gt,prefix=None,retCoefVars=True)
+        (uk_1*x + uk_2*y + uk_0 > 0, [uk_0, uk_1, uk_2])
+
+        sage: Template.mk([1, a, b, x, y],None,prefix=None)
+        a*uk_1 + b*uk_2 + uk_3*x + uk_4*y + uk_0
+
+        sage: Template.mk([1, a, b, x, y],0,prefix='hi')
+        a*hi1 + b*hi2 + hi3*x + hi4*y + hi0 == 0
+
+        sage: var('x1')
+        x1
+        sage: Template.mk([1, a, b, x1, y],0,prefix='x')
+        Traceback (most recent call last):
+        ...
+        AssertionError: name conflict
+        """
+
+        if not prefix: prefix = "uk_"
+        uks = [sage.all.var(prefix + str(i)) for i in range(len(terms))]
+
+        assert not set(terms).intersection(set(uks)), 'name conflict'
+
+        template = sum(map(sage.all.prod, zip(uks, terms)))
+
+        if rhsVal is not None:  #note, not None because rhsVal can be 0
+            template = op(template, rhsVal)
+
+        template = cls(template)
+        if retCoefVars:
+            return template, uks
+        else:
+            return template    
+
+
 
 
