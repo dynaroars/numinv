@@ -21,13 +21,88 @@ from ds import Inp, Inps, Traces, DTraces, Inv, Invs, DInvs
 from prover import Prover
 
 class Gen(object):
-    def __init__(self, invdecls, prover):
+    def __init__(self, inpdecls, invdecls, tcsFile, exeFile, prover):
         self.invdecls = invdecls
+        self.inpdecls = inpdecls
+        self.tcsFile = tcsFile
+        self.exeFile = exeFile
         self.prover = prover
+        
+    def getTraces(self, inps):
+        """
+        Run program on inps and get traces
+        """
+        assert isinstance(inps, Inps) and inps, inps
 
+        tcsFile = "{}_{}".format(self.tcsFile, hash(str(inps))).replace("-","_")
+        if os.path.isfile(tcsFile):
+            traces = DTraces.parse(tcsFile, self.invdecls)
+        else:
+            for inp in inps:
+                inp_ = ' '.join(map(str, inp))
+                cmd = "{} {} >> {}".format(self.exeFile, inp_, tcsFile)
+                logger.detail(cmd)
+                CM.vcmd(cmd)
+            traces = DTraces.parse(tcsFile, self.invdecls)
+
+        assert all(loc in self.invdecls for loc in traces), traces.keys()
+        return traces
+
+    @staticmethod
+    def updateInps(newDInps, inps):
+        if not newDInps: return Inps()
+        _f = lambda dInps: (Inp(inp) for loc in dInps
+                            for inv in dInps[loc]
+                            for inp in dInps[loc][inv])
+        if isinstance(newDInps, dict):
+            newInps = _f(newDInps)
+        else:
+            assert isinstance(newDInps, list) and newDInps, newDInps
+            newInps = [inp for d in newDInps for inp in _f(d)]
+
+        newInps = Inps(inp for inp in newInps if inp not in inps)
+        for inp in newInps: inps.add(inp) #update inps
+        return newInps
+
+    def getTracesAndUpdate(self, inps, traces):
+        assert inps
+        newTraces = self.getTraces(inps)
+        logger.info("got {} traces from {} inps"
+                     .format(newTraces.siz, len(inps)))
+        newTraces = newTraces.update(traces, self.invdecls)
+        return newTraces
+
+
+    def checkReach(self):
+        #check for reachability using inv False (0)
+        dinvs = DInvs.mkFalses(self.invdecls)        
+        inps = Inps()
+
+        #use some initial inps first
+        rinps = Miscs.genInitInps(len(self.inpdecls), DTraces.inpMaxV)
+        for inp in rinps: inps.add(Inp(inp))
+        traces = self.getTraces(inps)
+        unreachLocs = [loc for loc in dinvs if loc not in traces]
+        if unreachLocs:
+            logger.debug("use RT to generate traces for {}".format(
+                ','.join(map(str, unreachLocs))))
+            unreachInvs = DInvs.mkFalses(unreachLocs)
+            cInps, _ = self.prover.checkRange(
+                unreachInvs, traces, inps, avoidOldInps=False)
+            newInps = self.updateInps(cInps, inps)
+            _ = self.getTracesAndUpdate(newInps, traces)
+            
+            
+        #remove FALSE invs indicating unreached locs
+        for loc in traces:
+            assert traces[loc]
+            dinvs[loc].clear()
+
+        return dinvs, traces, inps    
+        
 class GenEqts(Gen):
-    def __init__(self, invdecls, prover):
-        super(GenEqts, self).__init__(invdecls, prover)
+    def __init__(self, inpdecls, invdecls, tcsFile, exeFile, prover):
+        super(GenEqts, self).__init__(inpdecls, invdecls, tcsFile, exeFile, prover)
 
     def getInitTraces(self, loc, deg, traces, inps, rate=1.5):
         vs = tuple(self.invdecls[loc])
@@ -42,14 +117,18 @@ class GenEqts(Gen):
             logger.debug("{}: need more traces ({} eqts, need >= {})"
                          .format(loc, len(exprs), nEqtsNeeded))
             dinvsFalse = DInvs.mkFalses([loc])
-            dTraces, _ = self.prover.checkRange(
-                dinvsFalse, traces, inps, doSafe=False, doExec=True)
-            
-            if loc not in dTraces:
+            cInps, _ = self.prover.checkRange(
+                dinvsFalse, traces, inps, avoidOldInps=True)
+
+            if loc not in cInps:
                 logger.warn("{}: cannot generate enough traces".format(loc))
                 return
+            
+            newInps = Gen.updateInps(cInps, inps)
+            newTraces = self.getTracesAndUpdate(newInps, traces)
+            assert newTraces[loc]
                 
-            traces_ = [tc.mydict(vs) for tc in dTraces[loc]]
+            traces_ = [tc.mydict(vs) for tc in newTraces[loc]]
             logger.debug("obtain {} new traces".format(len(traces_)))
             newExprs = template.instantiateTraces(traces_,
                                                   nEqtsNeeded - len(exprs))
@@ -82,7 +161,6 @@ class GenEqts(Gen):
         eqts = cls.refine(eqts)
         return eqts
 
-        
     def infer(self, loc, template, uks, exprs, dtraces, inps):
         assert isinstance(loc, str), loc
         assert isinstance(template, Template), template
@@ -96,18 +174,16 @@ class GenEqts(Gen):
         eqts = set() #results
         exprs = list(exprs)
 
-        newTraces = True
-        while newTraces:
-            newTraces = False
+        newInps = []
+        while True:
             logger.debug("{}: infer using {} exprs".format(loc, len(exprs)))
             newEqts = self.solve(exprs, uks, template)
             unchecks = [eqt for eqt in newEqts if eqt not in cache]
 
             if not unchecks:
                 logger.debug("{}: no new results -- break".format(loc))
-                continue
+                break
                 
-            for p in unchecks: cache.add(p)
             logger.debug('{}: {} candidates:\n{}'.format(
                 loc, len(newEqts), '\n'.join(map(str, newEqts))))
 
@@ -115,26 +191,27 @@ class GenEqts(Gen):
                          .format(loc, len(unchecks), len(newEqts)))
 
             dinvs = DInvs.mk(loc, Invs.mk(map(Inv, unchecks)))
-            _, dCexs = self.prover.checkRange(
-                dinvs, dtraces, inps, doSafe=False, doExec=False)
+            dInps, dCexs = self.prover.checkRange(
+                dinvs, dtraces, inps, avoidOldInps=False) 
+            if dInps: newInps.append(dInps)
 
-            _ = [eqts.add(inv) for loc in dinvs for inv in dinvs[loc]
-                 if not inv.isDisproved]
-            
+            _ = [eqts.add(inv) for inv in dinvs[loc] if not inv.isDisproved]
+            _ = [cache.add(inv.inv) for inv in dinvs[loc]
+                 if inv.stat is not None]
+
             if loc not in dCexs:
                 logger.debug("{}: no disproved candidates -- break".format(loc))
-                continue
+                break
             
-            newTraces = True
             cexs = Traces.extract(dCexs[loc], vs)
             exprs_ = template.instantiateTraces(cexs.mydicts, None)
             logger.debug("{}: {} new cex exprs".format(loc, len(exprs_)))
             exprs.extend(exprs_)
 
-                     
-        logger.debug("got {} eqts".format(len(eqts)))
+        newInps = Gen.updateInps(newInps, inps)
+        logger.debug("got {} eqts, {} new inps".format(len(eqts), len(newInps)))
         if eqts: logger.debug('\n'.join(map(str, eqts)))
-        return eqts
+        return eqts, newInps
                 
     def gen(self, deg, traces, inps):
         assert deg >= 1, deg
@@ -149,15 +226,14 @@ class GenEqts(Gen):
         dinvs = DInvs()
         for loc, rs in initrs:
             template, uks, exprs = rs
-            eqts = self.infer(loc, template, uks, exprs, traces, inps)
+            eqts, newInps = self.infer(loc, template, uks, exprs, traces, inps)
             dinvs[loc] = Invs.mk(eqts)
         return dinvs
 
-        
 class GenIeqs(Gen):
-    def __init__(self, invdecls, prover):
-        super(GenIeqs, self).__init__(invdecls, prover)
-
+    def __init__(self, inpdecls, invdecls, tcsFile, exeFile, prover):
+        super(GenIeqs, self).__init__(inpdecls, invdecls, tcsFile, exeFile, prover) 
+        
     def gen(self, deg, traces, inps):
         assert deg >= 1, deg
         assert isinstance(traces, DTraces), traces
@@ -184,12 +260,13 @@ class GenIeqs(Gen):
         refs = {loc: {Inv(t <= maxV): t for t in terms}
                 for loc, terms in zip(locs, termss)}
         ieqs = DInvs((loc, Invs.mk(refs[loc].keys())) for loc in refs)
-        #TODO, if take too long then use this
-        _ = self.prover.check(ieqs, traces, inps, ubminV, ubmaxV, doSafe=True, doExec=True) #
-        #_ = self.prover.checkRange(ieqs, traces, inps, doSafe=True, doExec=True) #
+        cInps, cTraces = self.prover.check(
+            ieqs, traces, inps, ubminV, ubmaxV, avoidOldInps=False)
+
+        newInps = Gen.updateInps(cInps, inps)
+        _ = self.getTracesAndUpdate(newInps, traces)
         
         ieqs = ieqs.removeDisproved()
-
         tasks = [(loc, refs[loc][ieq]) for loc in ieqs for ieq in ieqs[loc]]
 
         logger.info("{} locs: compute upperbounds for {} terms".format(
@@ -267,7 +344,7 @@ class GenIeqs(Gen):
             inv = Inv(term <= minV)
             inv_ = DInvs.mk(loc, Invs.mk([inv]))
             _, dCexs = self.prover.check(
-                inv_, traces, inps, ubMinV, ubMaxV, doSafe=True, doExec=False)
+                inv_, traces, inps, ubMinV, ubMaxV, avoidOldInps=False)
 
             if loc in dCexs:
                 assert dCexs[loc]
@@ -280,7 +357,7 @@ class GenIeqs(Gen):
         inv = Inv(term <= v)
         inv_ = DInvs.mk(loc, Invs.mk([inv]))
         _, dCexs = self.prover.check(
-            inv_, traces, inps, ubMinV, ubMaxV, doSafe=True, doExec=False)
+            inv_, traces, inps, ubMinV, ubMaxV, avoidOldInps=False)
             
         if loc in dCexs: #disproved
             assert dCexs[loc]            
@@ -313,12 +390,14 @@ class DIG2(object):
         CM.vcmd(cmd)
         tcsFile =  "{}.tcs".format(printfSrc) #tracefile
 
-        self.prover = Prover(src, self.inpdecls, self.invdecls,
-                             exeFile, tcsFile, tmpdir)
+        self.prover = Prover(src, self.inpdecls, self.invdecls, tmpdir)
         self.tmpdir = tmpdir
         self.filename = filename
+        self.tcsFile = tcsFile
+        self.exeFile = exeFile
         logger.info("analyze {}".format(filename))
-        
+
+
     def start(self, seed, maxdeg, maxterm, doEqts, doIeqs):
         assert isinstance(seed, (int,float)), seed
         assert isinstance(doEqts, bool), doEqts
@@ -337,8 +416,9 @@ class DIG2(object):
         maxvars = max(self.invdecls.itervalues(), key=lambda d: len(d))
         deg = Miscs.getAutoDeg(maxdeg, maxterm, len(maxvars))
 
+        solver =  Gen(self.inpdecls, self.invdecls, self.tcsFile, self.exeFile, self.prover)        
         logger.info("check reachability")
-        dinvs, traces, inps = self.prover.checkReach()
+        dinvs, traces, inps = solver.checkReach()
         if not traces:
             return dinvs
 
@@ -349,9 +429,10 @@ class DIG2(object):
             return "{} locs: {}".format(len(locs), s)
             
         def _gen(typ):
-            cls = GenEqts if typ == 'eqts'else GenIeqs
-            logger.info("gen {} at {}".format(typ, strOfLocs(traces.keys()))) 
-            invs = cls(self.invdecls, self.prover).gen(deg, traces, inps)
+            cls = GenEqts if typ == 'eqts' else GenIeqs
+            logger.info("gen {} at {}".format(typ, strOfLocs(traces.keys())))
+            solver =  cls(self.inpdecls, self.invdecls, self.tcsFile, self.exeFile, self.prover)
+            invs = solver.gen(deg, traces, inps)
             if invs:
                 dinvs.merge(invs)
                 logger.info("{} invs:\n{}".format(dinvs.siz, dinvs))                
@@ -386,3 +467,8 @@ class DIG2(object):
         shutil.rmtree(self.tmpdir)
         
         return dinvs
+
+
+
+
+

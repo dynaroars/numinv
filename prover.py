@@ -29,21 +29,19 @@ def merge(ds):
     return newD
 
 class Prover(object):
-    def __init__(self, src, inpdecls, invdecls,
-                 exeFile, tcsFile, tmpdir):
-                 
+    def __init__(self, src, inpdecls, invdecls, tmpdir):
         assert isinstance(src, Src), src
         self.src = src
-        self.exeFile = exeFile
         self.inpdecls = inpdecls
         self.invdecls = invdecls
         self.tmpdir = tmpdir
-        self.tcsFile = tcsFile
 
-    def getInpsSafe(self, dinvs, inps, inpsd):
+    def getInpsSafe(self, dinvs, inps, inpsd, avoidOldInps):
         """call verifier on each inv"""
         def wprocess(tasks, Q):
-            myinps = set() #inps #Faster when using few constraints
+                        
+            #faster if avoidOldInps is False
+            myinps = inps if avoidOldInps else set()
             rs = [(loc, inv,
                    self.src.instrAsserts(
                        {loc:set([inv])}, myinps, inpsd,self.invdecls))
@@ -82,7 +80,6 @@ class Prover(object):
             wrs = wprocess(tasks, Q=None)
 
         #merge results
-        newInps = Inps()
         mInps, mCexs = [], []
         for loc, inv, (klDInps, klDCexs, isSucc) in wrs:
             mInps.append(klDInps)
@@ -101,82 +98,34 @@ class Prover(object):
         mCexs = merge(mCexs)
         return mInps, mCexs
 
-    def getInpsUnsafe(self, dinvs, inps, inpsd):
-        """
-        call verifier on all invs
-        """
-        
-        dinvs_ = DInvs()
-        _ = [dinvs_.add(loc, inv) for loc in dinvs
-             for inv in dinvs[loc] if inv.stat is None]
-        klSrc = self.src.instrAsserts(dinvs_, inps, inpsd, self.invdecls)
-        klDInps, klDCexs, _ = KLEE(klSrc, self.tmpdir).getDInps()
+    # def getInpsUnsafe(self, dinvs, inps, inpsd):
+    #     """
+    #     call verifier on all invs
+    #     """
+    #     dinvs_ = DInvs()
+    #     _ = [dinvs_.add(loc, inv) for loc in dinvs
+    #          for inv in dinvs[loc] if inv.stat is None]
+    #     klSrc = self.src.instrAsserts(dinvs_, inps, inpsd, self.invdecls)
+    #     klDInps, klDCexs, _ = KLEE(klSrc, self.tmpdir).getDInps()
 
-        #IMPORTANT: getDInps() returns an isSucc flag (false if timeout),
-        #but it's not useful here (when haveing multiple klee_asserts)
-        #because even if isSucc, it doesn't guarantee to generate cex
-        #for a failed assertions (that means we can't claim if an assertion
-        #without cex is proved).
-        newInps = Inps()
-        for loc in dinvs:
-            for inv in dinvs[loc]:
-                if inv.stat is not None: continue
-                try:
-                    sinv = str(inv)
-                    klInps = klDInps[loc][sinv]
-                    inv.stat = Inv.DISPROVED
-                except KeyError:
-                    pass
-        return klDInps, klDCexs
+    #     #IMPORTANT: getDInps() returns an isSucc flag (false if timeout),
+    #     #but it's not useful here (when haveing multiple klee_asserts)
+    #     #because even if isSucc, it doesn't guarantee to generate cex
+    #     #for a failed assertions (that means we can't claim if an assertion
+    #     #without cex is proved).
+    #     newInps = Inps()
+    #     for loc in dinvs:
+    #         for inv in dinvs[loc]:
+    #             if inv.stat is not None: continue
+    #             try:
+    #                 sinv = str(inv)
+    #                 klInps = klDInps[loc][sinv]
+    #                 inv.stat = Inv.DISPROVED
+    #             except KeyError:
+    #                 pass
+    #     return klDInps, klDCexs
     
-    def getInps(self, dinvs, inps, minV, maxV, doSafe):
-        """
-        return new inps (and also add them to inps)
-        """
-        assert isinstance(dinvs, DInvs) and dinvs.siz, dinvs
-        assert minV < maxV, (minV, maxV)
-        assert isinstance(inps, Inps), inps        
-        assert isinstance(doSafe, bool), doSafe
-
-        if self.inpdecls:
-            inpsd = OrderedDict((vname, (vtyp, (minV, maxV)))
-                                for vname, vtyp in self.inpdecls.iteritems())
-        else:
-            inpsd = None
-
-        _f = self.getInpsSafe if doSafe else self.getInpsUnsafe
-        dInps, dCexs = _f(dinvs, inps, inpsd)
-
-        newInps = (Inp(inp) for loc in dInps
-                    for inv in dInps[loc]
-                    for inp in dInps[loc][inv])
-        
-        newInps = Inps(inp for inp in newInps if inp not in inps)        
-        for inp in newInps: inps.add(inp)
-        return newInps, dCexs
-
-    def getTraces(self, inps):
-        """
-        Run program on inps and get traces
-        """
-        assert isinstance(inps, Inps) and inps, inps
-
-        tcsFile = "{}_{}".format(self.tcsFile, hash(str(inps))).replace("-","_")
-        if os.path.isfile(tcsFile):  #need to check for parallism
-            traces = DTraces.parse(tcsFile, self.invdecls)
-        else:
-            for inp in inps:
-                inp_ = ' '.join(map(str, inp))
-                cmd = "{} {} >> {}".format(self.exeFile, inp_, tcsFile)
-                logger.detail(cmd)
-                CM.vcmd(cmd)
-            traces = DTraces.parse(tcsFile, self.invdecls)
-            
-        assert all(loc in self.invdecls for loc in traces), traces.keys()
-        return traces
-
-
-    def check(self, dinvs, traces, inps, minv, maxv, doSafe, doExec):
+    def check(self, dinvs, traces, inps, minv, maxv, avoidOldInps):
         """
         Check invs.
         Also update traces, inps
@@ -184,52 +133,27 @@ class Prover(object):
         assert isinstance(dinvs, DInvs), dinvs
         assert isinstance(traces, DTraces), traces
         assert isinstance(inps, Inps), inps        
-        assert isinstance(doSafe, bool), doSafe
-        assert isinstance(doExec, bool), doExec
+        assert isinstance(avoidOldInps, bool), avoidOldInps
         
-        logger.detail("checking {} invs (doSafe {}, doExec {}):\n{}".format(
-            dinvs.siz, doSafe, doExec, dinvs.__str__(printStat=True)))
-        dInps, dCexs = self.getInps(dinvs, inps, minv, maxv, doSafe)
-
-        if doExec and dInps: 
-            newTraces = self.getTraces(dInps)
-            logger.debug("got {} traces from {} inps"
-                         .format(newTraces.siz, len(dInps)))
-            newTraces = newTraces.update(traces, self.invdecls)
+        oldTracesSiz = traces.siz
+        oldInpsSiz = len(inps)
+        if self.inpdecls:
+            inpsd = OrderedDict((vname, (vtyp, (minv, maxv)))
+                                for vname, vtyp in self.inpdecls.iteritems())
         else:
-            newTraces = DTraces()
+            inpsd = None
+            
+        logger.detail("checking {} invs (avoidOldInps {}):\n{}".format(
+            dinvs.siz, avoidOldInps, dinvs.__str__(printStat=True)))
+        cexDInps, cexDTraces = self.getInpsSafe(dinvs, inps, inpsd, avoidOldInps)
+        assert oldTracesSiz == traces.siz and oldInpsSiz == len(inps)
+        return cexDInps, cexDTraces
 
-        return newTraces, dCexs            
-
-    def checkRange(self, dinvs, traces, inps, doSafe, doExec):
+    def checkRange(self, dinvs, traces, inps, avoidOldInps):
         minv, maxv = -1*DTraces.inpMaxV, DTraces.inpMaxV,         
-        return self.check(dinvs, traces, inps, minv, maxv, doSafe, doExec)
+        return self.check(dinvs, traces, inps, minv, maxv, avoidOldInps)
 
-    def checkNoRange(self, dinvs, traces, inps, doExec):
+    def checkNoRange(self, dinvs, traces, inps, avoidOldInps):
         minv, maxv = -1*DTraces.inpMaxV*10, DTraces.inpMaxV*10,
-        doSafe=True
-        return self.check(dinvs, traces, inps, minv, maxv, doSafe, doExec)
+        return self.check(dinvs, traces, inps, minv, maxv, avoidOldInps)
 
-    def checkReach(self):
-        #check for reachability using inv False (0)
-        dinvs = DInvs.mkFalses(self.invdecls)        
-        inps = Inps()
-
-        #use some initial inps first
-        rinps = Miscs.genInitInps(len(self.inpdecls), DTraces.inpMaxV)
-        for inp in rinps: inps.add(Inp(inp))
-        traces = self.getTraces(inps)
-        unreachLocs = [loc for loc in dinvs if loc not in traces]
-        if unreachLocs:
-            logger.debug("use RT to generate traces for {}".format(
-                ','.join(map(str, unreachLocs))))
-            unreachInvs = DInvs.mkFalses(unreachLocs)
-            _ = self.checkRange(unreachInvs, traces, inps, doSafe=True, doExec=True)
-
-        #remove FALSE invs indicating unreached locs
-        for loc in traces:
-            assert traces[loc]
-            dinvs[loc].clear()
-
-        return dinvs, traces, inps
-    
