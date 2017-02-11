@@ -1,4 +1,5 @@
-#Todo: eqts, after generate candidates first time, check them against init traces
+#Todo 1: parallelize equations (should speed up lcm etc)
+#Todo 2: eqts, after generate candidates first time, check them against init traces
 #then add the cex traces to exprs
 #Todo 4: no need to exclude inps when checking inv
 
@@ -49,7 +50,7 @@ class GenEqts(Gen):
                 return
                 
             traces_ = [tc.mydict(vs) for tc in dTraces[loc]]
-            logger.debug("obtain {} new traces".format(len(traces)))
+            logger.debug("obtain {} new traces".format(len(traces_)))
             newExprs = template.instantiateTraces(traces_,
                                                   nEqtsNeeded - len(exprs))
             for expr in newExprs:
@@ -67,7 +68,7 @@ class GenEqts(Gen):
         sols_ = []
         for s in sols:
             if any(abs(c) > 20 for c in Miscs.getCoefs(s)):
-                logger.debug("large coefs: ignore {}".format(s))
+                logger.detail("large coefs: ignore {}".format(s))
             else:
                 sols_.append(s)
         sols = sols_
@@ -81,16 +82,6 @@ class GenEqts(Gen):
         eqts = cls.refine(eqts)
         return eqts
 
-    @classmethod
-    def extractCexs(cls, dcexs, vs):
-        """
-        dCexs is a dict{inv: set(tuple}}
-        for each disproved inv, use just 1 cex
-        """
-        cexs = (dcexs[inv].pop() for inv in dcexs)
-        cexs = Traces(DTraces.parseTraceVals(tracevals) for tracevals in cexs)
-        cexs.vs = vs
-        return cexs
         
     def infer(self, loc, template, uks, exprs, dtraces, inps):
         assert isinstance(loc, str), loc
@@ -99,7 +90,7 @@ class GenEqts(Gen):
         assert isinstance(exprs, set) and exprs, exprs
         assert isinstance(dtraces, DTraces) and dtraces, dtraces
         assert isinstance(inps, Inps) and inps, inps
-        
+
         vs = tuple(self.invdecls[loc])
         cache = set()
         eqts = set() #results
@@ -113,7 +104,7 @@ class GenEqts(Gen):
             unchecks = [eqt for eqt in newEqts if eqt not in cache]
 
             if not unchecks:
-                logger.debug("no new results -- break")
+                logger.debug("{}: no new results -- break".format(loc))
                 continue
                 
             for p in unchecks: cache.add(p)
@@ -131,12 +122,11 @@ class GenEqts(Gen):
                  if not inv.isDisproved]
             
             if loc not in dCexs:
-                logger.debug("no disproved candidates -- break")
+                logger.debug("{}: no disproved candidates -- break".format(loc))
                 continue
             
             newTraces = True
-            #for each disproved inv, just use 1 cex
-            cexs = self.extractCexs(dCexs[loc], vs)
+            cexs = Traces.extract(dCexs[loc], vs)
             exprs_ = template.instantiateTraces(cexs.mydicts, None)
             logger.debug("{}: {} new cex exprs".format(loc, len(exprs_)))
             exprs.extend(exprs_)
@@ -180,8 +170,9 @@ class GenIeqs(Gen):
         
         maxV = mymaxv
         minV = -1*maxV
-        
-        ubmaxV = maxV+10
+
+        #without these restrictions, klee takes a long time to run
+        ubmaxV = maxV*2
         ubminV = -1*ubmaxV
 
         locs = traces.keys()
@@ -193,8 +184,10 @@ class GenIeqs(Gen):
         refs = {loc: {Inv(t <= maxV): t for t in terms}
                 for loc, terms in zip(locs, termss)}
         ieqs = DInvs((loc, Invs.mk(refs[loc].keys())) for loc in refs)
-        _ = self.prover.check(ieqs, traces, inps, ubminV, ubmaxV,
-                              doSafe=True, doExec=True)
+        #TODO, if take too long then use this
+        _ = self.prover.check(ieqs, traces, inps, ubminV, ubmaxV, doSafe=True, doExec=True) #
+        #_ = self.prover.checkRange(ieqs, traces, inps, doSafe=True, doExec=True) #
+        
         ieqs = ieqs.removeDisproved()
 
         tasks = [(loc, refs[loc][ieq]) for loc in ieqs for ieq in ieqs[loc]]
@@ -203,8 +196,12 @@ class GenIeqs(Gen):
             len(locs), len(tasks)))
         
         def _f(loc, term):
-            mminV = self.getMinV(term, loc, traces, minV, maxV)
-            
+            vs = traces[loc].myeval(term)
+            try:
+                mminV = int(max(minV, max(v for v in vs if v < maxV)))
+            except ValueError:
+                mminV = minV
+                
             logger.debug("{}: compute ub for '{}', start w/ min {}, maxV {})"
                          .format(loc, term, mminV, maxV))
             
@@ -225,7 +222,7 @@ class GenIeqs(Gen):
             else:
                 Q.put(rs)
 
-        do_parallel = len(tasks) >= 2                
+        do_parallel = settings.doMP and len(tasks) >= 2
         if do_parallel:
             from vu_common import get_workloads
             from multiprocessing import (Process, Queue, 
@@ -255,16 +252,6 @@ class GenIeqs(Gen):
             dinvs[loc].add(inv)
         return dinvs
 
-    def getMinV(self, octTerm, loc, traces, minV, maxV):
-        ltraces = [dict(zip(self.invdecls[loc], tracevals))
-                   for tracevals in traces[loc]]
-        ts = [octTerm.subs(tc) for tc in ltraces]
-        try:
-            mminV = max(minV, max(t for t in ts if t < maxV))
-        except ValueError:
-            mminV = minV
-        return mminV
-
     def guessCheck(self, loc, term, traces, inps, minV, maxV,
                    ubMinV, ubMaxV, disproves):
         assert minV <= maxV, (minV, maxV, term)
@@ -272,18 +259,18 @@ class GenIeqs(Gen):
         assert isinstance(traces, DTraces), traces
         assert isinstance(disproves, set), disproveds
 
+        #print term, minV, maxV, ubMinV, ubMaxV
         if minV == maxV: return maxV
         elif maxV - minV == 1:
             if minV in disproves:
                 return maxV
             inv = Inv(term <= minV)
             inv_ = DInvs.mk(loc, Invs.mk([inv]))
-            dTraces, dCexs = self.prover.check(
-                inv_, traces, inps, ubMinV, ubMaxV, doSafe=True, doExec=True)
-                
+            _, dCexs = self.prover.check(
+                inv_, traces, inps, ubMinV, ubMaxV, doSafe=True, doExec=False)
+
             if loc in dCexs:
                 assert dCexs[loc]
-                assert dTraces[loc]
                 disproves.add(minV)
                 return maxV
             else:
@@ -292,15 +279,14 @@ class GenIeqs(Gen):
         v = sage.all.ceil((maxV + minV)/2.0)
         inv = Inv(term <= v)
         inv_ = DInvs.mk(loc, Invs.mk([inv]))
-        dTraces, dCexs = self.prover.check(
-            inv_, traces, inps, ubMinV, ubMaxV, doSafe=True, doExec=True)
+        _, dCexs = self.prover.check(
+            inv_, traces, inps, ubMinV, ubMaxV, doSafe=True, doExec=False)
             
-        if loc in dTraces: #disproved
-            assert dTraces[loc]
+        if loc in dCexs: #disproved
+            assert dCexs[loc]            
+            cexs = Traces.extract(dCexs[loc], tuple(self.invdecls[loc]), useOne=False)
+            minV = int(max(cexs.myeval(term)))
             disproves.add(v)
-            traces_ = (dict(zip(self.invdecls[loc], tracevals))
-                       for tracevals in dTraces[loc])
-            minV = max(term.subs(tc) for tc in traces_)
         else:
             maxV = v
 
@@ -329,6 +315,8 @@ class DIG2(object):
 
         self.prover = Prover(src, self.inpdecls, self.invdecls,
                              exeFile, tcsFile, tmpdir)
+        self.tmpdir = tmpdir
+        self.filename = filename
         logger.info("analyze {}".format(filename))
         
     def start(self, seed, maxdeg, maxterm, doEqts, doIeqs):
@@ -336,6 +324,9 @@ class DIG2(object):
         assert isinstance(doEqts, bool), doEqts
         assert isinstance(doIeqs, bool), doIeqs
 
+        from time import time
+        st = time()
+        
         import random
         random.seed(seed)
         sage.all.set_random_seed(seed)
@@ -363,7 +354,7 @@ class DIG2(object):
             invs = cls(self.invdecls, self.prover).gen(deg, traces, inps)
             if invs:
                 dinvs.merge(invs)
-                logger.info("{} invs:\n{}".format(invs.siz, invs))                
+                logger.info("{} invs:\n{}".format(dinvs.siz, dinvs))                
             
         if doEqts: _gen('eqts')
         if doIeqs: _gen('ieqs')        
@@ -372,7 +363,10 @@ class DIG2(object):
         dinvs = dinvs.testTraces(traces)
         
         logger.info("find uniq invs")
+        logger.info("{} invs:\n{}".format(dinvs.siz, dinvs))
         oldSiz = dinvs.siz
+
+        #TODO: parallel
         dinvs = [(loc, Miscs.reduceSMT([inv.inv for inv in dinvs[loc]]))
                  for loc in dinvs]
         dinvs = DInvs((loc, Invs(map(Inv, invs)))
@@ -384,4 +378,11 @@ class DIG2(object):
         logger.info("got {} invs, {} inps (test {}): \n{}"
                     .format(dinvs.siz, len(inps), sage.all.randint(0,100),
                             dinvs))
+
+        
+        logger.info("*done* prog {}, invs {}, time {} s".format(self.filename, dinvs.siz, time() - st))
+        import shutil
+        logger.debug("rm -rf {}".format(self.tmpdir))
+        shutil.rmtree(self.tmpdir)
+        
         return dinvs

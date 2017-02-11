@@ -189,25 +189,26 @@ class Prover(object):
         
         logger.detail("checking {} invs (doSafe {}, doExec {}):\n{}".format(
             dinvs.siz, doSafe, doExec, dinvs.__str__(printStat=True)))
-        newInps, dcexs = self.getInps(dinvs, inps, minv, maxv, doSafe)
+        dInps, dCexs = self.getInps(dinvs, inps, minv, maxv, doSafe)
 
-        if doExec and newInps: 
-            newTraces = self.getTraces(newInps)
+        if doExec and dInps: 
+            newTraces = self.getTraces(dInps)
             logger.debug("got {} traces from {} inps"
-                         .format(newTraces.siz, len(newInps)))
+                         .format(newTraces.siz, len(dInps)))
             newTraces = newTraces.update(traces, self.invdecls)
         else:
             newTraces = DTraces()
-            
-        return newTraces, dcexs            
+
+        return newTraces, dCexs            
 
     def checkRange(self, dinvs, traces, inps, doSafe, doExec):
         minv, maxv = -1*DTraces.inpMaxV, DTraces.inpMaxV,         
         return self.check(dinvs, traces, inps, minv, maxv, doSafe, doExec)
 
     def checkNoRange(self, dinvs, traces, inps, doExec):
-        minv, maxv = -1*DTraces.inpMaxV*10, DTraces.inpMaxV*10, 
-        return self.check(dinvs, traces, inps, minv, maxv, doSafe=True)
+        minv, maxv = -1*DTraces.inpMaxV*10, DTraces.inpMaxV*10,
+        doSafe=True
+        return self.check(dinvs, traces, inps, minv, maxv, doSafe, doExec)
 
     def checkReach(self):
         #check for reachability using inv False (0)

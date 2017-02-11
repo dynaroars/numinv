@@ -15,8 +15,6 @@ int mainQ(int a){
 	  //assert(((int)(4*r*r*r - 6*r*r + 3*r) + (int)(4*x - 4*a)) == 1); 
 	  //assert((int)(4*s) -12*r*r == 1); 
 	  
-	  //%%%traces: int a, double x, double s, int r
-	  
 	  x = x - s;
 	  s = s + 6 * r + 3;
 	  r = r + 1;

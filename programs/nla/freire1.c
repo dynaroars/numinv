@@ -8,10 +8,11 @@ int mainQ(int a){
 
      while(1){
 	  //assert((double)a == 2*x + r*r - r); 
-	  //%%%traces: double a, double x, int r
+	  //%%%traces: int a, double x, int r
 	  
 	  if (!(x>r)) break;
-	  x = x - r; r = r + 1;
+	  x = x - r;
+	  r = r + 1;
      }
 
      //assert(r==(int)round(sqrt(a)));

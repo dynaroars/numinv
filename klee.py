@@ -57,11 +57,12 @@ class KLEE(object):
         if os.path.exists(kleeOutdir): shutil.rmtree(kleeOutdir)
 
         #"-optimize "  causes problems with prod4br
-        timeout = 5
+        timeout = 3
         kleeOpts = ("-allow-external-sym-calls "
                     "-solver-backend=z3 "
                     "-max-solver-time={}. "
-                    "-max-time={}. "                    
+                    "-max-time={}. "
+                    "-no-output "
                     "-output-dir={} "
                     .format(timeout,timeout, kleeOutdir))
 

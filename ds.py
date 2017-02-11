@@ -40,11 +40,24 @@ class _Trace(tuple):
 
     def test(self, inv, vs):
         assert inv.is_relational()
-        return bool(inv.subs(self.mydict(vs)))
+        return bool(self.myeval(inv, vs))
+
+    def myeval(self, term, vs):
+        assert is_sage_expr(term), term
+        return term.subs(self.mydict(vs))
+
+    @classmethod
+    def parse(cls, tracevals):
+        assert isinstance(tracevals, (tuple, list)), tracevals
+        return _Trace(map(Miscs.ratOfStr, tracevals))        
+
+    
 
 class Traces(set):
-    def __init__(self, myset=set()): super(Traces, self).__init__(myset)
-    
+    def __init__(self, vs, myset=set()):
+        super(Traces, self).__init__(myset)
+        self.vs = vs
+        
     @property
     def vs(self): return self._vs
     @vs.setter
@@ -61,17 +74,35 @@ class Traces(set):
         return super(Traces, self).add(trace)
 
     def test(self, inv):
-        assert inv.is_relational()
+        assert inv.is_relational(), inv
         for trace in self:
             if not trace.test(inv, self.vs):
                 return trace
         return None
+
+    def myeval(self, term):
+        assert is_sage_expr(term), term
+        return [trace.myeval(term, self.vs) for trace in self]
             
     def __str__(self, printDetails=False):
         if printDetails:
             return ", ".join(map(str, sorted(self)))
         else:
             return str(len(self))
+
+    @classmethod
+    def extract(cls, dcexs, vs, useOne=True):
+        """
+        dCexs is a dict{inv: set(tuple}}
+        for each disproved inv, use just 1 cex
+        """
+        if useOne:
+            cexs = [dcexs[inv].pop() for inv in dcexs]
+        else:
+            cexs = [cex for inv in dcexs for cex in dcexs[inv]]
+        cexs = Traces(vs, set([_Trace.parse(tracevals) for tracevals in cexs]))
+        return cexs
+        
 
     @property
     def mydicts(self):
@@ -81,7 +112,7 @@ class DTraces(dict):
     """
     {loc: Traces}
     """
-    inpMaxV = 500
+    inpMaxV = 300
 
     @property
     def siz(self): return sum(map(len, self.itervalues()))
@@ -95,8 +126,7 @@ class DTraces(dict):
         assert isinstance(trace, _Trace), trace
 
         if loc not in self:
-            traces = Traces()
-            traces.vs = tuple(invdecls[loc])
+            traces = Traces(tuple(invdecls[loc]))
             self[loc] = traces
             
         notIn = trace not in self[loc]
@@ -136,15 +166,10 @@ class DTraces(dict):
             assert len(parts) == 2
             lineno = parts[0].strip()  #l22
             tracevals = parts[1].strip().split()
-            trace = cls.parseTraceVals(tracevals)
+            trace = _Trace.parse(tracevals)
             dtraces.add(lineno, trace, invdecls)
         return dtraces
 
-
-    @classmethod
-    def parseTraceVals(cls, tracevals):
-        assert isinstance(tracevals, (tuple, list)), tracevals
-        return _Trace(map(Miscs.ratOfStr, tracevals))        
 
 class Inv(object):
     PROVED = "p"

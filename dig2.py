@@ -12,7 +12,7 @@ if __name__ == "__main__":
                          choices=range(5),
                          default = 2)
 
-    aparser.add_argument("--printtime", "-printtime",
+    aparser.add_argument("--noprinttime", "-noprinttime",
                          default=False,
                          action="store_true")
 
@@ -36,21 +36,23 @@ if __name__ == "__main__":
     aparser.add_argument("--noieqs", "-noieqs",
                          action="store_true")
 
+    aparser.add_argument("--nomp", "-nomp",
+                         action="store_true")
+    
     from time import time
     args = aparser.parse_args()
     
     import settings
+    settings.doMP = not args.nomp
     settings.logger_level = args.logger_level
-    settings.logger_printtime = args.printtime
+    settings.logger_printtime = not args.noprinttime
     logger = CM.VLog("dig2")
     logger.level = settings.logger_level
     logger.printtime = settings.logger_printtime
     if __debug__: logger.warn("DEBUG MODE ON. Can be slow !")
     seed = round(time(), 2) if args.seed is None else float(args.seed)
     import alg
-    st = time()
     dig2 = alg.DIG2(args.inp)
     invs = dig2.start(seed=seed, maxdeg=args.maxdeg, maxterm=args.maxterm,
                       doEqts=not args.noeqts, doIeqs=not args.noieqs)
-    logger.info("time {}s".format(time() - st))
     
