@@ -50,9 +50,7 @@ class _Trace(tuple):
     def parse(cls, tracevals):
         assert isinstance(tracevals, (tuple, list)), tracevals
         return _Trace(map(Miscs.ratOfStr, tracevals))        
-
     
-
 class Traces(set):
     def __init__(self, vs, myset=set()):
         super(Traces, self).__init__(myset)
@@ -107,7 +105,26 @@ class Traces(set):
     @property
     def mydicts(self):
         return (trace.mydict(self.vs) for trace in self)
-    
+
+
+    def instantiate(self, term, nTraces):
+        assert is_sage_expr(term), template
+        assert nTraces is None or nTraces >= 1, nTraces
+
+        if nTraces is None:
+            exprs = set(term.subs(t) for t in self.mydicts)
+        else:
+            exprs = set()
+            for i,t in enumerate(self.mydicts):
+                expr = term.subs(t)
+                if expr not in exprs:
+                    exprs.add(expr)
+                    if len(exprs) > nTraces:
+                        break
+                        
+        return exprs        
+
+        
 class DTraces(dict):
     """
     {loc: Traces}

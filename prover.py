@@ -36,15 +36,12 @@ class Prover(object):
         self.invdecls = invdecls
         self.tmpdir = tmpdir
 
-    def getInpsSafe(self, dinvs, inps, inpsd, avoidOldInps):
+    def getInpsSafe(self, dinvs, inps, inpsd):
         """call verifier on each inv"""
         def wprocess(tasks, Q):
-                        
-            #faster if avoidOldInps is False
-            myinps = inps if avoidOldInps else set()
             rs = [(loc, inv,
                    self.src.instrAsserts(
-                       {loc:set([inv])}, myinps, inpsd,self.invdecls))
+                       {loc:set([inv])}, inps, inpsd,self.invdecls))
                      for loc, inv in tasks]
             rs = [(loc, inv, KLEE(isrc, self.tmpdir).getDInps())
                   for loc, inv, isrc in rs]
@@ -125,35 +122,29 @@ class Prover(object):
     #                 pass
     #     return klDInps, klDCexs
     
-    def check(self, dinvs, traces, inps, minv, maxv, avoidOldInps):
+    def check(self, dinvs, inps, minv, maxv):
         """
         Check invs.
         Also update traces, inps
         """
         assert isinstance(dinvs, DInvs), dinvs
-        assert isinstance(traces, DTraces), traces
-        assert isinstance(inps, Inps), inps        
-        assert isinstance(avoidOldInps, bool), avoidOldInps
+        assert inps is None or (isinstance(inps, Inps) and inps), inps        
         
-        oldTracesSiz = traces.siz
-        oldInpsSiz = len(inps)
         if self.inpdecls:
             inpsd = OrderedDict((vname, (vtyp, (minv, maxv)))
                                 for vname, vtyp in self.inpdecls.iteritems())
         else:
             inpsd = None
             
-        logger.detail("checking {} invs (avoidOldInps {}):\n{}".format(
-            dinvs.siz, avoidOldInps, dinvs.__str__(printStat=True)))
-        cexDInps, cexDTraces = self.getInpsSafe(dinvs, inps, inpsd, avoidOldInps)
-        assert oldTracesSiz == traces.siz and oldInpsSiz == len(inps)
-        return cexDInps, cexDTraces
+        logger.detail("checking {} invs:\n{}".format(
+            dinvs.siz, dinvs.__str__(printStat=True)))
+        return self.getInpsSafe(dinvs, inps, inpsd)
 
-    def checkRange(self, dinvs, traces, inps, avoidOldInps):
+    def checkRange(self, dinvs, inps):
         minv, maxv = -1*DTraces.inpMaxV, DTraces.inpMaxV,         
-        return self.check(dinvs, traces, inps, minv, maxv, avoidOldInps)
+        return self.check(dinvs, inps, minv, maxv)
 
-    def checkNoRange(self, dinvs, traces, inps, avoidOldInps):
+    def checkNoRange(self, dinvs, traces, inps):
         minv, maxv = -1*DTraces.inpMaxV*10, DTraces.inpMaxV*10,
-        return self.check(dinvs, traces, inps, minv, maxv, avoidOldInps)
+        return self.check(dinvs, inps, minv, maxv)
 

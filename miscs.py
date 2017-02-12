@@ -248,51 +248,79 @@ class Miscs(object):
         return rs
 
 
-class Template(object):
-    def __init__(self, template):
-        assert sageutil.is_sage_expr(template), template
-        
-        self.template = template
-    def __str__(self): return str(self.template)
-    def __repr__(self): return repr(self.template)
+    @staticmethod
+    def refine(sols):
+        if not sols: return sols
+        sols = Miscs.reduceEqts(sols)
+        sols = [Miscs.elimDenom(s) for s in sols]
+        #don't allow large coefs
+        sols_ = []
+        for s in sols:
+            if any(abs(c) > 20 for c in Miscs.getCoefs(s)):
+                logger.detail("large coefs: ignore {}".format(s))
+            else:
+                sols_.append(s)
+        sols = sols_
+        return sols        
 
-    def instantiateTraces(self, traces, nTraces):
+
+    
+    @staticmethod
+    def solveEqts(eqts, uks, template):
+        logger.debug("solve {} uks using {} eqts".format(len(uks), len(eqts)))
+        rs = sage.all.solve(eqts, uks, solution_dict=True)
+        eqts = Miscs.instantiateTemplate(template, rs)
+        eqts = Miscs.refine(eqts)
+        return eqts
+
+
+    @staticmethod
+    def mkTemplate(terms, rhsVal,
+           op=sage.all.operator.eq,
+           prefix=None, retCoefVars=False):
         """
-        Instantiate a (potentially nonlinear) template with traces to obtain
-        a set of linear expressions.
+        get a template from terms.
 
-        sage: var('a,b,x,y,uk_0,uk_1,uk_2,uk_3,uk_4')
-        (a, b, x, y, uk_0, uk_1, uk_2, uk_3, uk_4)
+        Examples:
 
-        sage: traces = [{y: 4, b: 2, a: 13, x: 1}, {y: 6, b: 1, a: 10, x: 2}, {y: 8, b: 0, a: 7, x: 3}, {y: 10, b: 4, a: 19, x: 4}, {y: 22, b: 30, a: 97, x: 10}, {y: 28, b: 41, a: 130, x: 13}]
-        sage: exprs = Template(uk_1*a + uk_2*b + uk_3*x + uk_4*y + uk_0 == 0).instantiateTraces(traces, nTraces=None)
-        sage: assert exprs == {uk_0 + 13*uk_1 + 2*uk_2 + uk_3 + 4*uk_4 == 0,\
-        uk_0 + 10*uk_1 + uk_2 + 2*uk_3 + 6*uk_4 == 0,\
-        uk_0 + 7*uk_1 + 3*uk_3 + 8*uk_4 == 0,\
-        uk_0 + 19*uk_1 + 4*uk_2 + 4*uk_3 + 10*uk_4 == 0,\
-        uk_0 + 97*uk_1 + 30*uk_2 + 10*uk_3 + 22*uk_4 == 0,\
-        uk_0 + 130*uk_1 + 41*uk_2 + 13*uk_3 + 28*uk_4 == 0}
+        sage: var('a,b,x,y')
+        (a, b, x, y)
+
+        sage: GenEqts.mkTemplate([1, a, b, x, y],0,prefix=None)
+        a*uk_1 + b*uk_2 + uk_3*x + uk_4*y + uk_0 == 0
+
+        sage: GenEqts.mkTemplate([1, x, y],0,\
+        op=operator.gt,prefix=None,retCoefVars=True)
+        (uk_1*x + uk_2*y + uk_0 > 0, [uk_0, uk_1, uk_2])
+
+        sage: GenEqts.mkTemplate([1, a, b, x, y],None,prefix=None)
+        a*uk_1 + b*uk_2 + uk_3*x + uk_4*y + uk_0
+
+        sage: GenEqts.mkTemplate([1, a, b, x, y],0,prefix='hi')
+        a*hi1 + b*hi2 + hi3*x + hi4*y + hi0 == 0
+
+        sage: var('x1')
+        x1
+        sage: GenEqts.mkTemplate([1, a, b, x1, y],0,prefix='x')
+        Traceback (most recent call last):
+        ...
+        AssertionError: name conflict
         """
-        assert (traces and (isinstance(traces, collections.Iterator) or
-                            all(isinstance(t, dict) for t in traces))), traces
-        assert nTraces is None or nTraces >= 1, nTraces
 
-        #random.shuffle(traces)
-        
-        if nTraces is None:
-            exprs = set(self.template.subs(t) for t in traces)
-        else:
-            exprs = set()
-            for i,t in enumerate(traces):
-                expr = self.template.subs(t)
-                if expr not in exprs:
-                    exprs.add(expr)
-                    if len(exprs) > nTraces:
-                        break
-                        
-        return exprs
+        if not prefix: prefix = "uk_"
+        uks = [sage.all.var(prefix + str(i)) for i in range(len(terms))]
 
-    def instantiateSols(self, sols):
+        assert not set(terms).intersection(set(uks)), 'name conflict'
+
+        template = sum(map(sage.all.prod, zip(uks, terms)))
+
+        if rhsVal is not None:  #note, not None because rhsVal can be 0
+            template = op(template, rhsVal)
+
+        return template, uks if retCoefVars else template
+
+    @staticmethod
+    def instantiateTemplate(template, sols):
         """
         Instantiate a template with solved coefficient values
 
@@ -312,9 +340,9 @@ class Template(object):
         sage: Template(uk_1*a + uk_2*b + uk_3*x + uk_4*y + uk_0 == 0).instantiateSols([])
         []
         """
-
+        assert sageutil.is_sage_expr(template), template
+        
         if not sols: return []
-
         if len(sols) > 1:
             logger.warn('instantiateTemplateWithSols: len(sols) = {}'
                         .format(len(sols)))
@@ -322,13 +350,13 @@ class Template(object):
 
         def f_eq(d):
             if isinstance(d, list):
-                f_ = self.template
+                f_ = template
                 for d_ in d:
                     f_ = f_.subs(d_)
                 rhsVals = CM.vset([d_.rhs() for d_ in d])
                 uk_vars = sageutil.get_vars(rhsVals)
             else:
-                f_ = self.template(d)
+                f_ = template(d)
                 uk_vars = sageutil.get_vars(d.values()) #e.g., r15,r16 ...
 
             if not uk_vars: return f_
@@ -345,56 +373,5 @@ class Template(object):
                 if not (s.is_relational() and str(s.lhs()) == str(s.rhs()))]
 
         return sols
-
-    @classmethod
-    def mk(cls, terms, rhsVal,
-           op=sage.all.operator.eq,
-           prefix=None, retCoefVars=False):
-        """
-        get a template from terms.
-
-        Examples:
-
-        sage: var('a,b,x,y')
-        (a, b, x, y)
-
-        sage: Template.mk([1, a, b, x, y],0,prefix=None)
-        a*uk_1 + b*uk_2 + uk_3*x + uk_4*y + uk_0 == 0
-
-        sage: Template.mk([1, x, y],0,\
-        op=operator.gt,prefix=None,retCoefVars=True)
-        (uk_1*x + uk_2*y + uk_0 > 0, [uk_0, uk_1, uk_2])
-
-        sage: Template.mk([1, a, b, x, y],None,prefix=None)
-        a*uk_1 + b*uk_2 + uk_3*x + uk_4*y + uk_0
-
-        sage: Template.mk([1, a, b, x, y],0,prefix='hi')
-        a*hi1 + b*hi2 + hi3*x + hi4*y + hi0 == 0
-
-        sage: var('x1')
-        x1
-        sage: Template.mk([1, a, b, x1, y],0,prefix='x')
-        Traceback (most recent call last):
-        ...
-        AssertionError: name conflict
-        """
-
-        if not prefix: prefix = "uk_"
-        uks = [sage.all.var(prefix + str(i)) for i in range(len(terms))]
-
-        assert not set(terms).intersection(set(uks)), 'name conflict'
-
-        template = sum(map(sage.all.prod, zip(uks, terms)))
-
-        if rhsVal is not None:  #note, not None because rhsVal can be 0
-            template = op(template, rhsVal)
-
-        template = cls(template)
-        if retCoefVars:
-            return template, uks
-        else:
-            return template    
-
-
-
-
+    
+    

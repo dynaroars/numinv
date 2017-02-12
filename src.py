@@ -26,7 +26,7 @@ class Src(object):
         assert (inpsd is None or
                 (isinstance(inpsd, OrderedDict) and inpsd)), inpsd
         assert isinstance(invdecls, OrderedDict) and invdecls, invdecls
-        assert isinstance(inps, set), inps
+        assert inps is None or (isinstance(inps, set) and inps), inps
 
         inpParts = self.mkPrintfArgs(inpsd) if inpsd else (None, None)
         

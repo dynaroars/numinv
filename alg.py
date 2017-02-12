@@ -8,8 +8,8 @@ import os.path
 import sage.all
 
 import vu_common as CM
-
-from miscs import Miscs, Template
+import sageutil
+from miscs import Miscs
 from src import Src
 
 import settings
@@ -67,11 +67,8 @@ class Gen(object):
     def getTracesAndUpdate(self, inps, traces):
         assert inps
         newTraces = self.getTraces(inps)
-        logger.info("got {} traces from {} inps"
-                     .format(newTraces.siz, len(inps)))
         newTraces = newTraces.update(traces, self.invdecls)
         return newTraces
-
 
     def checkReach(self):
         #check for reachability using inv False (0)
@@ -87,11 +84,9 @@ class Gen(object):
             logger.debug("use RT to generate traces for {}".format(
                 ','.join(map(str, unreachLocs))))
             unreachInvs = DInvs.mkFalses(unreachLocs)
-            cInps, _ = self.prover.checkRange(
-                unreachInvs, traces, inps, avoidOldInps=False)
+            cInps, _ = self.prover.checkRange(unreachInvs, inps=None)
             newInps = self.updateInps(cInps, inps)
             _ = self.getTracesAndUpdate(newInps, traces)
-            
             
         #remove FALSE invs indicating unreached locs
         for loc in traces:
@@ -104,22 +99,20 @@ class GenEqts(Gen):
     def __init__(self, inpdecls, invdecls, tcsFile, exeFile, prover):
         super(GenEqts, self).__init__(inpdecls, invdecls, tcsFile, exeFile, prover)
 
+
     def getInitTraces(self, loc, deg, traces, inps, rate=1.5):
         vs = tuple(self.invdecls[loc])
         
         terms = Miscs.getTerms([sage.all.var(k) for k in vs], deg)
-        template, uks = Template.mk(terms, 0, retCoefVars=True)
+        template, uks = Miscs.mkTemplate(terms, 0, retCoefVars=True)
         nEqtsNeeded = int(rate * len(uks))
-        traces_ = [tc.mydict(vs) for tc in traces[loc]]
-        exprs = template.instantiateTraces(traces_, nEqtsNeeded)
+        exprs = traces[loc].instantiate(template, nEqtsNeeded)
 
         while nEqtsNeeded > len(exprs):
             logger.debug("{}: need more traces ({} eqts, need >= {})"
                          .format(loc, len(exprs), nEqtsNeeded))
             dinvsFalse = DInvs.mkFalses([loc])
-            cInps, _ = self.prover.checkRange(
-                dinvsFalse, traces, inps, avoidOldInps=True)
-
+            cInps, _ = self.prover.checkRange(dinvsFalse, inps)
             if loc not in cInps:
                 logger.warn("{}: cannot generate enough traces".format(loc))
                 return
@@ -127,10 +120,8 @@ class GenEqts(Gen):
             newInps = Gen.updateInps(cInps, inps)
             newTraces = self.getTracesAndUpdate(newInps, traces)
             assert newTraces[loc]
-                
-            traces_ = [tc.mydict(vs) for tc in newTraces[loc]]
-            logger.debug("obtain {} new traces".format(len(traces_)))
-            newExprs = template.instantiateTraces(traces_,
+            logger.debug("obtain {} new traces".format(len(newTraces[loc])))
+            newExprs = newTraces[loc].instantiate(template,
                                                   nEqtsNeeded - len(exprs))
             for expr in newExprs:
                 assert expr not in exprs
@@ -138,32 +129,9 @@ class GenEqts(Gen):
                 
         return template, uks, exprs
 
-    @classmethod
-    def refine(cls, sols):
-        if not sols: return sols
-        sols = Miscs.reduceEqts(sols)
-        sols = [Miscs.elimDenom(s) for s in sols]
-        #don't allow large coefs
-        sols_ = []
-        for s in sols:
-            if any(abs(c) > 20 for c in Miscs.getCoefs(s)):
-                logger.detail("large coefs: ignore {}".format(s))
-            else:
-                sols_.append(s)
-        sols = sols_
-        return sols        
-
-    @classmethod
-    def solve(cls, eqts, uks, template):
-        logger.debug("solve {} uks using {} eqts".format(len(uks), len(eqts)))
-        rs = sage.all.solve(eqts, uks, solution_dict=True)
-        eqts = template.instantiateSols(rs)
-        eqts = cls.refine(eqts)
-        return eqts
-
     def infer(self, loc, template, uks, exprs, dtraces, inps):
         assert isinstance(loc, str), loc
-        assert isinstance(template, Template), template
+        assert sageutil.is_sage_expr(template), template
         assert isinstance(uks, list), uks
         assert isinstance(exprs, set) and exprs, exprs
         assert isinstance(dtraces, DTraces) and dtraces, dtraces
@@ -177,7 +145,7 @@ class GenEqts(Gen):
         newInps = []
         while True:
             logger.debug("{}: infer using {} exprs".format(loc, len(exprs)))
-            newEqts = self.solve(exprs, uks, template)
+            newEqts = Miscs.solveEqts(exprs, uks, template)
             unchecks = [eqt for eqt in newEqts if eqt not in cache]
 
             if not unchecks:
@@ -191,10 +159,9 @@ class GenEqts(Gen):
                          .format(loc, len(unchecks), len(newEqts)))
 
             dinvs = DInvs.mk(loc, Invs.mk(map(Inv, unchecks)))
-            dInps, dCexs = self.prover.checkRange(
-                dinvs, dtraces, inps, avoidOldInps=False) 
-            if dInps: newInps.append(dInps)
+            dInps, dCexs = self.prover.checkRange(dinvs, inps=None) 
 
+            if dInps: newInps.append(dInps)
             _ = [eqts.add(inv) for inv in dinvs[loc] if not inv.isDisproved]
             _ = [cache.add(inv.inv) for inv in dinvs[loc]
                  if inv.stat is not None]
@@ -202,15 +169,13 @@ class GenEqts(Gen):
             if loc not in dCexs:
                 logger.debug("{}: no disproved candidates -- break".format(loc))
                 break
-            
+
             cexs = Traces.extract(dCexs[loc], vs)
-            exprs_ = template.instantiateTraces(cexs.mydicts, None)
+            exprs_ = cexs.instantiate(template, None)
+
             logger.debug("{}: {} new cex exprs".format(loc, len(exprs_)))
             exprs.extend(exprs_)
 
-        newInps = Gen.updateInps(newInps, inps)
-        logger.debug("got {} eqts, {} new inps".format(len(eqts), len(newInps)))
-        if eqts: logger.debug('\n'.join(map(str, eqts)))
         return eqts, newInps
                 
     def gen(self, deg, traces, inps):
@@ -226,8 +191,17 @@ class GenEqts(Gen):
         dinvs = DInvs()
         for loc, rs in initrs:
             template, uks, exprs = rs
-            eqts, newInps = self.infer(loc, template, uks, exprs, traces, inps)
+            oldTracesSiz = traces.siz
+            oldInpsSiz = len(inps)
+            eqts, newInps = self.infer(loc, template, uks, exprs, traces, inps)            
+            assert oldInpsSiz == len(inps), (oldInpsSiz, len(inps))
+            assert oldTracesSiz == traces.siz
+            newInps = Gen.updateInps(newInps, inps)
+            logger.debug("got {} eqts, {} new inps".format(len(eqts), len(newInps)))
+            if eqts: logger.debug('\n'.join(map(str, eqts)))
+
             dinvs[loc] = Invs.mk(eqts)
+
         return dinvs
 
 class GenIeqs(Gen):
@@ -243,7 +217,6 @@ class GenIeqs(Gen):
         assert isinstance(inps, Inps), inps
 
         mymaxv  = 10
-        
         maxV = mymaxv
         minV = -1*maxV
 
@@ -260,9 +233,8 @@ class GenIeqs(Gen):
         refs = {loc: {Inv(t <= maxV): t for t in terms}
                 for loc, terms in zip(locs, termss)}
         ieqs = DInvs((loc, Invs.mk(refs[loc].keys())) for loc in refs)
-        cInps, cTraces = self.prover.check(
-            ieqs, traces, inps, ubminV, ubmaxV, avoidOldInps=False)
-
+        myinps = None
+        cInps, cTraces = self.prover.check(ieqs, myinps, ubminV, ubmaxV)
         newInps = Gen.updateInps(cInps, inps)
         _ = self.getTracesAndUpdate(newInps, traces)
         
@@ -343,8 +315,7 @@ class GenIeqs(Gen):
                 return maxV
             inv = Inv(term <= minV)
             inv_ = DInvs.mk(loc, Invs.mk([inv]))
-            _, dCexs = self.prover.check(
-                inv_, traces, inps, ubMinV, ubMaxV, avoidOldInps=False)
+            _, dCexs = self.prover.check(inv_, None, ubMinV, ubMaxV)
 
             if loc in dCexs:
                 assert dCexs[loc]
@@ -356,12 +327,13 @@ class GenIeqs(Gen):
         v = sage.all.ceil((maxV + minV)/2.0)
         inv = Inv(term <= v)
         inv_ = DInvs.mk(loc, Invs.mk([inv]))
-        _, dCexs = self.prover.check(
-            inv_, traces, inps, ubMinV, ubMaxV, avoidOldInps=False)
+        _, dCexs = self.prover.check(inv_, None, ubMinV, ubMaxV)
+            
             
         if loc in dCexs: #disproved
             assert dCexs[loc]            
-            cexs = Traces.extract(dCexs[loc], tuple(self.invdecls[loc]), useOne=False)
+            cexs = Traces.extract(dCexs[loc], tuple(self.invdecls[loc]),
+                                  useOne=False)
             minV = int(max(cexs.myeval(term)))
             disproves.add(v)
         else:
@@ -461,7 +433,8 @@ class DIG2(object):
                             dinvs))
 
         
-        logger.info("*done* prog {}, invs {}, time {} s".format(self.filename, dinvs.siz, time() - st))
+        logger.info("*done* prog {}, invs {}, time {} s"
+                    .format(self.filename, dinvs.siz, time() - st))
         import shutil
         logger.debug("rm -rf {}".format(self.tmpdir))
         shutil.rmtree(self.tmpdir)
