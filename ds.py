@@ -108,7 +108,7 @@ class Traces(set):
 
 
     def instantiate(self, term, nTraces):
-        assert is_sage_expr(term), template
+        assert is_sage_expr(term), term
         assert nTraces is None or nTraces >= 1, nTraces
 
         if nTraces is None:
@@ -201,7 +201,7 @@ class Inv(object):
     def __str__(self, printStat=False):
 
         if is_sage_expr(self.inv):
-            s = self.strOfExp(self.inv)
+            s = Inv.strOfExp(self.inv)
         else:
             s = str(self.inv)
 

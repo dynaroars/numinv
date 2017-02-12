@@ -1,6 +1,5 @@
 import random
 import itertools
-import collections
 
 import sage.all
 from sage.all import cached_function
@@ -146,7 +145,8 @@ class Miscs(object):
         sage: getTermsFixedCoefs([x,y^2], 2)
         [-y^2 - x, -x, y^2 - x, -y^2, y^2, -y^2 + x, x, y^2 + x]
         """
-        if len(ss) < subsetSiz: subsetSiz = len(ss)
+        if len(ss) < subsetSiz:
+            subsetSiz = len(ss)
         rs = []
         for ssSubset in itertools.combinations(ss, subsetSiz):
             css = itertools.product(*([[0, -1, 1]] * len(ssSubset)))
@@ -231,8 +231,8 @@ class Miscs(object):
 
         """
         try:
-            f = lambda g : [sage.all.Integer(o.denominator())
-                            for o in g.operands()]
+            f = lambda g: [sage.all.Integer(o.denominator())
+                           for o in g.operands()]
             denoms = f(p.lhs()) + f(p.rhs()) if p.is_relational() else f(p)
             return p * sage.all.lcm(denoms)
         except TypeError:
@@ -264,7 +264,6 @@ class Miscs(object):
         return sols        
 
 
-    
     @staticmethod
     def solveEqts(eqts, uks, template):
         logger.debug("solve {} uks using {} eqts".format(len(uks), len(eqts)))
@@ -276,8 +275,8 @@ class Miscs(object):
 
     @staticmethod
     def mkTemplate(terms, rhsVal,
-           op=sage.all.operator.eq,
-           prefix=None, retCoefVars=False):
+                   op=sage.all.operator.eq,
+                   prefix=None, retCoefVars=False):
         """
         get a template from terms.
 

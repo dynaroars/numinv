@@ -306,7 +306,7 @@ class GenIeqs(Gen):
         assert minV <= maxV, (minV, maxV, term)
         assert ubMinV < ubMaxV, (ubMinV, ubMaxV)
         assert isinstance(traces, DTraces), traces
-        assert isinstance(disproves, set), disproveds
+        assert isinstance(disproves, set), disproves
 
         #print term, minV, maxV, ubMinV, ubMaxV
         if minV == maxV: return maxV
