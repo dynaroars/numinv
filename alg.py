@@ -77,6 +77,8 @@ class Gen(object):
 
         #use some initial inps first
         rinps = Miscs.genInitInps(len(self.inpdecls), DTraces.inpMaxV)
+        logger.debug("gen {} random inps".format(len(rinps)))
+        CM.pause()
         for inp in rinps: inps.add(Inp(inp))
         traces = self.getTraces(inps)
         unreachLocs = [loc for loc in dinvs if loc not in traces]
@@ -84,7 +86,7 @@ class Gen(object):
             logger.debug("use RT to generate traces for {}".format(
                 ','.join(map(str, unreachLocs))))
             unreachInvs = DInvs.mkFalses(unreachLocs)
-            cInps, _ = self.prover.checkRange(unreachInvs, inps=None)
+            cInps, _, _ = self.prover.checkRange(unreachInvs, inps=None)
             newInps = self.updateInps(cInps, inps)
             _ = self.getTracesAndUpdate(newInps, traces)
             
@@ -112,7 +114,7 @@ class GenEqts(Gen):
             logger.debug("{}: need more traces ({} eqts, need >= {})"
                          .format(loc, len(exprs), nEqtsNeeded))
             dinvsFalse = DInvs.mkFalses([loc])
-            cInps, _ = self.prover.checkRange(dinvsFalse, inps)
+            cInps, _, _ = self.prover.checkRange(dinvsFalse, inps)
             if loc not in cInps:
                 logger.warn("{}: cannot generate enough traces".format(loc))
                 return
@@ -159,7 +161,7 @@ class GenEqts(Gen):
                          .format(loc, len(unchecks), len(newEqts)))
 
             dinvs = DInvs.mk(loc, Invs.mk(map(Inv, unchecks)))
-            dInps, dCexs = self.prover.checkRange(dinvs, inps=None) 
+            dInps, dCexs, dinvs = self.prover.checkRange(dinvs, inps=None) 
 
             if dInps: newInps.append(dInps)
             _ = [eqts.add(inv) for inv in dinvs[loc] if not inv.isDisproved]
@@ -185,23 +187,26 @@ class GenEqts(Gen):
 
         #first obtain enough traces
         initrs = [self.getInitTraces(loc, deg, traces, inps) for loc in traces]
-        initrs = [(loc, rs) for loc, rs in zip(traces, initrs) if rs]
-        
+        tasks = [(loc, rs) for loc, rs in zip(traces, initrs) if rs]
+
         #then solve/prove in parallel
-        dinvs = DInvs()
-        for loc, rs in initrs:
-            template, uks, exprs = rs
-            oldTracesSiz = traces.siz
-            oldInpsSiz = len(inps)
-            eqts, newInps = self.infer(loc, template, uks, exprs, traces, inps)            
-            assert oldInpsSiz == len(inps), (oldInpsSiz, len(inps))
-            assert oldTracesSiz == traces.siz
+        def wprocess(tasks, Q):
+            rs = [(loc, self.infer(loc, template, uks, exprs, traces, inps))
+                  for loc, (template, uks, exprs) in tasks]
+            if Q is None:
+                return rs
+            else:
+                Q.put(rs)
+
+        wrs = Miscs.runMP('find eqts', tasks, wprocess, chunksiz=1,
+                          doMP=settings.doMP and len(tasks) >= 2)
+
+        dinvs = DInvs()            
+        for loc, (eqts, newInps) in wrs:
             newInps = Gen.updateInps(newInps, inps)
-            logger.debug("got {} eqts, {} new inps".format(len(eqts), len(newInps)))
+            logger.debug("{}: got {} eqts, {} new inps".format(loc, len(eqts), len(newInps)))
             if eqts: logger.debug('\n'.join(map(str, eqts)))
-
             dinvs[loc] = Invs.mk(eqts)
-
         return dinvs
 
 class GenIeqs(Gen):
@@ -234,7 +239,7 @@ class GenIeqs(Gen):
                 for loc, terms in zip(locs, termss)}
         ieqs = DInvs((loc, Invs.mk(refs[loc].keys())) for loc in refs)
         myinps = None
-        cInps, cTraces = self.prover.check(ieqs, myinps, ubminV, ubmaxV)
+        cInps, cTraces, ieqs = self.prover.check(ieqs, myinps, ubminV, ubmaxV)
         newInps = Gen.updateInps(cInps, inps)
         _ = self.getTracesAndUpdate(newInps, traces)
         
@@ -270,30 +275,9 @@ class GenIeqs(Gen):
                 return rs
             else:
                 Q.put(rs)
-
-        do_parallel = settings.doMP and len(tasks) >= 2
-        if do_parallel:
-            from vu_common import get_workloads
-            from multiprocessing import (Process, Queue, 
-                                         current_process, cpu_count)
-            Q=Queue()
-            workloads = get_workloads(tasks, 
-                                      max_nprocesses=cpu_count(),
-                                      chunksiz=2)
-
-            logger.debug("workloads 'guesscheck' {}: {}"
-                         .format(len(workloads),map(len,workloads)))
-
-            workers = [Process(target=wprocess,args=(wl,Q))
-                       for wl in workloads]
-
-            for w in workers: w.start()
-            wrs = []
-            for _ in workers: wrs.extend(Q.get())
-        else:
-            wrs = wprocess(tasks, Q=None)
-                    
-
+        
+        doMP = settings.doMP and len(tasks) >= 2
+        wrs = Miscs.runMP('guesscheck', tasks, wprocess, chunksiz=2, doMP=doMP)
         rs = [(loc, inv) for loc, inv in wrs if inv]
         dinvs = DInvs()
         for loc, inv in rs:
@@ -315,7 +299,7 @@ class GenIeqs(Gen):
                 return maxV
             inv = Inv(term <= minV)
             inv_ = DInvs.mk(loc, Invs.mk([inv]))
-            _, dCexs = self.prover.check(inv_, None, ubMinV, ubMaxV)
+            _, dCexs, _ = self.prover.check(inv_, None, ubMinV, ubMaxV)
 
             if loc in dCexs:
                 assert dCexs[loc]
@@ -327,7 +311,7 @@ class GenIeqs(Gen):
         v = sage.all.ceil((maxV + minV)/2.0)
         inv = Inv(term <= v)
         inv_ = DInvs.mk(loc, Invs.mk([inv]))
-        _, dCexs = self.prover.check(inv_, None, ubMinV, ubMaxV)
+        _, dCexs, _ = self.prover.check(inv_, None, ubMinV, ubMaxV)
             
             
         if loc in dCexs: #disproved
@@ -414,16 +398,25 @@ class DIG2(object):
             
         logger.info("test {} invs on all {} traces".format(dinvs.siz, traces.siz))
         dinvs = dinvs.testTraces(traces)
-        
+
         logger.info("find uniq invs")
         logger.info("{} invs:\n{}".format(dinvs.siz, dinvs))
         oldSiz = dinvs.siz
+        
+        def wprocess(tasks, Q):
+            rs = [(loc, Miscs.reduceSMT(invs)) for loc, invs in tasks]
+            if Q is None:
+                return rs
+            else:
+                Q.put(rs)
+        
+        tasks = [(loc, [inv.inv for inv in dinvs[loc]]) for loc in dinvs]
+        wrs = Miscs.runMP("uniqify", tasks, wprocess, chunksiz=1,
+                          doMP=settings.doMP and len(tasks) >= 2)
 
-        #TODO: parallel
-        dinvs = [(loc, Miscs.reduceSMT([inv.inv for inv in dinvs[loc]]))
-                 for loc in dinvs]
         dinvs = DInvs((loc, Invs(map(Inv, invs)))
-                      for loc, invs in dinvs if invs)
+                      for loc, invs in wrs if invs)
+        
         ndiff = oldSiz - dinvs.siz
         if ndiff:
             logger.info("removed {} redundant invs".format(ndiff))
@@ -431,8 +424,6 @@ class DIG2(object):
         logger.info("got {} invs, {} inps (test {}): \n{}"
                     .format(dinvs.siz, len(inps), sage.all.randint(0,100),
                             dinvs))
-
-        
         logger.info("*done* prog {}, invs {}, time {} s"
                     .format(self.filename, dinvs.siz, time() - st))
         import shutil
@@ -440,8 +431,3 @@ class DIG2(object):
         shutil.rmtree(self.tmpdir)
         
         return dinvs
-
-
-
-
-

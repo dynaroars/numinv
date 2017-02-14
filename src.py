@@ -97,7 +97,7 @@ class Src(object):
             l = l.strip()
             if not l: continue
 
-            if startFun in l and l.endswith(' {'):  #void startFun(int x, double y) {
+            if startFun in l and l.endswith('{'):  #void startFun(int x, double y) {
                 l = l.split('(')[1].split(')')[0]  #int x, double y
                 inpdecls = mkVarsDict(l)
 

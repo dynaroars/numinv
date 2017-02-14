@@ -162,3 +162,43 @@
         return loc, inv, inp
         
                 
+
+    # def getInpsUnsafe(self, dinvs, inps, inpsd):
+    #     """
+    #     call verifier on all invs
+    #     """
+    #     dinvs_ = DInvs()
+    #     _ = [dinvs_.add(loc, inv) for loc in dinvs
+    #          for inv in dinvs[loc] if inv.stat is None]
+    #     klSrc = self.src.instrAsserts(dinvs_, inps, inpsd, self.invdecls)
+    #     klDInps, klDCexs, _ = KLEE(klSrc, self.tmpdir).getDInps()
+
+    #     #IMPORTANT: getDInps() returns an isSucc flag (false if timeout),
+    #     #but it's not useful here (when haveing multiple klee_asserts)
+    #     #because even if isSucc, it doesn't guarantee to generate cex
+    #     #for a failed assertions (that means we can't claim if an assertion
+    #     #without cex is proved).
+    #     newInps = Inps()
+    #     for loc in dinvs:
+    #         for inv in dinvs[loc]:
+    #             if inv.stat is not None: continue
+    #             try:
+    #                 sinv = str(inv)
+    #                 klInps = klDInps[loc][sinv]
+    #                 inv.stat = Inv.DISPROVED
+    #             except KeyError:
+    #                 pass
+    #     return klDInps, klDCexs
+    
+    
+        # dinvs = DInvs()
+        # for loc, rs in initrs:
+        #     template, uks, exprs = rs
+        #     eqts, newInps = self.infer(loc, template, uks, exprs, traces, inps)
+
+            
+        #     newInps = Gen.updateInps(newInps, inps)
+        #     logger.debug("got {} eqts, {} new inps".format(len(eqts), len(newInps)))
+        #     if eqts: logger.debug('\n'.join(map(str, eqts)))
+
+        #     dinvs[loc] = Invs.mk(eqts)

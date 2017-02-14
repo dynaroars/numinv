@@ -116,7 +116,7 @@ class Miscs(object):
 
 
     @staticmethod
-    def genInitInps(nInps, maxV):    
+    def genInitInps(nInps, maxV, maxnInps=100):    
         #15,75=   0...15, 15..75, 75..100
 
         def gen(nInps, ranges):
@@ -133,7 +133,11 @@ class Miscs(object):
         a1 = (0, p15)
         a3 = (p75, maxV)
         ranges = [a1,a3]
-        return gen(nInps, ranges)
+        rinps = gen(nInps, ranges)
+        if len(rinps) >= maxnInps:
+            random.shuffle(rinps)
+            rinps = rinps[:maxnInps]
+        return rinps
 
 
     @staticmethod
@@ -267,7 +271,10 @@ class Miscs(object):
     @staticmethod
     def solveEqts(eqts, uks, template):
         logger.debug("solve {} uks using {} eqts".format(len(uks), len(eqts)))
-        rs = sage.all.solve(eqts, uks, solution_dict=True)
+        # print 'ss', type(uks), uks
+        # print '\n'.join(map(str, eqts))
+        
+        rs = sage.all.solve(eqts, *uks, solution_dict=True)
         eqts = Miscs.instantiateTemplate(template, rs)
         eqts = Miscs.refine(eqts)
         return eqts
@@ -373,4 +380,28 @@ class Miscs(object):
 
         return sols
     
-    
+    @staticmethod
+    def runMP(taskname, tasks, wprocess, chunksiz, doMP):
+        """
+        Run wprocess on tasks in parallel
+        """
+        if doMP:
+            from vu_common import get_workloads
+            from multiprocessing import (Process, Queue, cpu_count)
+            Q=Queue()
+            workloads = get_workloads(tasks, 
+                                      max_nprocesses=cpu_count(),
+                                      chunksiz=chunksiz)
+
+            logger.debug("workloads '{}' {}: {}"
+                         .format(taskname, len(workloads), map(len,workloads)))
+
+            workers = [Process(target=wprocess, args=(wl,Q))
+                       for wl in workloads]
+            for w in workers: w.start()
+            wrs = []
+            for _ in workers: wrs.extend(Q.get())
+        else:
+            wrs = wprocess(tasks, Q=None)
+                            
+        return wrs

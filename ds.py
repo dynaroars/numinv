@@ -1,7 +1,7 @@
 import sage.all
 from sage.all import cached_function
 import vu_common as CM
-from sageutil import is_sage_expr
+from sageutil import is_sage_expr, get_vars
 from miscs import Miscs
 import settings
 logger = CM.VLog('ds')
@@ -111,17 +111,23 @@ class Traces(set):
         assert is_sage_expr(term), term
         assert nTraces is None or nTraces >= 1, nTraces
 
+        
         if nTraces is None:
-            exprs = set(term.subs(t) for t in self.mydicts)
+            exprs = set(term.subs(t) for t in self.mydicts)            
         else:
+            nTracesExtra = nTraces*5
             exprs = set()
             for i,t in enumerate(self.mydicts):
                 expr = term.subs(t)
                 if expr not in exprs:
                     exprs.add(expr)
-                    if len(exprs) > nTraces:
+                    if len(exprs) >= nTracesExtra:
                         break
-                        
+
+            #instead of doing this, can find out the # 0's in traces
+            #the more 0's , the better
+            exprs = sorted(exprs, key=lambda expr:len(get_vars(expr)))
+            exprs = set(exprs[:nTraces])
         return exprs        
 
         

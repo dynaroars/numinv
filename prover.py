@@ -12,7 +12,7 @@ logger = CM.VLog('prover')
 logger.level = settings.logger_level  
 logger.printtime = settings.logger_printtime
 
-from ds import Inp, Inps, DTraces, Inv,  DInvs
+from ds import Inp, Inps, DTraces, Inv,  DInvs, Invs
 from src import Src
 
 def merge(ds):
@@ -52,76 +52,25 @@ class Prover(object):
 
         tasks = [(loc, inv) for loc in dinvs for inv in dinvs[loc]
                  if inv.stat is None]
-        do_parallel = len(tasks) >= 2
-        myrefs = dict(((loc, str(inv)), inv) for loc,inv in tasks)
+        wrs = Miscs.runMP("prove", tasks, wprocess, chunksiz=1,
+                          doMP=settings.doMP and len(tasks) >= 2)
 
-        if do_parallel:
-            from vu_common import get_workloads
-            from multiprocessing import (Process, Queue, 
-                                         current_process, cpu_count)
-            Q=Queue()
-            workloads = get_workloads(tasks, 
-                                      max_nprocesses=cpu_count(),
-                                      chunksiz=2)
-
-            logger.debug("workloads 'prove' {}: {}"
-                         .format(len(workloads),map(len,workloads)))
-
-            workers = [Process(target=wprocess,args=(wl,Q))
-                       for wl in workloads]
-
-            for w in workers: w.start()
-            wrs = []
-            for _ in workers: wrs.extend(Q.get())
-        else:
-            wrs = wprocess(tasks, Q=None)
-
-        #merge results
-        mInps, mCexs = [], []
+        mInps, mCexs, mdinvs = [], [], DInvs()
         for loc, inv, (klDInps, klDCexs, isSucc) in wrs:
             mInps.append(klDInps)
             mCexs.append(klDCexs)
-            rinv = myrefs[loc, str(inv)]
             try:                    
                 klInps = klDInps[loc][str(inv)]
-                rinv.stat = Inv.DISPROVED
+                stat = Inv.DISPROVED
             except KeyError:
-                rinv.stat = Inv.PROVED if isSucc else Inv.UNKNOWN
+                stat = Inv.PROVED if isSucc else Inv.UNKNOWN
+            inv.stat = stat
+            
+            if loc not in mdinvs: mdinvs[loc] = Invs()
+            mdinvs[loc].add(inv)
 
-        assert all(inv.stat is not None
-                   for loc in dinvs for inv in dinvs[loc])
+        return merge(mInps), merge(mCexs), mdinvs
 
-        mInps = merge(mInps)
-        mCexs = merge(mCexs)
-        return mInps, mCexs
-
-    # def getInpsUnsafe(self, dinvs, inps, inpsd):
-    #     """
-    #     call verifier on all invs
-    #     """
-    #     dinvs_ = DInvs()
-    #     _ = [dinvs_.add(loc, inv) for loc in dinvs
-    #          for inv in dinvs[loc] if inv.stat is None]
-    #     klSrc = self.src.instrAsserts(dinvs_, inps, inpsd, self.invdecls)
-    #     klDInps, klDCexs, _ = KLEE(klSrc, self.tmpdir).getDInps()
-
-    #     #IMPORTANT: getDInps() returns an isSucc flag (false if timeout),
-    #     #but it's not useful here (when haveing multiple klee_asserts)
-    #     #because even if isSucc, it doesn't guarantee to generate cex
-    #     #for a failed assertions (that means we can't claim if an assertion
-    #     #without cex is proved).
-    #     newInps = Inps()
-    #     for loc in dinvs:
-    #         for inv in dinvs[loc]:
-    #             if inv.stat is not None: continue
-    #             try:
-    #                 sinv = str(inv)
-    #                 klInps = klDInps[loc][sinv]
-    #                 inv.stat = Inv.DISPROVED
-    #             except KeyError:
-    #                 pass
-    #     return klDInps, klDCexs
-    
     def check(self, dinvs, inps, minv, maxv):
         """
         Check invs.
