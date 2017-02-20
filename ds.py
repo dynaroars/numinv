@@ -135,7 +135,7 @@ class DTraces(dict):
     """
     {loc: Traces}
     """
-    inpMaxV = 300
+    inpMaxV = settings.inpMaxV
 
     @property
     def siz(self): return sum(map(len, self.itervalues()))
@@ -186,7 +186,7 @@ class DTraces(dict):
         for l in CM.iread_strip(tracefile):
             #l22: 8460 16 0 1 16 8460
             parts = l.split(':')
-            assert len(parts) == 2
+            assert len(parts) == 2, parts
             lineno = parts[0].strip()  #l22
             tracevals = parts[1].strip().split()
             trace = _Trace.parse(tracevals)

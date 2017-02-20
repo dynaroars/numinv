@@ -60,7 +60,7 @@ class Prover(object):
             mInps.append(klDInps)
             mCexs.append(klDCexs)
             try:                    
-                klInps = klDInps[loc][str(inv)]
+                _ = klDInps[loc][str(inv)]
                 stat = Inv.DISPROVED
             except KeyError:
                 stat = Inv.PROVED if isSucc else Inv.UNKNOWN

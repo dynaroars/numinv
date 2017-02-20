@@ -78,8 +78,8 @@ class Gen(object):
         #use some initial inps first
         rinps = Miscs.genInitInps(len(self.inpdecls), DTraces.inpMaxV)
         logger.debug("gen {} random inps".format(len(rinps)))
-        CM.pause()
         for inp in rinps: inps.add(Inp(inp))
+        
         traces = self.getTraces(inps)
         unreachLocs = [loc for loc in dinvs if loc not in traces]
         if unreachLocs:
@@ -231,7 +231,10 @@ class GenIeqs(Gen):
 
         locs = traces.keys()
         vss = [[sage.all.var(k) for k in self.invdecls[loc]]  for loc in locs]
-        termss = [Miscs.getTermsFixedCoefs(vs, 2) for vs in vss]
+        mydeg = 2
+        if mydeg > 2:
+            logger.warn("not Oct invs (deg {}). Might be slow".format(deg))
+        termss = [Miscs.getTermsFixedCoefs(vs, mydeg) for vs in vss]
         logger.info("{} locs: check upperbounds for {} terms".format(
             len(locs), sum(map(len, termss))))
         
@@ -240,13 +243,14 @@ class GenIeqs(Gen):
         ieqs = DInvs((loc, Invs.mk(refs[loc].keys())) for loc in refs)
         myinps = None
         cInps, cTraces, ieqs = self.prover.check(ieqs, myinps, ubminV, ubmaxV)
-        newInps = Gen.updateInps(cInps, inps)
-        _ = self.getTracesAndUpdate(newInps, traces)
+        if cInps:
+            newInps = Gen.updateInps(cInps, inps)
+            _ = self.getTracesAndUpdate(newInps, traces)
         
         ieqs = ieqs.removeDisproved()
         tasks = [(loc, refs[loc][ieq]) for loc in ieqs for ieq in ieqs[loc]]
 
-        logger.info("{} locs: compute upperbounds for {} terms".format(
+        logger.debug("{} locs: compute upperbounds for {} terms".format(
             len(locs), len(tasks)))
         
         def _f(loc, term):
@@ -256,7 +260,7 @@ class GenIeqs(Gen):
             except ValueError:
                 mminV = minV
                 
-            logger.debug("{}: compute ub for '{}', start w/ min {}, maxV {})"
+            logger.detail("{}: compute ub for '{}', start w/ min {}, maxV {})"
                          .format(loc, term, mminV, maxV))
             
             disproves = set()
@@ -264,7 +268,7 @@ class GenIeqs(Gen):
                                      mminV, maxV, ubminV, ubmaxV, disproves)
             if boundV not in disproves and boundV not in {maxV, minV}:
                 inv = Inv(term <= boundV)
-                logger.debug("got {}".format(inv))
+                logger.detail("got {}".format(inv))
                 return inv
             else:
                 return None
@@ -277,7 +281,7 @@ class GenIeqs(Gen):
                 Q.put(rs)
         
         doMP = settings.doMP and len(tasks) >= 2
-        wrs = Miscs.runMP('guesscheck', tasks, wprocess, chunksiz=2, doMP=doMP)
+        wrs = Miscs.runMP('guesscheck', tasks, wprocess, chunksiz=1, doMP=doMP)
         rs = [(loc, inv) for loc, inv in wrs if inv]
         dinvs = DInvs()
         for loc, inv in rs:
@@ -385,10 +389,13 @@ class DIG2(object):
             return "{} locs: {}".format(len(locs), s)
             
         def _gen(typ):
+            st_gen = time()
             cls = GenEqts if typ == 'eqts' else GenIeqs
             logger.info("gen {} at {}".format(typ, strOfLocs(traces.keys())))
             solver =  cls(self.inpdecls, self.invdecls, self.tcsFile, self.exeFile, self.prover)
             invs = solver.gen(deg, traces, inps)
+
+            logger.debug("gen {}: ({}s)".format(typ, time() - st_gen))
             if invs:
                 dinvs.merge(invs)
                 logger.info("{} invs:\n{}".format(dinvs.siz, dinvs))                
@@ -400,6 +407,7 @@ class DIG2(object):
         dinvs = dinvs.testTraces(traces)
 
         logger.info("find uniq invs")
+        st_uniq = time()
         logger.info("{} invs:\n{}".format(dinvs.siz, dinvs))
         oldSiz = dinvs.siz
         
@@ -416,16 +424,14 @@ class DIG2(object):
 
         dinvs = DInvs((loc, Invs(map(Inv, invs)))
                       for loc, invs in wrs if invs)
-        
-        ndiff = oldSiz - dinvs.siz
-        if ndiff:
-            logger.info("removed {} redundant invs".format(ndiff))
-                    
-        logger.info("got {} invs, {} inps (test {}): \n{}"
-                    .format(dinvs.siz, len(inps), sage.all.randint(0,100),
+
+        logger.debug("uniqify: remove {} redundant invs ({}s)"
+                     .format(oldSiz - dinvs.siz, time() - st_uniq))
+
+        logger.info("*** {}, {} locs, invs {}, inps {}, time {} s, rand {}: \n{}"
+                    .format(self.filename, len(dinvs), dinvs.siz, len(inps), 
+                            time() - st, sage.all.randint(0,100),
                             dinvs))
-        logger.info("*done* prog {}, invs {}, time {} s"
-                    .format(self.filename, dinvs.siz, time() - st))
         import shutil
         logger.debug("rm -rf {}".format(self.tmpdir))
         shutil.rmtree(self.tmpdir)

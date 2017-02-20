@@ -14,7 +14,7 @@ int mainQ(int x, int y){
      int r=x;
 
      while(1) {
-	  //%%%traces: int x, int y, int q, int r
+	  ////%%%traces: int x, int y, int q, int r
 	  if(!(r>=y)) break;
 	  int a=1;
 	  int b=y;
@@ -33,7 +33,7 @@ int mainQ(int x, int y){
      //assert(r == x % y);
      //assert(q == x / y);
      //assert(x == q*y+r);
-     ////%%%traces: int x, int y, int r, int q
+     //%%%traces: int x, int y, int r, int q
      return q;
 }
 

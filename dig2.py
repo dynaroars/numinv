@@ -30,6 +30,17 @@ if __name__ == "__main__":
                          default=None,
                          help="autodegree")
 
+
+    aparser.add_argument("--maxinpv", "-maxinpv",
+                         type=int,
+                         default=300,
+                         help="max inp value")
+
+    aparser.add_argument("--solvertimeout", "-solvertimeout",
+                         type=int,
+                         default=3,
+                         help="solver time out")
+    
     aparser.add_argument("--noeqts", "-noeqts",
                          action="store_true")
 
@@ -49,6 +60,9 @@ if __name__ == "__main__":
     logger = CM.VLog("dig2")
     logger.level = settings.logger_level
     logger.printtime = settings.logger_printtime
+
+    settings.inpMaxV = args.maxinpv
+    settings.solver_timeout = args.solvertimeout
     if __debug__: logger.warn("DEBUG MODE ON. Can be slow !")
     seed = round(time(), 2) if args.seed is None else float(args.seed)
     import alg

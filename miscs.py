@@ -195,18 +195,31 @@ class Miscs(object):
 
     @staticmethod
     def reduceSMT(ps):
-        if len(ps) <= 1: return ps
+        ps1 = []
+        ps2 = []
+        
+        for p in ps:
+            if (p.operator() == sage.all.operator.eq
+                and len(Miscs.getCoefs(p)) > 10):
+                ps2.append(p)
+            else:
+                ps1.append(p)
+            
+        if len(ps1) <= 1: return ps
+        
         from smt_z3py import SMT_Z3
         #Remove "longer" property first (i.e. those with more variables)
         #ps = sorted(ps, reverse=True, key=lambda p: len(get_vars(p)))
-        rs = list(ps) #make a copy
-        for p in ps:
+        rs = list(ps1) #make a copy
+        for p in ps1:
             if p in rs:
                 #note, the use of set makes things in non order
                 xclude_p = CM.vsetdiff(rs,[p])
 
                 if SMT_Z3.imply(xclude_p,p):
                     rs = xclude_p
+
+        rs.extend(ps2)
         return rs    
     
 
@@ -260,13 +273,13 @@ class Miscs(object):
         #don't allow large coefs
         sols_ = []
         for s in sols:
-            if any(abs(c) > 20 for c in Miscs.getCoefs(s)):
-                logger.detail("large coefs: ignore {}".format(s))
-            else:
+            if all(abs(c) <= 20 or sage.all.mod(c,10) == 0 or sage.all.mod(c,5) == 0
+                   for c in Miscs.getCoefs(s)):
                 sols_.append(s)
+            else:
+                logger.detail("large coefs: ignore {}".format(s))
         sols = sols_
         return sols        
-
 
     @staticmethod
     def solveEqts(eqts, uks, template):

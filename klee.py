@@ -57,7 +57,7 @@ class KLEE(object):
         if os.path.exists(kleeOutdir): shutil.rmtree(kleeOutdir)
 
         #"-optimize "  causes problems with prod4br
-        timeout = 3
+        timeout = settings.solver_timeout
         kleeOpts = ("-allow-external-sym-calls "
                     "-solver-backend=z3 "
                     "-max-solver-time={}. "
@@ -111,7 +111,10 @@ class KLEE(object):
                 rs = cls.parseCex(line)
                 loc = rs['loc']
                 inv = rs['inv']
-                inp = rs['inp'] if 'inp' in rs else None
+                
+                #this could happen, not sure how though
+                #e.g.,counterexample @ loc: l24 @ inv: t <= 10 @ cex: 20 16 340 @ inp
+                inp = rs['inp'] if 'inp' in rs else None  
                 cex = rs['cex']
                 
                 if loc not in dinps: dinps[loc] = {}
@@ -119,7 +122,8 @@ class KLEE(object):
 
                 if loc not in dcexs: dcexs[loc] = {}
                 if inv not in dcexs[loc]: dcexs[loc][inv] = set()
-                dinps[loc][inv].add(inp)
+
+                if inp: dinps[loc][inv].add(inp)
                 dcexs[loc][inv].add(cex)
                 
             elif any(s in line for s in [cls.haltStr, cls.failedStr]):
