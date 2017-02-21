@@ -17,9 +17,13 @@ int mainQ(int n, int m, int j){
 	  }
 	  t++;
      }
-
+     //%%%traces: int n, int m, int j, int t
+     
      //NOTE: With DIG1 I got m^2*t - m*n*t + n*t^2 - t^3 == 0, whose solutions are t = n-m, t = m, t =0. They seem correct.
      //j plays the role of a fixed truth value representing dir=fwd
+
+     //dig2: (m*m) - m*n + n*t - (t*t) == 0, m - n <= -1, -m <= -1
+     //NOTE: solving for the above eqt:  [t == -m + n, t == m] 
      return 0;
 }
 

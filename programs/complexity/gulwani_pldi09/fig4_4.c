@@ -7,18 +7,28 @@ int mainQ(int n, int m){
      assert (n > m);
      int i = n;
      int t = 0;
+     int c1 = 0;
+     int c2 = 0;
      while(i>0){
+	  
 	  if (i < m) {
 	       i--;
+	       c1++;
 	  }else{
 	       i = i-m;
+	       c2++;
 	  }
 	  t++;
      }
-     //%%%traces: int n, int m, int t, int i
-     //dig2: -m <= -1, -n + t <= 0, -i <= 0, -i - t <= -2, i <= 0, m - n <= -1
+     
+     
+     
+     //%%%traces: int n, int m, int t, int c1, int c2
+     //dig2: l26: -c2 <= -1, c2*m - c2 - n + t == 0, c1 - m <= -1, -t <= -2, c1 + c2 - t == 0, c2 - t <= 0
 
-     //NOTE: *** cannot get anything useful wrt to t ***, did I do something wrong here ? what do we expect the number of iterations t to be ?
+     //Note: I got the above results which I think are right. But I have to manually pass in the flag -maxdeg 3  (i.e., DIG attempts to use maxdeg 4 automatically, but this requires many traces that it wasn't able to get).
+     
+     
      return 0;
 }
 
