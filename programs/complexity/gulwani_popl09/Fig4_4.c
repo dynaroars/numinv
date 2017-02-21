@@ -12,7 +12,7 @@ int mainQ(int n, int m){
 	       y++;
 	       t++;
 	  }
-
+      t++;
      }
      //%%%traces: int n, int m, int t
      //dig2: t>= 0
