@@ -2,6 +2,8 @@
 #include <assert.h>
 
 int mainQ(int n, int m){
+     assert(m >= 0);
+     assert(n >= 0);
      int x = 0;
      int y = 0;
      int t = 0;
@@ -12,7 +14,7 @@ int mainQ(int n, int m){
 	       y++;
 	       t++;
 	  }
-      t++;
+          t++;
      }
      //%%%traces: int n, int m, int t
      //dig2: t>= 0
