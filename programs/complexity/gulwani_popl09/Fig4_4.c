@@ -12,11 +12,12 @@ int mainQ(int n, int m){
 	       y++;
 	       t++;
 	  }
-	  
+
      }
      //%%%traces: int n, int m, int t
      //dig2: t>= 0
-     //NOTE: *** why didn't I get anything useful here ?  should t = some function of n, m ? 
+     //NOTE: *** why didn't I get anything useful here ?  should t = some function of n, m ?
+     // Again, there is a t++ missing for the outer loop. I ran the corrected version on DIG1 and got m*n + n - t == 0 which looks correct.
      return 0;
 }
 

@@ -20,7 +20,8 @@ int mainQ(int n, int m){
 
      //%%%traces: int n, int m, int y, int x, int t
      //dig2:  y <= 0, -x <= 0, n - t <= 0, -t + x <= 0, n*t - t*x == 0, -y <= 0
-     //NOTE: *** does this eq  n*t - t*x == 0  give us anything useful about the complexity?  ***  
+     //NOTE: *** does this eq  n*t - t*x == 0  give us anything useful about the complexity?  ***
+     //Timos: I tried this example with DIG1 and I got m*n + n - t == 0 which looks exactly right. Is there something missing above?
      return 0;
 }
 
