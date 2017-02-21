@@ -9,8 +9,7 @@ int mainQ(int n, int m){
      int i = 0;
      int j = 0;
      int t = 0;
-     while(1){
-	  if (!(i<n)) break;
+     while(i<n){
 	  if (j < m) {
 	       j++;
 	  }else{
