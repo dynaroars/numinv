@@ -14,13 +14,11 @@ int mainQ(int x0, int z0, int n){
 	  }
 	  t++;
      }
-     //want to know relation between counter t and inputs
      //%%%traces: int n, int x0, int z0, int t
-     
-     //sage: e2
-     //2*n^2*t - 3*n*t^2 + t^3 - 3*n*t*x0 + 2*t^2*x0 + t*x0^2 - n*t*z0 + t^2*z0 + t*x0*z0 == 0
-     //sage: solve(e2,t)
-     //[t == 2*n - x0 - z0, t == n - x0, t == 0]
+
+     //dig2: 2*n^2*t - 3*n*t^2 + t^3 - 3*n*t*x0 + 2*t^2*x0 + t*x0^2 - n*t*z0 + t^2*z0 + t*x0*z0 == 0
+     //solve for t got t == 2*n - x0 - z0, t == n - x0, t == 0
+     //NOTE: *** are these results correct, better, etc than the given bound of Max(0, n-x0) + Max(0, n-z0)
 
      return 0;
 }

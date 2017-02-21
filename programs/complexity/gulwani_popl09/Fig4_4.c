@@ -10,11 +10,13 @@ int mainQ(int n, int m){
 	  x++;
 	  while(y < m){
 	       y++;
+	       t++;
 	  }
-	  t++;
+	  
      }
-     //want to know relation between counter t and inputs
      //%%%traces: int n, int m, int t
+     //dig2: t>= 0
+     //NOTE: *** why didn't I get anything useful here ?  should t = some function of n, m ? 
      return 0;
 }
 

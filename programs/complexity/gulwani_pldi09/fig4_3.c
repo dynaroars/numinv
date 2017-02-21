@@ -19,7 +19,9 @@ int mainQ(int n, int m){
 	  }
 	  t++;
      }
-     //%%%traces: int n, int m, int t, int i, int j
+     //%%%traces: int n, int m, int t
+     //dig2: -m <= -1, m*n + n - t == 0, m - n <= -1
+
      return 0;
 }
 

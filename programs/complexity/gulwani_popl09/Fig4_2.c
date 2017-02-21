@@ -4,19 +4,19 @@
 int mainQ(int x0, int y0, int n, int m){
      int x = x0;
      int y = y0;
+     
      int t = 0;
      while(x < n){
-	  if(y < m){
-	       y++;
+	  while(y < m){
+	       y = y + 1;
+	       t++;
 	  }
-	  else{
-	       x++;
-	  }
-	  t++;
+	  x = x + 1;
      }
-     //want to know relation between counter t and inputs
      //%%%traces: int n, int m, int x0, int y0, int t
-     //DIG: no result -- cannot solve equations
+     //dig2: l16: -t <= 0, m*t - (t*t) - t*y0 == 0
+     //solve for t: [t == m - y0, t == 0]
+     //NOTE: *** are these results correct ?  What is the complexity of this program?
      return 0;
 }
 
