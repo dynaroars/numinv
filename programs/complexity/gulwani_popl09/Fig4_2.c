@@ -12,6 +12,7 @@ int mainQ(int x0, int y0, int n, int m){
 	       t++;
 	  }
 	  x = x + 1;
+      t++;
      }
      //%%%traces: int n, int m, int x0, int y0, int t
      //dig2: l16: -t <= 0, m*t - (t*t) - t*y0 == 0
