@@ -107,14 +107,13 @@ class KLEE(object):
             #input refuting ...: v1, v2
             if cls.cexStr in line and \
                all(x in line for x in ["loc", "inv", "inp", "cex"]):
-                
                 rs = cls.parseCex(line)
                 loc = rs['loc']
                 inv = rs['inv']
                 
                 #this could happen, not sure how though
                 #e.g.,counterexample @ loc: l24 @ inv: t <= 10 @ cex: 20 16 340 @ inp
-                inp = rs['inp'] if 'inp' in rs else None  
+                inp = rs['inp'] if 'inp' in rs and 'completed' in line else None  
                 cex = rs['cex']
                 
                 if loc not in dinps: dinps[loc] = {}
@@ -237,11 +236,11 @@ class KLEE(object):
         (inpPart1,inpPart2) = inpParts
         (invPart1,invPart2) = invParts        
         if inpPart1 and inpPart2:
-            s = 'printf("{} @ loc: {} @ inv: {} @ cex: {} @ inp: {}\\n", {});\n'
+            s = 'printf("{} @ loc: {} @ inv: {} @ cex: {} @ inp: {} @ completed\\n", {});\n'
             _mkPrintf = lambda inv: s.format(cls.cexStr, loc, inv,
                                              invPart1, inpPart1, invPart2 + ", " + inpPart2)
         else:
-            s = 'printf("{} @ loc: {} @ inv: {} @ cex: {} \\n", {});\n'
+            s = 'printf("{} @ loc: {} @ inv: {} @ cex: {} @ completed\\n", {});\n'
             _mkPrintf = lambda inv: s.format(cls.cexStr, loc, inv, invPart1, invPart2)
 
         _mkKleeAssert = lambda inv: (
