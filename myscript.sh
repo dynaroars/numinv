@@ -1,3 +1,42 @@
+prog=egcd     
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 0 --maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 1 --maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 2 --maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 3 --maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 4 --maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 5  --maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 6	--maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 7	--maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 8	--maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 9	--maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 10 --maxdeg 2
+										
+prog=egcd2    									
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 0	--maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 1	--maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 2  --maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 3	--maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 4	--maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 5	--maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 6	--maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 7  --maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 8	--maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 9	--maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 10	--maxdeg 2
+										
+prog=egcd3    
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 0  --maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 1	--maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 2	--maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 3	--maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 4	--maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 5	--maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 6	--maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 7	--maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 8	--maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 9	--maxdeg 2
+timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 10	--maxdeg 2
+
 prog=divbin
 timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 0
 timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 1
@@ -77,45 +116,6 @@ timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 9
 timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 10
 
 prog=cohencu  
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 0
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 1
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 2
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 3
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 4
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 5
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 6
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 7
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 8
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 9
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 10
-
-prog=egcd     
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 0
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 1
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 2
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 3
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 4
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 5
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 6
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 7
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 8
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 9
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 10
-
-prog=egcd2    
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 0
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 1
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 2
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 3
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 4
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 5
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 6
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 7
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 8
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 9
-timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 10
-
-prog=egcd3    
 timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 0
 timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 1
 timeout 10m $SAGE/sage -python -O dig2.py programs/nla/$prog.c  -log 3 -seed 2

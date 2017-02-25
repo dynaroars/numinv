@@ -12,13 +12,10 @@ int mainQ(int x0, int y0, int n, int m){
 	       t++;
 	  }
 	  x = x + 1;
-      t++;
+	  t++;
      }
      //%%%traces: int n, int m, int x0, int y0, int t
-     //dig2: l16: -t <= 0, m*t - (t*t) - t*y0 == 0
-     //solve for t: [t == m - y0, t == 0]
-     //NOTE: *** are these results correct ?  What is the complexity of this program?
-     //Timos: There is a missing t++ for the outer loop. I suspect we'll get the correct bound if we add this.
+     //   l17: -t <= 0, m*n*t + (n*n)*t - m*(t*t) - 2*n*(t*t) + (t*t*t) - m*t*x0 - 2*n*t*x0 + 2*(t*t)*x0 + t*(x0*x0) - n*t*y0 + (t*t)*y0 + t*x0*y0 == 0
      return 0;
 }
 

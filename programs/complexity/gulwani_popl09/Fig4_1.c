@@ -19,7 +19,7 @@ int mainQ(int n, int m){
 	  t++;
      }
      //, int t1, int t2
-     //%%%traces: int n, int m, int t
+     //%%%traces: int n, int m, int t, int y, int x
      //dig2:n - t <= 0, -t <= 0    nothing useful ??
      //NOTE: should we expect t = something here ? 
      return 0;
