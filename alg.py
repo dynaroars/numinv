@@ -145,8 +145,12 @@ class GenEqts(Gen):
         exprs = list(exprs)
 
         newInps = []
+        curIter = 0
         while True:
-            logger.debug("{}: infer using {} exprs".format(loc, len(exprs)))
+            curIter += 1
+            logger.debug("{}: iter {} infer using {} exprs"
+                         .format(loc, curIter, len(exprs)))
+            
             newEqts = Miscs.solveEqts(exprs, uks, template)
             unchecks = [eqt for eqt in newEqts if eqt not in cache]
 
