@@ -2,7 +2,12 @@
 #include <assert.h>
 
 int mainQ(int z, int a, int k){
-     assert(k>0);
+     //if too large then might cause overflow
+     assert(z>=0);
+     assert(z<=10);
+     assert(k > 0);
+     assert(k<=10); 
+
      int x = a; int y = 1;  int c = 1;
 
      while (1){

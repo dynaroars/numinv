@@ -268,7 +268,7 @@ class GenIeqs(Gen):
                          .format(loc, term, mminV, maxV))
             
             disproves = set()
-            boundV = self.guessCheck(loc, term, traces, inps, 
+            boundV = self.guessCheck(loc, term, #traces, inps, 
                                      mminV, maxV, ubminV, ubmaxV, disproves)
             if boundV not in disproves and boundV not in {maxV, minV}:
                 inv = Inv(term <= boundV)
@@ -293,11 +293,11 @@ class GenIeqs(Gen):
             dinvs[loc].add(inv)
         return dinvs
 
-    def guessCheck(self, loc, term, traces, inps, minV, maxV,
+    def guessCheck(self, loc, term, minV, maxV,
                    ubMinV, ubMaxV, disproves):
         assert minV <= maxV, (minV, maxV, term)
         assert ubMinV < ubMaxV, (ubMinV, ubMaxV)
-        assert isinstance(traces, DTraces), traces
+        #assert isinstance(traces, DTraces), traces
         assert isinstance(disproves, set), disproves
 
         #print term, minV, maxV, ubMinV, ubMaxV
@@ -321,7 +321,6 @@ class GenIeqs(Gen):
         inv_ = DInvs.mk(loc, Invs.mk([inv]))
         _, dCexs, _ = self.prover.check(inv_, None, ubMinV, ubMaxV)
             
-            
         if loc in dCexs: #disproved
             assert dCexs[loc]            
             cexs = Traces.extract(dCexs[loc], tuple(self.invdecls[loc]),
@@ -331,7 +330,7 @@ class GenIeqs(Gen):
         else:
             maxV = v
 
-        return self.guessCheck(loc, term, traces, inps,
+        return self.guessCheck(loc, term, #traces, inps,
                                minV, maxV, ubMinV, ubMaxV,
                                disproves)
 

@@ -5,25 +5,44 @@
 int mainQ(int n, int m){
      assert (m>0);
      assert (n>0);
-     assert(n%m==0);
 
      int i = n;
      int t = 0;
+     int h = n/m;
+     
+     /* int h = 0; */
+     /* while(m*h<=n){ */
+     /* 	  h++; */
+     /* } */
+     /* h--; */
      while(i>0){
-	  
 	  if (i < m) {
 	       i--;
-	       //c1++;
 	  }else{
 	       i = i-m;
-	       //c2++;
 	  }
 	  t++;
      }
+
+
+     
+     /* assert(n%m==0); */
+
+     /* int i = n; */
+     /* int t = 0; */
+     /* while(i>0){ */
+	  
+     /* 	  if (i < m) { */
+     /* 	       i--; */
+     /* 	  }else{ */
+     /* 	       i = i-m; */
+     /* 	  } */
+     /* 	  t++; */
+     /* } */
      
      
      
-     //%%%traces: int n, int m, int t
+     //%%%traces: int n, int m, int t, int h
      
      //dig2: l26: -c2 <= -1, c2*m - c2 - n + t == 0, c1 - m <= -1, -t <= -2, c1 + c2 - t == 0, c2 - t <= 0
 

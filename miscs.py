@@ -264,7 +264,6 @@ class Miscs(object):
         rs = Q(p.lhs()).coefficients()
         return rs
 
-
     @staticmethod
     def refine(sols):
         if not sols: return sols

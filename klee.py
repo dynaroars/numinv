@@ -163,7 +163,7 @@ class KLEE(object):
 
         assert d['loc']
         assert d['inv']
-        assert d['inp']
+        #assert d['inp'], s
         assert d['cex']
         return d
 

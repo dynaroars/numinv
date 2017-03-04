@@ -3,7 +3,7 @@
 
 /* http://www.cs.upc.edu/~erodri/webpage/polynomial_invariants/cohencu.htm*/
 /* printing consecutive cubes, by Cohen */
-
+     
 int mainQ(int a){
   int n,x,y,z;
 

@@ -40,6 +40,10 @@ class _Trace(tuple):
 
     def test(self, inv, vs):
         assert inv.is_relational()
+        #VU: todo, temp fix,  disable traces that wih extreme large values (see geo1 e.g.,)
+        #435848050
+        if any(x > 100000000 for x in self):
+            return True
         return bool(self.myeval(inv, vs))
 
     def myeval(self, term, vs):
@@ -75,6 +79,7 @@ class Traces(set):
         assert inv.is_relational(), inv
         for trace in self:
             if not trace.test(inv, self.vs):
+                #print inv, trace, self.vs
                 return trace
         return None
 
