@@ -79,7 +79,8 @@ class KLEE(object):
         """
         parse Klee run log
         """
-        if not rs: return []
+        assert rs, rs
+        #if not rs: return []
 
         ignoresDone = ['KLEE: done: total instructions',
                         'KLEE: done: completed paths',

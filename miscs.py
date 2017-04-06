@@ -207,7 +207,7 @@ class Miscs(object):
             
         if len(ps1) <= 1: return ps
         
-        from smt_z3py import SMT_Z3
+        import smt_z3py
         #Remove "longer" property first (i.e. those with more variables)
         #ps = sorted(ps, reverse=True, key=lambda p: len(get_vars(p)))
         rs = list(ps1) #make a copy
@@ -215,8 +215,7 @@ class Miscs(object):
             if p in rs:
                 #note, the use of set makes things in non order
                 xclude_p = CM.vsetdiff(rs,[p])
-
-                if SMT_Z3.imply(xclude_p,p):
+                if smt_z3py.imply(xclude_p,p):
                     rs = xclude_p
 
         rs.extend(ps2)

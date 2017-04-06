@@ -90,10 +90,10 @@ class Prover(object):
         return self.getInpsSafe(dinvs, inps, inpsd)
 
     def checkRange(self, dinvs, inps):
-        minv, maxv = -1*DTraces.inpMaxV, DTraces.inpMaxV,         
+        minv, maxv = -1*DTraces.inpMaxV, DTraces.inpMaxV         
         return self.check(dinvs, inps, minv, maxv)
 
     def checkNoRange(self, dinvs, traces, inps):
-        minv, maxv = -1*DTraces.inpMaxV*10, DTraces.inpMaxV*10,
+        minv, maxv = -1*DTraces.inpMaxV*10, DTraces.inpMaxV*10
         return self.check(dinvs, inps, minv, maxv)
 
