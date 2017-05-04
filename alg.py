@@ -225,7 +225,7 @@ class GenIeqs(Gen):
         assert isinstance(traces, DTraces) and traces, traces                
         assert isinstance(inps, Inps), inps
 
-        mymaxv = 100
+        mymaxv = 10
         maxV = mymaxv
         minV = -1*maxV
 
@@ -268,7 +268,7 @@ class GenIeqs(Gen):
                          .format(loc, term, mminV, maxV))
             
             disproves = set()
-            boundV = self.naive(loc, term, #traces, inps, 
+            boundV = self.guessCheck(loc, term, #traces, inps, 
                                 mminV, maxV, ubminV, ubmaxV, disproves)
             if boundV not in disproves and boundV not in {maxV, minV}:
                 inv = Inv(term <= boundV)
@@ -313,40 +313,7 @@ class GenIeqs(Gen):
                 disproves.add(v)
             else:
                 return v
-            
-        # if minV == maxV: return maxV
-        # elif maxV - minV == 1:
-        #     if minV in disproves:
-        #         return maxV
-        #     inv = Inv(term <= minV)
-        #     inv_ = DInvs.mk(loc, Invs.mk([inv]))
-        #     _, dCexs, _ = self.prover.check(inv_, None, ubMinV, ubMaxV)
-
-        #     if loc in dCexs:
-        #         assert dCexs[loc]
-        #         disproves.add(minV)
-        #         return maxV
-        #     else:
-        #         return minV
-
-        # v = minV+1
-        # inv = Inv(term <= v)
-        # inv_ = DInvs.mk(loc, Invs.mk([inv]))
-        # _, dCexs, _ = self.prover.check(inv_, None, ubMinV, ubMaxV)
-            
-        # if loc in dCexs: #disproved
-        #     assert dCexs[loc]            
-        #     cexs = Traces.extract(dCexs[loc], tuple(self.invdecls[loc]),
-        #                           useOne=False)
-        #     minV = int(max(cexs.myeval(term)))
-        #     disproves.add(v)
-        # else:
-        #     maxV = v
-
-        # return self.guessCheck(loc, term, #traces, inps,
-        #                        minV, maxV, ubMinV, ubMaxV,
-        #                        disproves)
-
+ 
     
     def guessCheck(self, loc, term, minV, maxV, ubMinV, ubMaxV, disproves):
         assert minV <= maxV, (minV, maxV, term)

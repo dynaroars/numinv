@@ -1,0 +1,1680 @@
+7:56:52:alg:Debug:src: /var/tmp/DIG2_abt0mC/geo1.c
+7:56:52:alg:Info:analyze programs/nla/geo1.c
+7:56:52:alg:Info:set seed to: 0.0 (test 11)
+7:56:52:miscs:Info:autodeg 5
+7:56:52:alg:Info:check reachability
+7:56:52:alg:Debug:gen 4 random inps
+7:56:52:alg:Debug:use RT to generate traces for l18
+7:56:52:alg:Info:gen eqts at 1 locs: l18 (int x, int y, int z, int k)
+7:56:52:alg:Debug:l18: need more traces (1 eqts, need >= 189)
+7:56:52:alg:Debug:obtain 8 new traces
+7:56:52:alg:Debug:l18: need more traces (9 eqts, need >= 189)
+7:56:53:alg:Debug:obtain 11 new traces
+7:56:53:alg:Debug:l18: need more traces (20 eqts, need >= 189)
+7:56:53:alg:Debug:obtain 15 new traces
+7:56:53:alg:Debug:l18: need more traces (35 eqts, need >= 189)
+7:56:53:alg:Debug:obtain 20 new traces
+7:56:53:alg:Debug:l18: need more traces (55 eqts, need >= 189)
+7:56:53:alg:Debug:obtain 26 new traces
+7:56:53:alg:Debug:l18: need more traces (81 eqts, need >= 189)
+7:56:53:alg:Debug:obtain 27 new traces
+7:56:54:alg:Debug:l18: need more traces (108 eqts, need >= 189)
+7:56:54:alg:Debug:obtain 29 new traces
+7:56:54:alg:Debug:l18: need more traces (137 eqts, need >= 189)
+7:56:54:alg:Debug:obtain 37 new traces
+7:56:54:alg:Debug:l18: need more traces (174 eqts, need >= 189)
+7:56:54:alg:Debug:obtain 47 new traces
+7:56:54:alg:Debug:l18: iter 1 infer using 189 exprs
+7:56:54:miscs:Debug:solve 126 uks using 189 eqts
+7:57:10:alg:Debug:l18: 1 candidates:
+x*z - x - y + 1 == 0
+7:57:10:alg:Debug:l18: check 1 unchecked (1 candidates)
+7:57:10:alg:Debug:l18: no disproved candidates -- break
+7:57:10:alg:Debug:l18: got 1 eqts, 0 new inps
+7:57:10:alg:Debug:x*z - x - y + 1 == 0
+7:57:10:alg:Debug:gen eqts: (18.0194518566s)
+7:57:10:alg:Info:1 invs:
+l18: x*z - x - y + 1 == 0
+7:57:10:alg:Info:gen ieqs at 1 locs: l18 (int x, int y, int z, int k)
+7:57:10:alg:Info:1 locs: check upperbounds for 32 terms
+7:57:10:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+7:57:12:alg:Debug:1 locs: compute upperbounds for 12 terms
+7:57:12:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+7:57:16:alg:Debug:gen ieqs: (5.35343790054s)
+7:57:16:alg:Info:10 invs:
+l18: -z <= 0, -k - z <= -1, -k + z <= 9, -k - x <= -2, k - x <= 9, -x - z <= -1, -x + z <= 9, -x <= -1, -k <= -1, x*z - x - y + 1 == 0
+7:57:16:alg:Info:test 10 invs on all 272 traces
+7:57:16:alg:Info:find uniq invs
+7:57:16:alg:Info:10 invs:
+l18: -z <= 0, -k - z <= -1, -k + z <= 9, -k - x <= -2, k - x <= 9, -x - z <= -1, -x + z <= 9, -x <= -1, -k <= -1, x*z - x - y + 1 == 0
+7:57:16:alg:Debug:uniqify: remove 3 redundant invs (0.238941192627s)
+7:57:16:alg:Info:*** programs/nla/geo1.c, 1 locs, invs 7, inps 67, time 23.9548308849 s, rand 51: 
+l18: -k + z <= 9, -z <= 0, -k <= -1, x*z - x - y + 1 == 0, k - x <= 9, -x + z <= 9, -x <= -1
+7:57:16:alg:Debug:rm -rf /var/tmp/DIG2_abt0mC
+7:57:17:alg:Debug:src: /var/tmp/DIG2_bCxZGi/geo1.c
+7:57:17:alg:Info:analyze programs/nla/geo1.c
+7:57:17:alg:Info:set seed to: 1.0 (test 83)
+7:57:17:miscs:Info:autodeg 5
+7:57:17:alg:Info:check reachability
+7:57:17:alg:Debug:gen 4 random inps
+7:57:17:alg:Debug:use RT to generate traces for l18
+7:57:18:alg:Info:gen eqts at 1 locs: l18 (int x, int y, int z, int k)
+7:57:18:alg:Debug:l18: need more traces (1 eqts, need >= 189)
+7:57:18:alg:Debug:obtain 15 new traces
+7:57:18:alg:Debug:l18: need more traces (16 eqts, need >= 189)
+7:57:18:alg:Debug:obtain 14 new traces
+7:57:18:alg:Debug:l18: need more traces (30 eqts, need >= 189)
+7:57:18:alg:Debug:obtain 19 new traces
+7:57:18:alg:Debug:l18: need more traces (49 eqts, need >= 189)
+7:57:18:alg:Debug:obtain 25 new traces
+7:57:18:alg:Debug:l18: need more traces (74 eqts, need >= 189)
+7:57:18:alg:Debug:obtain 32 new traces
+7:57:19:alg:Debug:l18: need more traces (106 eqts, need >= 189)
+7:57:19:alg:Debug:obtain 28 new traces
+7:57:19:alg:Debug:l18: need more traces (134 eqts, need >= 189)
+7:57:19:alg:Debug:obtain 31 new traces
+7:57:19:alg:Debug:l18: need more traces (165 eqts, need >= 189)
+7:57:19:alg:Debug:obtain 45 new traces
+7:57:20:alg:Debug:l18: iter 1 infer using 189 exprs
+7:57:20:miscs:Debug:solve 126 uks using 189 eqts
+7:57:36:alg:Debug:l18: 1 candidates:
+x*z - x - y + 1 == 0
+7:57:36:alg:Debug:l18: check 1 unchecked (1 candidates)
+7:57:36:alg:Debug:l18: no disproved candidates -- break
+7:57:36:alg:Debug:l18: got 1 eqts, 0 new inps
+7:57:36:alg:Debug:x*z - x - y + 1 == 0
+7:57:36:alg:Debug:gen eqts: (18.1850919724s)
+7:57:36:alg:Info:1 invs:
+l18: x*z - x - y + 1 == 0
+7:57:36:alg:Info:gen ieqs at 1 locs: l18 (int x, int y, int z, int k)
+7:57:36:alg:Info:1 locs: check upperbounds for 32 terms
+7:57:36:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+7:57:38:alg:Debug:1 locs: compute upperbounds for 12 terms
+7:57:38:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+7:57:42:alg:Debug:gen ieqs: (5.8200340271s)
+7:57:42:alg:Info:10 invs:
+l18: -k - x <= -2, -k - z <= -1, -x <= -1, -k <= -1, k - x <= 9, -z <= 0, -x - z <= -1, -x + z <= 9, -k + z <= 9, x*z - x - y + 1 == 0
+7:57:42:alg:Info:test 10 invs on all 261 traces
+7:57:42:alg:Info:find uniq invs
+7:57:42:alg:Info:10 invs:
+l18: -k - x <= -2, -k - z <= -1, -x <= -1, -k <= -1, k - x <= 9, -z <= 0, -x - z <= -1, -x + z <= 9, -k + z <= 9, x*z - x - y + 1 == 0
+7:57:42:alg:Debug:uniqify: remove 3 redundant invs (0.242664813995s)
+7:57:42:alg:Info:*** programs/nla/geo1.c, 1 locs, invs 7, inps 65, time 24.5030150414 s, rand 60: 
+l18: k - x <= 9, x*z - x - y + 1 == 0, -x <= -1, -k <= -1, -k + z <= 9, -x + z <= 9, -z <= 0
+7:57:42:alg:Debug:rm -rf /var/tmp/DIG2_bCxZGi
+7:57:43:alg:Debug:src: /var/tmp/DIG2_g2zGzC/geo1.c
+7:57:43:alg:Info:analyze programs/nla/geo1.c
+7:57:43:alg:Info:set seed to: 2.0 (test 98)
+7:57:43:miscs:Info:autodeg 5
+7:57:43:alg:Info:check reachability
+7:57:43:alg:Debug:gen 4 random inps
+7:57:43:alg:Debug:use RT to generate traces for l18
+7:57:43:alg:Info:gen eqts at 1 locs: l18 (int x, int y, int z, int k)
+7:57:43:alg:Debug:l18: need more traces (1 eqts, need >= 189)
+7:57:43:alg:Debug:obtain 15 new traces
+7:57:43:alg:Debug:l18: need more traces (16 eqts, need >= 189)
+7:57:44:alg:Debug:obtain 14 new traces
+7:57:44:alg:Debug:l18: need more traces (30 eqts, need >= 189)
+7:57:44:alg:Debug:obtain 19 new traces
+7:57:44:alg:Debug:l18: need more traces (49 eqts, need >= 189)
+7:57:44:alg:Debug:obtain 25 new traces
+7:57:44:alg:Debug:l18: need more traces (74 eqts, need >= 189)
+7:57:44:alg:Debug:obtain 32 new traces
+7:57:44:alg:Debug:l18: need more traces (106 eqts, need >= 189)
+7:57:45:alg:Debug:obtain 28 new traces
+7:57:45:alg:Debug:l18: need more traces (134 eqts, need >= 189)
+7:57:45:alg:Debug:obtain 31 new traces
+7:57:45:alg:Debug:l18: need more traces (165 eqts, need >= 189)
+7:57:45:alg:Debug:obtain 45 new traces
+7:57:45:alg:Debug:l18: iter 1 infer using 189 exprs
+7:57:45:miscs:Debug:solve 126 uks using 189 eqts
+7:58:1:alg:Debug:l18: 1 candidates:
+x*z - x - y + 1 == 0
+7:58:1:alg:Debug:l18: check 1 unchecked (1 candidates)
+7:58:1:alg:Debug:l18: no disproved candidates -- break
+7:58:1:alg:Debug:l18: got 1 eqts, 0 new inps
+7:58:1:alg:Debug:x*z - x - y + 1 == 0
+7:58:1:alg:Debug:gen eqts: (18.1430270672s)
+7:58:1:alg:Info:1 invs:
+l18: x*z - x - y + 1 == 0
+7:58:1:alg:Info:gen ieqs at 1 locs: l18 (int x, int y, int z, int k)
+7:58:1:alg:Info:1 locs: check upperbounds for 32 terms
+7:58:1:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+7:58:3:alg:Debug:1 locs: compute upperbounds for 12 terms
+7:58:3:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+7:58:7:alg:Debug:gen ieqs: (5.44764089584s)
+7:58:7:alg:Info:10 invs:
+l18: -k + z <= 9, -k <= -1, -x - z <= -1, k - x <= 9, -x + z <= 9, -x <= -1, -z <= 0, -k - x <= -2, -k - z <= -1, x*z - x - y + 1 == 0
+7:58:7:alg:Info:test 10 invs on all 255 traces
+7:58:7:alg:Info:find uniq invs
+7:58:7:alg:Info:10 invs:
+l18: -k + z <= 9, -k <= -1, -x - z <= -1, k - x <= 9, -x + z <= 9, -x <= -1, -z <= 0, -k - x <= -2, -k - z <= -1, x*z - x - y + 1 == 0
+7:58:7:alg:Debug:uniqify: remove 3 redundant invs (0.243909835815s)
+7:58:7:alg:Info:*** programs/nla/geo1.c, 1 locs, invs 7, inps 64, time 24.160574913 s, rand 45: 
+l18: -k <= -1, -k + z <= 9, -x <= -1, x*z - x - y + 1 == 0, k - x <= 9, -z <= 0, -x + z <= 9
+7:58:7:alg:Debug:rm -rf /var/tmp/DIG2_g2zGzC
+7:58:8:alg:Debug:src: /var/tmp/DIG2_tKzowy/geo1.c
+7:58:8:alg:Info:analyze programs/nla/geo1.c
+7:58:8:alg:Info:set seed to: 3.0 (test 43)
+7:58:8:miscs:Info:autodeg 5
+7:58:8:alg:Info:check reachability
+7:58:8:alg:Debug:gen 4 random inps
+7:58:8:alg:Debug:use RT to generate traces for l18
+7:58:9:alg:Info:gen eqts at 1 locs: l18 (int x, int y, int z, int k)
+7:58:9:alg:Debug:l18: need more traces (1 eqts, need >= 189)
+7:58:9:alg:Debug:obtain 15 new traces
+7:58:9:alg:Debug:l18: need more traces (16 eqts, need >= 189)
+7:58:9:alg:Debug:obtain 14 new traces
+7:58:9:alg:Debug:l18: need more traces (30 eqts, need >= 189)
+7:58:9:alg:Debug:obtain 19 new traces
+7:58:9:alg:Debug:l18: need more traces (49 eqts, need >= 189)
+7:58:9:alg:Debug:obtain 25 new traces
+7:58:9:alg:Debug:l18: need more traces (74 eqts, need >= 189)
+7:58:10:alg:Debug:obtain 32 new traces
+7:58:10:alg:Debug:l18: need more traces (106 eqts, need >= 189)
+7:58:10:alg:Debug:obtain 28 new traces
+7:58:10:alg:Debug:l18: need more traces (134 eqts, need >= 189)
+7:58:10:alg:Debug:obtain 31 new traces
+7:58:10:alg:Debug:l18: need more traces (165 eqts, need >= 189)
+7:58:11:alg:Debug:obtain 45 new traces
+7:58:11:alg:Debug:l18: iter 1 infer using 189 exprs
+7:58:11:miscs:Debug:solve 126 uks using 189 eqts
+7:58:27:alg:Debug:l18: 1 candidates:
+x*z - x - y + 1 == 0
+7:58:27:alg:Debug:l18: check 1 unchecked (1 candidates)
+7:58:27:alg:Debug:l18: no disproved candidates -- break
+7:58:27:alg:Debug:l18: got 1 eqts, 0 new inps
+7:58:27:alg:Debug:x*z - x - y + 1 == 0
+7:58:27:alg:Debug:gen eqts: (18.4308300018s)
+7:58:27:alg:Info:1 invs:
+l18: x*z - x - y + 1 == 0
+7:58:27:alg:Info:gen ieqs at 1 locs: l18 (int x, int y, int z, int k)
+7:58:27:alg:Info:1 locs: check upperbounds for 32 terms
+7:58:27:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+7:58:29:alg:Debug:1 locs: compute upperbounds for 12 terms
+7:58:29:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+7:58:33:alg:Debug:gen ieqs: (5.62683796883s)
+7:58:33:alg:Info:10 invs:
+l18: -x + z <= 9, -z <= 0, -x <= -1, -k - z <= -1, -x - z <= -1, -k - x <= -2, k - x <= 9, -k <= -1, -k + z <= 9, x*z - x - y + 1 == 0
+7:58:33:alg:Info:test 10 invs on all 261 traces
+7:58:33:alg:Info:find uniq invs
+7:58:33:alg:Info:10 invs:
+l18: -x + z <= 9, -z <= 0, -x <= -1, -k - z <= -1, -x - z <= -1, -k - x <= -2, k - x <= 9, -k <= -1, -k + z <= 9, x*z - x - y + 1 == 0
+7:58:33:alg:Debug:uniqify: remove 3 redundant invs (0.252264022827s)
+7:58:33:alg:Info:*** programs/nla/geo1.c, 1 locs, invs 7, inps 65, time 24.6377401352 s, rand 84: 
+l18: -z <= 0, -x + z <= 9, -k <= -1, -k + z <= 9, x*z - x - y + 1 == 0, -x <= -1, k - x <= 9
+7:58:33:alg:Debug:rm -rf /var/tmp/DIG2_tKzowy
+7:58:34:alg:Debug:src: /var/tmp/DIG2_pogUIa/geo1.c
+7:58:34:alg:Info:analyze programs/nla/geo1.c
+7:58:34:alg:Info:set seed to: 4.0 (test 61)
+7:58:34:miscs:Info:autodeg 5
+7:58:34:alg:Info:check reachability
+7:58:34:alg:Debug:gen 4 random inps
+7:58:34:alg:Info:gen eqts at 1 locs: l18 (int x, int y, int z, int k)
+7:58:34:alg:Debug:l18: need more traces (3 eqts, need >= 189)
+7:58:34:alg:Debug:obtain 8 new traces
+7:58:34:alg:Debug:l18: need more traces (11 eqts, need >= 189)
+7:58:34:alg:Debug:obtain 12 new traces
+7:58:35:alg:Debug:l18: need more traces (23 eqts, need >= 189)
+7:58:35:alg:Debug:obtain 16 new traces
+7:58:35:alg:Debug:l18: need more traces (39 eqts, need >= 189)
+7:58:35:alg:Debug:obtain 21 new traces
+7:58:35:alg:Debug:l18: need more traces (60 eqts, need >= 189)
+7:58:35:alg:Debug:obtain 21 new traces
+7:58:35:alg:Debug:l18: need more traces (81 eqts, need >= 189)
+7:58:35:alg:Debug:obtain 28 new traces
+7:58:35:alg:Debug:l18: need more traces (109 eqts, need >= 189)
+7:58:35:alg:Debug:obtain 35 new traces
+7:58:35:alg:Debug:l18: need more traces (144 eqts, need >= 189)
+7:58:36:alg:Debug:obtain 39 new traces
+7:58:36:alg:Debug:l18: need more traces (183 eqts, need >= 189)
+7:58:36:alg:Debug:obtain 46 new traces
+7:58:36:alg:Debug:l18: iter 1 infer using 189 exprs
+7:58:36:miscs:Debug:solve 126 uks using 189 eqts
+7:58:52:alg:Debug:l18: 1 candidates:
+x*z - x - y + 1 == 0
+7:58:52:alg:Debug:l18: check 1 unchecked (1 candidates)
+7:58:52:alg:Debug:l18: no disproved candidates -- break
+7:58:52:alg:Debug:l18: got 1 eqts, 0 new inps
+7:58:52:alg:Debug:x*z - x - y + 1 == 0
+7:58:52:alg:Debug:gen eqts: (18.0971360207s)
+7:58:52:alg:Info:1 invs:
+l18: x*z - x - y + 1 == 0
+7:58:52:alg:Info:gen ieqs at 1 locs: l18 (int x, int y, int z, int k)
+7:58:52:alg:Info:1 locs: check upperbounds for 32 terms
+7:58:52:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+7:58:54:alg:Debug:1 locs: compute upperbounds for 12 terms
+7:58:54:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+7:58:58:alg:Debug:gen ieqs: (5.39538002014s)
+7:58:58:alg:Info:10 invs:
+l18: -k - x <= -2, -k <= -1, -x <= -1, -z <= 0, -x + z <= 9, k - x <= 9, -k + z <= 9, -k - z <= -1, -x - z <= -1, x*z - x - y + 1 == 0
+7:58:58:alg:Info:test 10 invs on all 280 traces
+7:58:58:alg:Info:find uniq invs
+7:58:58:alg:Info:10 invs:
+l18: -k - x <= -2, -k <= -1, -x <= -1, -z <= 0, -x + z <= 9, k - x <= 9, -k + z <= 9, -k - z <= -1, -x - z <= -1, x*z - x - y + 1 == 0
+7:58:58:alg:Debug:uniqify: remove 3 redundant invs (0.235706090927s)
+7:58:58:alg:Info:*** programs/nla/geo1.c, 1 locs, invs 7, inps 67, time 23.958163023 s, rand 31: 
+l18: x*z - x - y + 1 == 0, k - x <= 9, -x <= -1, -z <= 0, -k + z <= 9, -x + z <= 9, -k <= -1
+7:58:58:alg:Debug:rm -rf /var/tmp/DIG2_pogUIa
+7:58:59:alg:Debug:src: /var/tmp/DIG2_0DRxNN/geo1.c
+7:58:59:alg:Info:analyze programs/nla/geo1.c
+7:58:59:alg:Info:set seed to: 5.0 (test 1)
+7:58:59:miscs:Info:autodeg 5
+7:58:59:alg:Info:check reachability
+7:58:59:alg:Debug:gen 4 random inps
+7:58:59:alg:Debug:use RT to generate traces for l18
+7:58:59:alg:Info:gen eqts at 1 locs: l18 (int x, int y, int z, int k)
+7:58:59:alg:Debug:l18: need more traces (1 eqts, need >= 189)
+7:59:0:alg:Debug:obtain 8 new traces
+7:59:0:alg:Debug:l18: need more traces (9 eqts, need >= 189)
+7:59:0:alg:Debug:obtain 11 new traces
+7:59:0:alg:Debug:l18: need more traces (20 eqts, need >= 189)
+7:59:0:alg:Debug:obtain 15 new traces
+7:59:0:alg:Debug:l18: need more traces (35 eqts, need >= 189)
+7:59:0:alg:Debug:obtain 20 new traces
+7:59:0:alg:Debug:l18: need more traces (55 eqts, need >= 189)
+7:59:0:alg:Debug:obtain 26 new traces
+7:59:0:alg:Debug:l18: need more traces (81 eqts, need >= 189)
+7:59:0:alg:Debug:obtain 27 new traces
+7:59:0:alg:Debug:l18: need more traces (108 eqts, need >= 189)
+7:59:1:alg:Debug:obtain 29 new traces
+7:59:1:alg:Debug:l18: need more traces (137 eqts, need >= 189)
+7:59:1:alg:Debug:obtain 37 new traces
+7:59:1:alg:Debug:l18: need more traces (174 eqts, need >= 189)
+7:59:1:alg:Debug:obtain 47 new traces
+7:59:1:alg:Debug:l18: iter 1 infer using 189 exprs
+7:59:1:miscs:Debug:solve 126 uks using 189 eqts
+7:59:18:alg:Debug:l18: 1 candidates:
+x*z - x - y + 1 == 0
+7:59:18:alg:Debug:l18: check 1 unchecked (1 candidates)
+7:59:18:alg:Debug:l18: no disproved candidates -- break
+7:59:18:alg:Debug:l18: got 1 eqts, 0 new inps
+7:59:18:alg:Debug:x*z - x - y + 1 == 0
+7:59:18:alg:Debug:gen eqts: (18.2656481266s)
+7:59:18:alg:Info:1 invs:
+l18: x*z - x - y + 1 == 0
+7:59:18:alg:Info:gen ieqs at 1 locs: l18 (int x, int y, int z, int k)
+7:59:18:alg:Info:1 locs: check upperbounds for 32 terms
+7:59:18:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+7:59:20:alg:Debug:1 locs: compute upperbounds for 12 terms
+7:59:20:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+7:59:23:alg:Debug:gen ieqs: (5.45507717133s)
+7:59:23:alg:Info:10 invs:
+l18: -k - x <= -2, -x <= -1, -z <= 0, -k - z <= -1, -x + z <= 9, k - x <= 9, -k + z <= 9, -x - z <= -1, -k <= -1, x*z - x - y + 1 == 0
+7:59:23:alg:Info:test 10 invs on all 272 traces
+7:59:23:alg:Info:find uniq invs
+7:59:23:alg:Info:10 invs:
+l18: -k - x <= -2, -x <= -1, -z <= 0, -k - z <= -1, -x + z <= 9, k - x <= 9, -k + z <= 9, -x - z <= -1, -k <= -1, x*z - x - y + 1 == 0
+7:59:24:alg:Debug:uniqify: remove 3 redundant invs (0.24950003624s)
+7:59:24:alg:Info:*** programs/nla/geo1.c, 1 locs, invs 7, inps 67, time 24.2957158089 s, rand 55: 
+l18: k - x <= 9, x*z - x - y + 1 == 0, -x <= -1, -k <= -1, -k + z <= 9, -x + z <= 9, -z <= 0
+7:59:24:alg:Debug:rm -rf /var/tmp/DIG2_0DRxNN
+7:59:25:alg:Debug:src: /var/tmp/DIG2_ErRkHl/geo1.c
+7:59:25:alg:Info:analyze programs/nla/geo1.c
+7:59:25:alg:Info:set seed to: 6.0 (test 89)
+7:59:25:miscs:Info:autodeg 5
+7:59:25:alg:Info:check reachability
+7:59:25:alg:Debug:gen 4 random inps
+7:59:25:alg:Debug:use RT to generate traces for l18
+7:59:25:alg:Info:gen eqts at 1 locs: l18 (int x, int y, int z, int k)
+7:59:25:alg:Debug:l18: need more traces (1 eqts, need >= 189)
+7:59:25:alg:Debug:obtain 8 new traces
+7:59:25:alg:Debug:l18: need more traces (9 eqts, need >= 189)
+7:59:25:alg:Debug:obtain 11 new traces
+7:59:25:alg:Debug:l18: need more traces (20 eqts, need >= 189)
+7:59:25:alg:Debug:obtain 15 new traces
+7:59:25:alg:Debug:l18: need more traces (35 eqts, need >= 189)
+7:59:26:alg:Debug:obtain 20 new traces
+7:59:26:alg:Debug:l18: need more traces (55 eqts, need >= 189)
+7:59:26:alg:Debug:obtain 26 new traces
+7:59:26:alg:Debug:l18: need more traces (81 eqts, need >= 189)
+7:59:26:alg:Debug:obtain 27 new traces
+7:59:26:alg:Debug:l18: need more traces (108 eqts, need >= 189)
+7:59:26:alg:Debug:obtain 29 new traces
+7:59:27:alg:Debug:l18: need more traces (137 eqts, need >= 189)
+7:59:27:alg:Debug:obtain 37 new traces
+7:59:27:alg:Debug:l18: need more traces (174 eqts, need >= 189)
+7:59:27:alg:Debug:obtain 47 new traces
+7:59:27:alg:Debug:l18: iter 1 infer using 189 exprs
+7:59:27:miscs:Debug:solve 126 uks using 189 eqts
+7:59:44:alg:Debug:l18: 1 candidates:
+x*z - x - y + 1 == 0
+7:59:44:alg:Debug:l18: check 1 unchecked (1 candidates)
+7:59:44:alg:Debug:l18: no disproved candidates -- break
+7:59:44:alg:Debug:l18: got 1 eqts, 0 new inps
+7:59:44:alg:Debug:x*z - x - y + 1 == 0
+7:59:44:alg:Debug:gen eqts: (18.9121990204s)
+7:59:44:alg:Info:1 invs:
+l18: x*z - x - y + 1 == 0
+7:59:44:alg:Info:gen ieqs at 1 locs: l18 (int x, int y, int z, int k)
+7:59:44:alg:Info:1 locs: check upperbounds for 32 terms
+7:59:44:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+7:59:46:alg:Debug:1 locs: compute upperbounds for 12 terms
+7:59:46:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+7:59:49:alg:Debug:gen ieqs: (5.38188099861s)
+7:59:49:alg:Info:10 invs:
+l18: -z <= 0, -x - z <= -1, -x + z <= 9, -k - z <= -1, k - x <= 9, -k + z <= 9, -k <= -1, -k - x <= -2, -x <= -1, x*z - x - y + 1 == 0
+7:59:49:alg:Info:test 10 invs on all 272 traces
+7:59:49:alg:Info:find uniq invs
+7:59:49:alg:Info:10 invs:
+l18: -z <= 0, -x - z <= -1, -x + z <= 9, -k - z <= -1, k - x <= 9, -k + z <= 9, -k <= -1, -k - x <= -2, -x <= -1, x*z - x - y + 1 == 0
+7:59:50:alg:Debug:uniqify: remove 3 redundant invs (0.256881952286s)
+7:59:50:alg:Info:*** programs/nla/geo1.c, 1 locs, invs 7, inps 67, time 24.8930010796 s, rand 90: 
+l18: x*z - x - y + 1 == 0, -z <= 0, -x <= -1, -k <= -1, -k + z <= 9, -x + z <= 9, k - x <= 9
+7:59:50:alg:Debug:rm -rf /var/tmp/DIG2_ErRkHl
+7:59:51:alg:Debug:src: /var/tmp/DIG2_DfhaNF/geo1.c
+7:59:51:alg:Info:analyze programs/nla/geo1.c
+7:59:51:alg:Info:set seed to: 7.0 (test 82)
+7:59:51:miscs:Info:autodeg 5
+7:59:51:alg:Info:check reachability
+7:59:51:alg:Debug:gen 4 random inps
+7:59:51:alg:Info:gen eqts at 1 locs: l18 (int x, int y, int z, int k)
+7:59:51:alg:Debug:l18: need more traces (4 eqts, need >= 189)
+7:59:51:alg:Debug:obtain 8 new traces
+7:59:51:alg:Debug:l18: need more traces (12 eqts, need >= 189)
+7:59:51:alg:Debug:obtain 11 new traces
+7:59:51:alg:Debug:l18: need more traces (23 eqts, need >= 189)
+7:59:51:alg:Debug:obtain 16 new traces
+7:59:51:alg:Debug:l18: need more traces (39 eqts, need >= 189)
+7:59:52:alg:Debug:obtain 21 new traces
+7:59:52:alg:Debug:l18: need more traces (60 eqts, need >= 189)
+7:59:52:alg:Debug:obtain 21 new traces
+7:59:52:alg:Debug:l18: need more traces (81 eqts, need >= 189)
+7:59:52:alg:Debug:obtain 28 new traces
+7:59:52:alg:Debug:l18: need more traces (109 eqts, need >= 189)
+7:59:52:alg:Debug:obtain 35 new traces
+7:59:53:alg:Debug:l18: need more traces (144 eqts, need >= 189)
+7:59:53:alg:Debug:obtain 39 new traces
+7:59:53:alg:Debug:l18: need more traces (183 eqts, need >= 189)
+7:59:53:alg:Debug:obtain 46 new traces
+7:59:53:alg:Debug:l18: iter 1 infer using 189 exprs
+7:59:53:miscs:Debug:solve 126 uks using 189 eqts
+8:0:9:alg:Debug:l18: 2 candidates:
+k*x*z - k*x - k*y - 10*x*z + k + 10*x + 10*y - 10 == 0
+x*z^2 - 10*x*z - y*z + 9*x + 9*y + z - 9 == 0
+8:0:9:alg:Debug:l18: check 2 unchecked (2 candidates)
+8:0:9:miscs:Debug:workloads 'prove' 2: [1, 1]
+8:0:9:alg:Debug:l18: no disproved candidates -- break
+8:0:9:alg:Debug:l18: got 2 eqts, 0 new inps
+8:0:9:alg:Debug:k*x*z - k*x - k*y - 10*x*z + k + 10*x + 10*y - 10 == 0
+x*(z*z) - 10*x*z - y*z + 9*x + 9*y + z - 9 == 0
+8:0:9:alg:Debug:gen eqts: (17.9698448181s)
+8:0:9:alg:Info:2 invs:
+l18: x*(z*z) - 10*x*z - y*z + 9*x + 9*y + z - 9 == 0, k*x*z - k*x - k*y - 10*x*z + k + 10*x + 10*y - 10 == 0
+8:0:9:alg:Info:gen ieqs at 1 locs: l18 (int x, int y, int z, int k)
+8:0:9:alg:Info:1 locs: check upperbounds for 32 terms
+8:0:9:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+8:0:11:alg:Debug:1 locs: compute upperbounds for 12 terms
+8:0:11:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:0:14:alg:Debug:gen ieqs: (5.30739498138s)
+8:0:14:alg:Info:11 invs:
+l18: x*(z*z) - 10*x*z - y*z + 9*x + 9*y + z - 9 == 0, k*x*z - k*x - k*y - 10*x*z + k + 10*x + 10*y - 10 == 0, -x + z <= 9, -z <= 0, k - x <= 9, -k - z <= -1, -x <= -1, -x - z <= -1, -k + z <= 9, -k - x <= -2, -k <= -1
+8:0:14:alg:Info:test 11 invs on all 274 traces
+8:0:14:alg:Info:find uniq invs
+8:0:14:alg:Info:11 invs:
+l18: x*(z*z) - 10*x*z - y*z + 9*x + 9*y + z - 9 == 0, k*x*z - k*x - k*y - 10*x*z + k + 10*x + 10*y - 10 == 0, -x + z <= 9, -z <= 0, k - x <= 9, -k - z <= -1, -x <= -1, -x - z <= -1, -k + z <= 9, -k - x <= -2, -k <= -1
+8:0:16:alg:Debug:uniqify: remove 3 redundant invs (1.33051586151s)
+8:0:16:alg:Info:*** programs/nla/geo1.c, 1 locs, invs 8, inps 66, time 24.8798279762 s, rand 77: 
+l18: x*(z*z) - 10*x*z - y*z + 9*x + 9*y + z - 9 == 0, -x <= -1, -k <= -1, -z <= 0, -k + z <= 9, k - x <= 9, k*x*z - k*x - k*y - 10*x*z + k + 10*x + 10*y - 10 == 0, -x + z <= 9
+8:0:16:alg:Debug:rm -rf /var/tmp/DIG2_DfhaNF
+8:0:17:alg:Debug:src: /var/tmp/DIG2_KQPQeG/geo1.c
+8:0:17:alg:Info:analyze programs/nla/geo1.c
+8:0:17:alg:Info:set seed to: 8.0 (test 88)
+8:0:17:miscs:Info:autodeg 5
+8:0:17:alg:Info:check reachability
+8:0:17:alg:Debug:gen 4 random inps
+8:0:17:alg:Debug:use RT to generate traces for l18
+8:0:17:alg:Info:gen eqts at 1 locs: l18 (int x, int y, int z, int k)
+8:0:17:alg:Debug:l18: need more traces (1 eqts, need >= 189)
+8:0:17:alg:Debug:obtain 22 new traces
+8:0:17:alg:Debug:l18: need more traces (23 eqts, need >= 189)
+8:0:18:alg:Debug:obtain 17 new traces
+8:0:18:alg:Debug:l18: need more traces (40 eqts, need >= 189)
+8:0:18:alg:Debug:obtain 23 new traces
+8:0:18:alg:Debug:l18: need more traces (63 eqts, need >= 189)
+8:0:18:alg:Debug:obtain 30 new traces
+8:0:18:alg:Debug:l18: need more traces (93 eqts, need >= 189)
+8:0:18:alg:Debug:obtain 38 new traces
+8:0:18:alg:Debug:l18: need more traces (131 eqts, need >= 189)
+8:0:19:alg:Debug:obtain 29 new traces
+8:0:19:alg:Debug:l18: need more traces (160 eqts, need >= 189)
+8:0:19:alg:Debug:obtain 33 new traces
+8:0:19:alg:Debug:l18: iter 1 infer using 189 exprs
+8:0:19:miscs:Debug:solve 126 uks using 189 eqts
+8:0:35:alg:Debug:l18: 1 candidates:
+x*z - x - y + 1 == 0
+8:0:35:alg:Debug:l18: check 1 unchecked (1 candidates)
+8:0:36:alg:Debug:l18: no disproved candidates -- break
+8:0:36:alg:Debug:l18: got 1 eqts, 0 new inps
+8:0:36:alg:Debug:x*z - x - y + 1 == 0
+8:0:36:alg:Debug:gen eqts: (18.4453279972s)
+8:0:36:alg:Info:1 invs:
+l18: x*z - x - y + 1 == 0
+8:0:36:alg:Info:gen ieqs at 1 locs: l18 (int x, int y, int z, int k)
+8:0:36:alg:Info:1 locs: check upperbounds for 32 terms
+8:0:36:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+8:0:38:alg:Debug:1 locs: compute upperbounds for 12 terms
+8:0:38:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:0:41:alg:Debug:gen ieqs: (5.51218008995s)
+8:0:41:alg:Info:10 invs:
+l18: -k - z <= -1, -k + z <= 9, -k <= -1, k - x <= 9, -x <= -1, -k - x <= -2, -x - z <= -1, -x + z <= 9, -z <= 0, x*z - x - y + 1 == 0
+8:0:41:alg:Info:test 10 invs on all 245 traces
+8:0:41:alg:Info:find uniq invs
+8:0:41:alg:Info:10 invs:
+l18: -k - z <= -1, -k + z <= 9, -k <= -1, k - x <= 9, -x <= -1, -k - x <= -2, -x - z <= -1, -x + z <= 9, -z <= 0, x*z - x - y + 1 == 0
+8:0:42:alg:Debug:uniqify: remove 3 redundant invs (0.257510900497s)
+8:0:42:alg:Info:*** programs/nla/geo1.c, 1 locs, invs 7, inps 63, time 24.5473341942 s, rand 92: 
+l18: x*z - x - y + 1 == 0, -x <= -1, -k <= -1, -x + z <= 9, -z <= 0, -k + z <= 9, k - x <= 9
+8:0:42:alg:Debug:rm -rf /var/tmp/DIG2_KQPQeG
+8:0:43:alg:Debug:src: /var/tmp/DIG2_Fxw6OR/geo1.c
+8:0:43:alg:Info:analyze programs/nla/geo1.c
+8:0:43:alg:Info:set seed to: 9.0 (test 60)
+8:0:43:miscs:Info:autodeg 5
+8:0:43:alg:Info:check reachability
+8:0:43:alg:Debug:gen 4 random inps
+8:0:43:alg:Debug:use RT to generate traces for l18
+8:0:43:alg:Info:gen eqts at 1 locs: l18 (int x, int y, int z, int k)
+8:0:43:alg:Debug:l18: need more traces (1 eqts, need >= 189)
+8:0:43:alg:Debug:obtain 15 new traces
+8:0:43:alg:Debug:l18: need more traces (16 eqts, need >= 189)
+8:0:43:alg:Debug:obtain 14 new traces
+8:0:43:alg:Debug:l18: need more traces (30 eqts, need >= 189)
+8:0:43:alg:Debug:obtain 19 new traces
+8:0:43:alg:Debug:l18: need more traces (49 eqts, need >= 189)
+8:0:44:alg:Debug:obtain 25 new traces
+8:0:44:alg:Debug:l18: need more traces (74 eqts, need >= 189)
+8:0:44:alg:Debug:obtain 32 new traces
+8:0:44:alg:Debug:l18: need more traces (106 eqts, need >= 189)
+8:0:44:alg:Debug:obtain 28 new traces
+8:0:44:alg:Debug:l18: need more traces (134 eqts, need >= 189)
+8:0:44:alg:Debug:obtain 31 new traces
+8:0:45:alg:Debug:l18: need more traces (165 eqts, need >= 189)
+8:0:45:alg:Debug:obtain 45 new traces
+8:0:45:alg:Debug:l18: iter 1 infer using 189 exprs
+8:0:45:miscs:Debug:solve 126 uks using 189 eqts
+8:1:1:alg:Debug:l18: 1 candidates:
+x*z - x - y + 1 == 0
+8:1:1:alg:Debug:l18: check 1 unchecked (1 candidates)
+8:1:1:alg:Debug:l18: no disproved candidates -- break
+8:1:1:alg:Debug:l18: got 1 eqts, 0 new inps
+8:1:1:alg:Debug:x*z - x - y + 1 == 0
+8:1:1:alg:Debug:gen eqts: (18.2196638584s)
+8:1:1:alg:Info:1 invs:
+l18: x*z - x - y + 1 == 0
+8:1:1:alg:Info:gen ieqs at 1 locs: l18 (int x, int y, int z, int k)
+8:1:1:alg:Info:1 locs: check upperbounds for 32 terms
+8:1:1:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+8:1:3:alg:Debug:1 locs: compute upperbounds for 12 terms
+8:1:3:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:1:6:alg:Debug:gen ieqs: (5.39509391785s)
+8:1:6:alg:Info:10 invs:
+l18: -k + z <= 9, -k <= -1, -x - z <= -1, k - x <= 9, -x + z <= 9, -z <= 0, -k - x <= -2, -x <= -1, -k - z <= -1, x*z - x - y + 1 == 0
+8:1:6:alg:Info:test 10 invs on all 261 traces
+8:1:7:alg:Info:find uniq invs
+8:1:7:alg:Info:10 invs:
+l18: -k + z <= 9, -k <= -1, -x - z <= -1, k - x <= 9, -x + z <= 9, -z <= 0, -k - x <= -2, -x <= -1, -k - z <= -1, x*z - x - y + 1 == 0
+8:1:7:alg:Debug:uniqify: remove 3 redundant invs (0.270612955093s)
+8:1:7:alg:Info:*** programs/nla/geo1.c, 1 locs, invs 7, inps 65, time 24.2058708668 s, rand 30: 
+l18: -x + z <= 9, -k <= -1, -z <= 0, -k + z <= 9, k - x <= 9, x*z - x - y + 1 == 0, -x <= -1
+8:1:7:alg:Debug:rm -rf /var/tmp/DIG2_Fxw6OR
+8:1:8:alg:Debug:src: /var/tmp/DIG2_pPQAWM/geo1.c
+8:1:8:alg:Info:analyze programs/nla/geo1.c
+8:1:8:alg:Info:set seed to: 10.0 (test 97)
+8:1:8:miscs:Info:autodeg 5
+8:1:8:alg:Info:check reachability
+8:1:8:alg:Debug:gen 4 random inps
+8:1:8:alg:Debug:use RT to generate traces for l18
+8:1:8:alg:Info:gen eqts at 1 locs: l18 (int x, int y, int z, int k)
+8:1:8:alg:Debug:l18: need more traces (1 eqts, need >= 189)
+8:1:8:alg:Debug:obtain 8 new traces
+8:1:8:alg:Debug:l18: need more traces (9 eqts, need >= 189)
+8:1:9:alg:Debug:obtain 11 new traces
+8:1:9:alg:Debug:l18: need more traces (20 eqts, need >= 189)
+8:1:9:alg:Debug:obtain 15 new traces
+8:1:9:alg:Debug:l18: need more traces (35 eqts, need >= 189)
+8:1:9:alg:Debug:obtain 20 new traces
+8:1:9:alg:Debug:l18: need more traces (55 eqts, need >= 189)
+8:1:9:alg:Debug:obtain 26 new traces
+8:1:9:alg:Debug:l18: need more traces (81 eqts, need >= 189)
+8:1:10:alg:Debug:obtain 27 new traces
+8:1:10:alg:Debug:l18: need more traces (108 eqts, need >= 189)
+8:1:10:alg:Debug:obtain 29 new traces
+8:1:10:alg:Debug:l18: need more traces (137 eqts, need >= 189)
+8:1:10:alg:Debug:obtain 37 new traces
+8:1:10:alg:Debug:l18: need more traces (174 eqts, need >= 189)
+8:1:11:alg:Debug:obtain 47 new traces
+8:1:11:alg:Debug:l18: iter 1 infer using 189 exprs
+8:1:11:miscs:Debug:solve 126 uks using 189 eqts
+8:1:27:alg:Debug:l18: 1 candidates:
+x*z - x - y + 1 == 0
+8:1:27:alg:Debug:l18: check 1 unchecked (1 candidates)
+8:1:27:alg:Debug:l18: no disproved candidates -- break
+8:1:27:alg:Debug:l18: got 1 eqts, 0 new inps
+8:1:27:alg:Debug:x*z - x - y + 1 == 0
+8:1:27:alg:Debug:gen eqts: (18.5719649792s)
+8:1:27:alg:Info:1 invs:
+l18: x*z - x - y + 1 == 0
+8:1:27:alg:Info:gen ieqs at 1 locs: l18 (int x, int y, int z, int k)
+8:1:27:alg:Info:1 locs: check upperbounds for 32 terms
+8:1:27:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+8:1:29:alg:Debug:1 locs: compute upperbounds for 12 terms
+8:1:29:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:1:32:alg:Debug:gen ieqs: (5.42014479637s)
+8:1:32:alg:Info:10 invs:
+l18: k - x <= 9, -k + z <= 9, -k - z <= -1, -x - z <= -1, -z <= 0, -x <= -1, -k <= -1, -x + z <= 9, -k - x <= -2, x*z - x - y + 1 == 0
+8:1:32:alg:Info:test 10 invs on all 272 traces
+8:1:32:alg:Info:find uniq invs
+8:1:32:alg:Info:10 invs:
+l18: k - x <= 9, -k + z <= 9, -k - z <= -1, -x - z <= -1, -z <= 0, -x <= -1, -k <= -1, -x + z <= 9, -k - x <= -2, x*z - x - y + 1 == 0
+8:1:33:alg:Debug:uniqify: remove 3 redundant invs (0.243264913559s)
+8:1:33:alg:Info:*** programs/nla/geo1.c, 1 locs, invs 7, inps 67, time 24.5107738972 s, rand 40: 
+l18: x*z - x - y + 1 == 0, -x + z <= 9, -k + z <= 9, -x <= -1, -k <= -1, -z <= 0, k - x <= 9
+8:1:33:alg:Debug:rm -rf /var/tmp/DIG2_pPQAWM
+8:1:34:alg:Debug:src: /var/tmp/DIG2_N9TJAq/geo2.c
+8:1:34:alg:Info:analyze programs/nla/geo2.c
+8:1:34:alg:Info:set seed to: 0.0 (test 11)
+8:1:34:miscs:Info:autodeg 5
+8:1:34:alg:Info:check reachability
+8:1:34:alg:Debug:gen 4 random inps
+8:1:34:alg:Debug:use RT to generate traces for l16
+8:1:34:alg:Info:gen eqts at 1 locs: l16 (int x, int y, int z, int k)
+8:1:34:alg:Debug:l16: need more traces (2 eqts, need >= 189)
+8:1:34:alg:Debug:obtain 9 new traces
+8:1:34:alg:Debug:l16: need more traces (11 eqts, need >= 189)
+8:1:34:alg:Debug:obtain 12 new traces
+8:1:34:alg:Debug:l16: need more traces (23 eqts, need >= 189)
+8:1:34:alg:Debug:obtain 16 new traces
+8:1:35:alg:Debug:l16: need more traces (39 eqts, need >= 189)
+8:1:35:alg:Debug:obtain 21 new traces
+8:1:35:alg:Debug:l16: need more traces (60 eqts, need >= 189)
+8:1:35:alg:Debug:obtain 26 new traces
+8:1:35:alg:Debug:l16: need more traces (86 eqts, need >= 189)
+8:1:35:alg:Debug:obtain 28 new traces
+8:1:35:alg:Debug:l16: need more traces (114 eqts, need >= 189)
+8:1:35:alg:Debug:obtain 30 new traces
+8:1:35:alg:Debug:l16: need more traces (144 eqts, need >= 189)
+8:1:36:alg:Debug:obtain 38 new traces
+8:1:36:alg:Debug:l16: need more traces (182 eqts, need >= 189)
+8:1:36:alg:Debug:obtain 48 new traces
+8:1:36:alg:Debug:l16: iter 1 infer using 189 exprs
+8:1:36:miscs:Debug:solve 126 uks using 189 eqts
+8:1:52:alg:Debug:l16: 1 candidates:
+x*z - y*z - x + 1 == 0
+8:1:52:alg:Debug:l16: check 1 unchecked (1 candidates)
+8:1:52:alg:Debug:l16: no disproved candidates -- break
+8:1:52:alg:Debug:l16: got 1 eqts, 0 new inps
+8:1:52:alg:Debug:x*z - y*z - x + 1 == 0
+8:1:52:alg:Debug:gen eqts: (18.3396730423s)
+8:1:52:alg:Info:1 invs:
+l16: x*z - y*z - x + 1 == 0
+8:1:52:alg:Info:gen ieqs at 1 locs: l16 (int x, int y, int z, int k)
+8:1:52:alg:Info:1 locs: check upperbounds for 32 terms
+8:1:52:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+8:1:54:alg:Debug:1 locs: compute upperbounds for 19 terms
+8:1:54:miscs:Debug:workloads 'guesscheck' 19: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:1:58:alg:Debug:gen ieqs: (5.73224687576s)
+8:1:58:alg:Info:16 invs:
+l16: -z <= 0, -y - z <= 0, -y <= 0, -k - y <= -2, -x <= -1, -x - z <= -1, -k + z <= 9, -y + z <= 9, -k <= -1, -k - x <= -2, k - x <= 9, -x - y <= -1, -x + z <= 9, -k - z <= -1, -x + y <= 0, x*z - y*z - x + 1 == 0
+8:1:58:alg:Info:test 16 invs on all 292 traces
+8:1:58:alg:Info:find uniq invs
+8:1:58:alg:Info:16 invs:
+l16: -z <= 0, -y - z <= 0, -y <= 0, -k - y <= -2, -x <= -1, -x - z <= -1, -k + z <= 9, -y + z <= 9, -k <= -1, -k - x <= -2, k - x <= 9, -x - y <= -1, -x + z <= 9, -k - z <= -1, -x + y <= 0, x*z - y*z - x + 1 == 0
+8:1:59:alg:Debug:uniqify: remove 7 redundant invs (0.399851799011s)
+8:1:59:alg:Info:*** programs/nla/geo2.c, 1 locs, invs 9, inps 68, time 24.8567838669 s, rand 51: 
+l16: k - x <= 9, -k + z <= 9, -y <= 0, -x + y <= 0, -k <= -1, -k - y <= -2, -y + z <= 9, x*z - y*z - x + 1 == 0, -z <= 0
+8:1:59:alg:Debug:rm -rf /var/tmp/DIG2_N9TJAq
+8:2:0:alg:Debug:src: /var/tmp/DIG2_w7wAY9/geo2.c
+8:2:0:alg:Info:analyze programs/nla/geo2.c
+8:2:0:alg:Info:set seed to: 1.0 (test 83)
+8:2:0:miscs:Info:autodeg 5
+8:2:0:alg:Info:check reachability
+8:2:0:alg:Debug:gen 4 random inps
+8:2:0:alg:Debug:use RT to generate traces for l16
+8:2:0:alg:Info:gen eqts at 1 locs: l16 (int x, int y, int z, int k)
+8:2:0:alg:Debug:l16: need more traces (2 eqts, need >= 189)
+8:2:0:alg:Debug:obtain 16 new traces
+8:2:0:alg:Debug:l16: need more traces (18 eqts, need >= 189)
+8:2:0:alg:Debug:obtain 15 new traces
+8:2:0:alg:Debug:l16: need more traces (33 eqts, need >= 189)
+8:2:1:alg:Debug:obtain 20 new traces
+8:2:1:alg:Debug:l16: need more traces (53 eqts, need >= 189)
+8:2:1:alg:Debug:obtain 26 new traces
+8:2:1:alg:Debug:l16: need more traces (79 eqts, need >= 189)
+8:2:1:alg:Debug:obtain 32 new traces
+8:2:1:alg:Debug:l16: need more traces (111 eqts, need >= 189)
+8:2:1:alg:Debug:obtain 29 new traces
+8:2:1:alg:Debug:l16: need more traces (140 eqts, need >= 189)
+8:2:2:alg:Debug:obtain 32 new traces
+8:2:2:alg:Debug:l16: need more traces (172 eqts, need >= 189)
+8:2:2:alg:Debug:obtain 46 new traces
+8:2:2:alg:Debug:l16: iter 1 infer using 189 exprs
+8:2:2:miscs:Debug:solve 126 uks using 189 eqts
+8:2:17:alg:Debug:l16: 1 candidates:
+x*z - y*z - x + 1 == 0
+8:2:17:alg:Debug:l16: check 1 unchecked (1 candidates)
+8:2:18:alg:Debug:l16: no disproved candidates -- break
+8:2:18:alg:Debug:l16: got 1 eqts, 0 new inps
+8:2:18:alg:Debug:x*z - y*z - x + 1 == 0
+8:2:18:alg:Debug:gen eqts: (17.5564069748s)
+8:2:18:alg:Info:1 invs:
+l16: x*z - y*z - x + 1 == 0
+8:2:18:alg:Info:gen ieqs at 1 locs: l16 (int x, int y, int z, int k)
+8:2:18:alg:Info:1 locs: check upperbounds for 32 terms
+8:2:18:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+8:2:19:alg:Debug:1 locs: compute upperbounds for 19 terms
+8:2:19:miscs:Debug:workloads 'guesscheck' 19: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:2:23:alg:Debug:gen ieqs: (5.74204707146s)
+8:2:23:alg:Info:16 invs:
+l16: -y + z <= 9, -y - z <= 0, k - x <= 9, -k - y <= -2, -x <= -1, -x - y <= -1, -k + z <= 9, -k <= -1, -k - z <= -1, -x - z <= -1, -x + z <= 9, -k - x <= -2, -y <= 0, -z <= 0, -x + y <= 0, x*z - y*z - x + 1 == 0
+8:2:23:alg:Info:test 16 invs on all 272 traces
+8:2:24:alg:Info:find uniq invs
+8:2:24:alg:Info:16 invs:
+l16: -y + z <= 9, -y - z <= 0, k - x <= 9, -k - y <= -2, -x <= -1, -x - y <= -1, -k + z <= 9, -k <= -1, -k - z <= -1, -x - z <= -1, -x + z <= 9, -k - x <= -2, -y <= 0, -z <= 0, -x + y <= 0, x*z - y*z - x + 1 == 0
+8:2:24:alg:Debug:uniqify: remove 7 redundant invs (0.427401065826s)
+8:2:24:alg:Info:*** programs/nla/geo2.c, 1 locs, invs 9, inps 65, time 24.128371954 s, rand 60: 
+l16: -k + z <= 9, -y <= 0, k - x <= 9, -k <= -1, -k - y <= -2, -y + z <= 9, x*z - y*z - x + 1 == 0, -x + y <= 0, -z <= 0
+8:2:24:alg:Debug:rm -rf /var/tmp/DIG2_w7wAY9
+8:2:25:alg:Debug:src: /var/tmp/DIG2_XMrGSD/geo2.c
+8:2:25:alg:Info:analyze programs/nla/geo2.c
+8:2:25:alg:Info:set seed to: 2.0 (test 98)
+8:2:25:miscs:Info:autodeg 5
+8:2:25:alg:Info:check reachability
+8:2:25:alg:Debug:gen 4 random inps
+8:2:25:alg:Debug:use RT to generate traces for l16
+8:2:25:alg:Info:gen eqts at 1 locs: l16 (int x, int y, int z, int k)
+8:2:25:alg:Debug:l16: need more traces (2 eqts, need >= 189)
+8:2:26:alg:Debug:obtain 16 new traces
+8:2:26:alg:Debug:l16: need more traces (18 eqts, need >= 189)
+8:2:26:alg:Debug:obtain 15 new traces
+8:2:26:alg:Debug:l16: need more traces (33 eqts, need >= 189)
+8:2:26:alg:Debug:obtain 20 new traces
+8:2:26:alg:Debug:l16: need more traces (53 eqts, need >= 189)
+8:2:26:alg:Debug:obtain 26 new traces
+8:2:26:alg:Debug:l16: need more traces (79 eqts, need >= 189)
+8:2:26:alg:Debug:obtain 32 new traces
+8:2:26:alg:Debug:l16: need more traces (111 eqts, need >= 189)
+8:2:26:alg:Debug:obtain 29 new traces
+8:2:26:alg:Debug:l16: need more traces (140 eqts, need >= 189)
+8:2:27:alg:Debug:obtain 32 new traces
+8:2:27:alg:Debug:l16: need more traces (172 eqts, need >= 189)
+8:2:27:alg:Debug:obtain 46 new traces
+8:2:27:alg:Debug:l16: iter 1 infer using 189 exprs
+8:2:27:miscs:Debug:solve 126 uks using 189 eqts
+8:2:42:alg:Debug:l16: 1 candidates:
+x*z - y*z - x + 1 == 0
+8:2:42:alg:Debug:l16: check 1 unchecked (1 candidates)
+8:2:43:alg:Debug:l16: no disproved candidates -- break
+8:2:43:alg:Debug:l16: got 1 eqts, 0 new inps
+8:2:43:alg:Debug:x*z - y*z - x + 1 == 0
+8:2:43:alg:Debug:gen eqts: (17.1758410931s)
+8:2:43:alg:Info:1 invs:
+l16: x*z - y*z - x + 1 == 0
+8:2:43:alg:Info:gen ieqs at 1 locs: l16 (int x, int y, int z, int k)
+8:2:43:alg:Info:1 locs: check upperbounds for 32 terms
+8:2:43:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+8:2:45:alg:Debug:1 locs: compute upperbounds for 19 terms
+8:2:45:miscs:Debug:workloads 'guesscheck' 19: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:2:48:alg:Debug:gen ieqs: (5.85715389252s)
+8:2:48:alg:Info:16 invs:
+l16: -y - z <= 0, -x - y <= -1, -z <= 0, -y + z <= 9, -y <= 0, -k - y <= -2, -k - x <= -2, -k - z <= -1, -x - z <= -1, -k <= -1, k - x <= 9, -x + z <= 9, -k + z <= 9, -x + y <= 0, -x <= -1, x*z - y*z - x + 1 == 0
+8:2:48:alg:Info:test 16 invs on all 274 traces
+8:2:49:alg:Info:find uniq invs
+8:2:49:alg:Info:16 invs:
+l16: -y - z <= 0, -x - y <= -1, -z <= 0, -y + z <= 9, -y <= 0, -k - y <= -2, -k - x <= -2, -k - z <= -1, -x - z <= -1, -k <= -1, k - x <= 9, -x + z <= 9, -k + z <= 9, -x + y <= 0, -x <= -1, x*z - y*z - x + 1 == 0
+8:2:49:alg:Debug:uniqify: remove 7 redundant invs (0.42765712738s)
+8:2:49:alg:Info:*** programs/nla/geo2.c, 1 locs, invs 9, inps 65, time 23.8110909462 s, rand 45: 
+l16: x*z - y*z - x + 1 == 0, -k <= -1, -k + z <= 9, -y <= 0, -x + y <= 0, k - x <= 9, -y + z <= 9, -k - y <= -2, -x - z <= -1
+8:2:49:alg:Debug:rm -rf /var/tmp/DIG2_XMrGSD
+8:2:50:alg:Debug:src: /var/tmp/DIG2_IhHfZE/geo2.c
+8:2:50:alg:Info:analyze programs/nla/geo2.c
+8:2:50:alg:Info:set seed to: 3.0 (test 43)
+8:2:50:miscs:Info:autodeg 5
+8:2:50:alg:Info:check reachability
+8:2:50:alg:Debug:gen 4 random inps
+8:2:50:alg:Debug:use RT to generate traces for l16
+8:2:50:alg:Info:gen eqts at 1 locs: l16 (int x, int y, int z, int k)
+8:2:50:alg:Debug:l16: need more traces (2 eqts, need >= 189)
+8:2:50:alg:Debug:obtain 16 new traces
+8:2:50:alg:Debug:l16: need more traces (18 eqts, need >= 189)
+8:2:51:alg:Debug:obtain 15 new traces
+8:2:51:alg:Debug:l16: need more traces (33 eqts, need >= 189)
+8:2:51:alg:Debug:obtain 20 new traces
+8:2:51:alg:Debug:l16: need more traces (53 eqts, need >= 189)
+8:2:51:alg:Debug:obtain 26 new traces
+8:2:51:alg:Debug:l16: need more traces (79 eqts, need >= 189)
+8:2:51:alg:Debug:obtain 32 new traces
+8:2:51:alg:Debug:l16: need more traces (111 eqts, need >= 189)
+8:2:52:alg:Debug:obtain 29 new traces
+8:2:52:alg:Debug:l16: need more traces (140 eqts, need >= 189)
+8:2:52:alg:Debug:obtain 32 new traces
+8:2:52:alg:Debug:l16: need more traces (172 eqts, need >= 189)
+8:2:52:alg:Debug:obtain 46 new traces
+8:2:52:alg:Debug:l16: iter 1 infer using 189 exprs
+8:2:52:miscs:Debug:solve 126 uks using 189 eqts
+8:3:8:alg:Debug:l16: 1 candidates:
+x*z - y*z - x + 1 == 0
+8:3:8:alg:Debug:l16: check 1 unchecked (1 candidates)
+8:3:8:alg:Debug:l16: no disproved candidates -- break
+8:3:8:alg:Debug:l16: got 1 eqts, 0 new inps
+8:3:8:alg:Debug:x*z - y*z - x + 1 == 0
+8:3:8:alg:Debug:gen eqts: (17.5844271183s)
+8:3:8:alg:Info:1 invs:
+l16: x*z - y*z - x + 1 == 0
+8:3:8:alg:Info:gen ieqs at 1 locs: l16 (int x, int y, int z, int k)
+8:3:8:alg:Info:1 locs: check upperbounds for 32 terms
+8:3:8:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+8:3:10:alg:Debug:1 locs: compute upperbounds for 19 terms
+8:3:10:miscs:Debug:workloads 'guesscheck' 19: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:3:14:alg:Debug:gen ieqs: (5.76720690727s)
+8:3:14:alg:Info:16 invs:
+l16: -k - z <= -1, -x + y <= 0, -y <= 0, -k - y <= -2, -x - z <= -1, -k - x <= -2, -k + z <= 9, -x + z <= 9, -z <= 0, -x - y <= -1, k - x <= 9, -y + z <= 9, -x <= -1, -k <= -1, -y - z <= 0, x*z - y*z - x + 1 == 0
+8:3:14:alg:Info:test 16 invs on all 280 traces
+8:3:14:alg:Info:find uniq invs
+8:3:14:alg:Info:16 invs:
+l16: -k - z <= -1, -x + y <= 0, -y <= 0, -k - y <= -2, -x - z <= -1, -k - x <= -2, -k + z <= 9, -x + z <= 9, -z <= 0, -x - y <= -1, k - x <= 9, -y + z <= 9, -x <= -1, -k <= -1, -y - z <= 0, x*z - y*z - x + 1 == 0
+8:3:14:alg:Debug:uniqify: remove 7 redundant invs (0.418756008148s)
+8:3:14:alg:Info:*** programs/nla/geo2.c, 1 locs, invs 9, inps 66, time 24.185808897 s, rand 84: 
+l16: -k - y <= -2, -k <= -1, x*z - y*z - x + 1 == 0, -y <= 0, -k + z <= 9, -x - z <= -1, k - x <= 9, -x + y <= 0, -y + z <= 9
+8:3:14:alg:Debug:rm -rf /var/tmp/DIG2_IhHfZE
+8:3:15:alg:Debug:src: /var/tmp/DIG2_HTnicc/geo2.c
+8:3:16:alg:Info:analyze programs/nla/geo2.c
+8:3:16:alg:Info:set seed to: 4.0 (test 61)
+8:3:16:miscs:Info:autodeg 5
+8:3:16:alg:Info:check reachability
+8:3:16:alg:Debug:gen 4 random inps
+8:3:16:alg:Info:gen eqts at 1 locs: l16 (int x, int y, int z, int k)
+8:3:16:alg:Debug:l16: need more traces (3 eqts, need >= 189)
+8:3:16:alg:Debug:obtain 9 new traces
+8:3:16:alg:Debug:l16: need more traces (12 eqts, need >= 189)
+8:3:16:alg:Debug:obtain 13 new traces
+8:3:16:alg:Debug:l16: need more traces (25 eqts, need >= 189)
+8:3:16:alg:Debug:obtain 17 new traces
+8:3:16:alg:Debug:l16: need more traces (42 eqts, need >= 189)
+8:3:16:alg:Debug:obtain 22 new traces
+8:3:16:alg:Debug:l16: need more traces (64 eqts, need >= 189)
+8:3:16:alg:Debug:obtain 22 new traces
+8:3:17:alg:Debug:l16: need more traces (86 eqts, need >= 189)
+8:3:17:alg:Debug:obtain 28 new traces
+8:3:17:alg:Debug:l16: need more traces (114 eqts, need >= 189)
+8:3:17:alg:Debug:obtain 36 new traces
+8:3:17:alg:Debug:l16: need more traces (150 eqts, need >= 189)
+8:3:17:alg:Debug:obtain 40 new traces
+8:3:17:alg:Debug:l16: iter 1 infer using 189 exprs
+8:3:17:miscs:Debug:solve 126 uks using 189 eqts
+8:3:33:alg:Debug:l16: 1 candidates:
+x*z - y*z - x + 1 == 0
+8:3:33:alg:Debug:l16: check 1 unchecked (1 candidates)
+8:3:34:alg:Debug:l16: no disproved candidates -- break
+8:3:34:alg:Debug:l16: got 1 eqts, 0 new inps
+8:3:34:alg:Debug:x*z - y*z - x + 1 == 0
+8:3:34:alg:Debug:gen eqts: (18.0505030155s)
+8:3:34:alg:Info:1 invs:
+l16: x*z - y*z - x + 1 == 0
+8:3:34:alg:Info:gen ieqs at 1 locs: l16 (int x, int y, int z, int k)
+8:3:34:alg:Info:1 locs: check upperbounds for 32 terms
+8:3:34:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+8:3:36:alg:Debug:1 locs: compute upperbounds for 19 terms
+8:3:36:miscs:Debug:workloads 'guesscheck' 19: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:3:39:alg:Debug:gen ieqs: (5.82065200806s)
+8:3:39:alg:Info:16 invs:
+l16: -y + z <= 9, -k + z <= 9, -x + y <= 0, -x <= -1, -k - x <= -2, -y <= 0, -k - y <= -2, -z <= 0, -k <= -1, -x - z <= -1, -x + z <= 9, -y - z <= 0, -x - y <= -1, k - x <= 9, -k - z <= -1, x*z - y*z - x + 1 == 0
+8:3:39:alg:Info:test 16 invs on all 258 traces
+8:3:40:alg:Info:find uniq invs
+8:3:40:alg:Info:16 invs:
+l16: -y + z <= 9, -k + z <= 9, -x + y <= 0, -x <= -1, -k - x <= -2, -y <= 0, -k - y <= -2, -z <= 0, -k <= -1, -x - z <= -1, -x + z <= 9, -y - z <= 0, -x - y <= -1, k - x <= 9, -k - z <= -1, x*z - y*z - x + 1 == 0
+8:3:40:alg:Debug:uniqify: remove 7 redundant invs (0.357089996338s)
+8:3:40:alg:Info:*** programs/nla/geo2.c, 1 locs, invs 9, inps 60, time 24.4453790188 s, rand 31: 
+l16: -x + y <= 0, -k + z <= 9, -y <= 0, -k <= -1, x*z - y*z - x + 1 == 0, -z <= 0, -y + z <= 9, -k - y <= -2, k - x <= 9
+8:3:40:alg:Debug:rm -rf /var/tmp/DIG2_HTnicc
+8:3:41:alg:Debug:src: /var/tmp/DIG2_qbCT49/geo2.c
+8:3:41:alg:Info:analyze programs/nla/geo2.c
+8:3:41:alg:Info:set seed to: 5.0 (test 1)
+8:3:41:miscs:Info:autodeg 5
+8:3:41:alg:Info:check reachability
+8:3:41:alg:Debug:gen 4 random inps
+8:3:41:alg:Debug:use RT to generate traces for l16
+8:3:41:alg:Info:gen eqts at 1 locs: l16 (int x, int y, int z, int k)
+8:3:41:alg:Debug:l16: need more traces (2 eqts, need >= 189)
+8:3:41:alg:Debug:obtain 9 new traces
+8:3:41:alg:Debug:l16: need more traces (11 eqts, need >= 189)
+8:3:42:alg:Debug:obtain 12 new traces
+8:3:42:alg:Debug:l16: need more traces (23 eqts, need >= 189)
+8:3:42:alg:Debug:obtain 16 new traces
+8:3:42:alg:Debug:l16: need more traces (39 eqts, need >= 189)
+8:3:42:alg:Debug:obtain 21 new traces
+8:3:42:alg:Debug:l16: need more traces (60 eqts, need >= 189)
+8:3:42:alg:Debug:obtain 26 new traces
+8:3:42:alg:Debug:l16: need more traces (86 eqts, need >= 189)
+8:3:42:alg:Debug:obtain 28 new traces
+8:3:43:alg:Debug:l16: need more traces (114 eqts, need >= 189)
+8:3:43:alg:Debug:obtain 30 new traces
+8:3:43:alg:Debug:l16: need more traces (144 eqts, need >= 189)
+8:3:43:alg:Debug:obtain 38 new traces
+8:3:43:alg:Debug:l16: need more traces (182 eqts, need >= 189)
+8:3:43:alg:Debug:obtain 48 new traces
+8:3:43:alg:Debug:l16: iter 1 infer using 189 exprs
+8:3:43:miscs:Debug:solve 126 uks using 189 eqts
+8:3:59:alg:Debug:l16: 1 candidates:
+x*z - y*z - x + 1 == 0
+8:3:59:alg:Debug:l16: check 1 unchecked (1 candidates)
+8:3:59:alg:Debug:l16: no disproved candidates -- break
+8:3:59:alg:Debug:l16: got 1 eqts, 0 new inps
+8:3:59:alg:Debug:x*z - y*z - x + 1 == 0
+8:3:59:alg:Debug:gen eqts: (17.6453559399s)
+8:3:59:alg:Info:1 invs:
+l16: x*z - y*z - x + 1 == 0
+8:3:59:alg:Info:gen ieqs at 1 locs: l16 (int x, int y, int z, int k)
+8:3:59:alg:Info:1 locs: check upperbounds for 32 terms
+8:3:59:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+8:4:1:alg:Debug:1 locs: compute upperbounds for 19 terms
+8:4:1:miscs:Debug:workloads 'guesscheck' 19: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:4:5:alg:Debug:gen ieqs: (5.85110616684s)
+8:4:5:alg:Info:16 invs:
+l16: k - x <= 9, -x - z <= -1, -y <= 0, -k - y <= -2, -z <= 0, -k - z <= -1, -x + y <= 0, -k <= -1, -x - y <= -1, -y + z <= 9, -x + z <= 9, -k - x <= -2, -y - z <= 0, -k + z <= 9, -x <= -1, x*z - y*z - x + 1 == 0
+8:4:5:alg:Info:test 16 invs on all 292 traces
+8:4:5:alg:Info:find uniq invs
+8:4:5:alg:Info:16 invs:
+l16: k - x <= 9, -x - z <= -1, -y <= 0, -k - y <= -2, -z <= 0, -k - z <= -1, -x + y <= 0, -k <= -1, -x - y <= -1, -y + z <= 9, -x + z <= 9, -k - x <= -2, -y - z <= 0, -k + z <= 9, -x <= -1, x*z - y*z - x + 1 == 0
+8:4:5:alg:Debug:uniqify: remove 7 redundant invs (0.428531885147s)
+8:4:5:alg:Info:*** programs/nla/geo2.c, 1 locs, invs 9, inps 68, time 24.3383970261 s, rand 55: 
+l16: -k <= -1, -y + z <= 9, -k + z <= 9, -y <= 0, -x + y <= 0, k - x <= 9, x*z - y*z - x + 1 == 0, -k - y <= -2, -x - z <= -1
+8:4:5:alg:Debug:rm -rf /var/tmp/DIG2_qbCT49
+8:4:7:alg:Debug:src: /var/tmp/DIG2_PKQw3g/geo2.c
+8:4:7:alg:Info:analyze programs/nla/geo2.c
+8:4:7:alg:Info:set seed to: 6.0 (test 89)
+8:4:7:miscs:Info:autodeg 5
+8:4:7:alg:Info:check reachability
+8:4:7:alg:Debug:gen 4 random inps
+8:4:7:alg:Debug:use RT to generate traces for l16
+8:4:7:alg:Info:gen eqts at 1 locs: l16 (int x, int y, int z, int k)
+8:4:7:alg:Debug:l16: need more traces (2 eqts, need >= 189)
+8:4:7:alg:Debug:obtain 9 new traces
+8:4:7:alg:Debug:l16: need more traces (11 eqts, need >= 189)
+8:4:7:alg:Debug:obtain 12 new traces
+8:4:7:alg:Debug:l16: need more traces (23 eqts, need >= 189)
+8:4:7:alg:Debug:obtain 16 new traces
+8:4:7:alg:Debug:l16: need more traces (39 eqts, need >= 189)
+8:4:7:alg:Debug:obtain 21 new traces
+8:4:8:alg:Debug:l16: need more traces (60 eqts, need >= 189)
+8:4:8:alg:Debug:obtain 26 new traces
+8:4:8:alg:Debug:l16: need more traces (86 eqts, need >= 189)
+8:4:8:alg:Debug:obtain 28 new traces
+8:4:8:alg:Debug:l16: need more traces (114 eqts, need >= 189)
+8:4:8:alg:Debug:obtain 30 new traces
+8:4:8:alg:Debug:l16: need more traces (144 eqts, need >= 189)
+8:4:8:alg:Debug:obtain 38 new traces
+8:4:9:alg:Debug:l16: need more traces (182 eqts, need >= 189)
+8:4:9:alg:Debug:obtain 48 new traces
+8:4:9:alg:Debug:l16: iter 1 infer using 189 exprs
+8:4:9:miscs:Debug:solve 126 uks using 189 eqts
+8:4:24:alg:Debug:l16: 1 candidates:
+x*z - y*z - x + 1 == 0
+8:4:24:alg:Debug:l16: check 1 unchecked (1 candidates)
+8:4:24:alg:Debug:l16: no disproved candidates -- break
+8:4:24:alg:Debug:l16: got 1 eqts, 0 new inps
+8:4:24:alg:Debug:x*z - y*z - x + 1 == 0
+8:4:24:alg:Debug:gen eqts: (17.4329550266s)
+8:4:24:alg:Info:1 invs:
+l16: x*z - y*z - x + 1 == 0
+8:4:24:alg:Info:gen ieqs at 1 locs: l16 (int x, int y, int z, int k)
+8:4:24:alg:Info:1 locs: check upperbounds for 32 terms
+8:4:24:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+8:4:26:alg:Debug:1 locs: compute upperbounds for 19 terms
+8:4:26:miscs:Debug:workloads 'guesscheck' 19: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:4:30:alg:Debug:gen ieqs: (5.9539501667s)
+8:4:30:alg:Info:16 invs:
+l16: -x + z <= 9, -k - y <= -2, -y <= 0, -x - y <= -1, -k + z <= 9, -k <= -1, -x + y <= 0, -z <= 0, -k - x <= -2, -y + z <= 9, k - x <= 9, -x <= -1, -y - z <= 0, -x - z <= -1, -k - z <= -1, x*z - y*z - x + 1 == 0
+8:4:30:alg:Info:test 16 invs on all 292 traces
+8:4:31:alg:Info:find uniq invs
+8:4:31:alg:Info:16 invs:
+l16: -x + z <= 9, -k - y <= -2, -y <= 0, -x - y <= -1, -k + z <= 9, -k <= -1, -x + y <= 0, -z <= 0, -k - x <= -2, -y + z <= 9, k - x <= 9, -x <= -1, -y - z <= 0, -x - z <= -1, -k - z <= -1, x*z - y*z - x + 1 == 0
+8:4:31:alg:Debug:uniqify: remove 7 redundant invs (0.492090940475s)
+8:4:31:alg:Info:*** programs/nla/geo2.c, 1 locs, invs 9, inps 68, time 24.3013579845 s, rand 90: 
+l16: -k <= -1, x*z - y*z - x + 1 == 0, -k - y <= -2, -y <= 0, -k + z <= 9, -x + y <= 0, -y + z <= 9, -x - z <= -1, k - x <= 9
+8:4:31:alg:Debug:rm -rf /var/tmp/DIG2_PKQw3g
+8:4:32:alg:Debug:src: /var/tmp/DIG2_nb4POe/geo2.c
+8:4:32:alg:Info:analyze programs/nla/geo2.c
+8:4:32:alg:Info:set seed to: 7.0 (test 82)
+8:4:32:miscs:Info:autodeg 5
+8:4:32:alg:Info:check reachability
+8:4:32:alg:Debug:gen 4 random inps
+8:4:32:alg:Info:gen eqts at 1 locs: l16 (int x, int y, int z, int k)
+8:4:32:alg:Debug:l16: need more traces (4 eqts, need >= 189)
+8:4:32:alg:Debug:obtain 9 new traces
+8:4:32:alg:Debug:l16: need more traces (13 eqts, need >= 189)
+8:4:33:alg:Debug:obtain 12 new traces
+8:4:33:alg:Debug:l16: need more traces (25 eqts, need >= 189)
+8:4:33:alg:Debug:obtain 17 new traces
+8:4:33:alg:Debug:l16: need more traces (42 eqts, need >= 189)
+8:4:33:alg:Debug:obtain 22 new traces
+8:4:33:alg:Debug:l16: need more traces (64 eqts, need >= 189)
+8:4:33:alg:Debug:obtain 22 new traces
+8:4:33:alg:Debug:l16: need more traces (86 eqts, need >= 189)
+8:4:33:alg:Debug:obtain 28 new traces
+8:4:33:alg:Debug:l16: need more traces (114 eqts, need >= 189)
+8:4:34:alg:Debug:obtain 36 new traces
+8:4:34:alg:Debug:l16: need more traces (150 eqts, need >= 189)
+8:4:34:alg:Debug:obtain 40 new traces
+8:4:34:alg:Debug:l16: iter 1 infer using 189 exprs
+8:4:34:miscs:Debug:solve 126 uks using 189 eqts
+8:4:50:alg:Debug:l16: 1 candidates:
+x*z - y*z - x + 1 == 0
+8:4:50:alg:Debug:l16: check 1 unchecked (1 candidates)
+8:4:50:alg:Debug:l16: no disproved candidates -- break
+8:4:50:alg:Debug:l16: got 1 eqts, 0 new inps
+8:4:50:alg:Debug:x*z - y*z - x + 1 == 0
+8:4:50:alg:Debug:gen eqts: (17.7595169544s)
+8:4:50:alg:Info:1 invs:
+l16: x*z - y*z - x + 1 == 0
+8:4:50:alg:Info:gen ieqs at 1 locs: l16 (int x, int y, int z, int k)
+8:4:50:alg:Info:1 locs: check upperbounds for 32 terms
+8:4:50:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+8:4:52:alg:Debug:1 locs: compute upperbounds for 19 terms
+8:4:52:miscs:Debug:workloads 'guesscheck' 19: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:4:56:alg:Debug:gen ieqs: (5.93723392487s)
+8:4:56:alg:Info:16 invs:
+l16: -k - z <= -1, -k + z <= 9, -x + y <= 0, -x - z <= -1, -x - y <= -1, -x + z <= 9, -k - y <= -2, -k <= -1, -k - x <= -2, -y <= 0, -y + z <= 9, -x <= -1, -y - z <= 0, k - x <= 9, -z <= 0, x*z - y*z - x + 1 == 0
+8:4:56:alg:Info:test 16 invs on all 263 traces
+8:4:56:alg:Info:find uniq invs
+8:4:56:alg:Info:16 invs:
+l16: -k - z <= -1, -k + z <= 9, -x + y <= 0, -x - z <= -1, -x - y <= -1, -x + z <= 9, -k - y <= -2, -k <= -1, -k - x <= -2, -y <= 0, -y + z <= 9, -x <= -1, -y - z <= 0, k - x <= 9, -z <= 0, x*z - y*z - x + 1 == 0
+8:4:57:alg:Debug:uniqify: remove 7 redundant invs (0.39454293251s)
+8:4:57:alg:Info:*** programs/nla/geo2.c, 1 locs, invs 9, inps 60, time 24.4044370651 s, rand 77: 
+l16: x*z - y*z - x + 1 == 0, -y <= 0, -k <= -1, -x + y <= 0, -k + z <= 9, -y + z <= 9, -z <= 0, k - x <= 9, -k - y <= -2
+8:4:57:alg:Debug:rm -rf /var/tmp/DIG2_nb4POe
+8:4:58:alg:Debug:src: /var/tmp/DIG2_XrWvtY/geo2.c
+8:4:58:alg:Info:analyze programs/nla/geo2.c
+8:4:58:alg:Info:set seed to: 8.0 (test 88)
+8:4:58:miscs:Info:autodeg 5
+8:4:58:alg:Info:check reachability
+8:4:58:alg:Debug:gen 4 random inps
+8:4:58:alg:Debug:use RT to generate traces for l16
+8:4:58:alg:Info:gen eqts at 1 locs: l16 (int x, int y, int z, int k)
+8:4:58:alg:Debug:l16: need more traces (2 eqts, need >= 189)
+8:4:58:alg:Debug:obtain 23 new traces
+8:4:58:alg:Debug:l16: need more traces (25 eqts, need >= 189)
+8:4:58:alg:Debug:obtain 18 new traces
+8:4:58:alg:Debug:l16: need more traces (43 eqts, need >= 189)
+8:4:58:alg:Debug:obtain 24 new traces
+8:4:59:alg:Debug:l16: need more traces (67 eqts, need >= 189)
+8:4:59:alg:Debug:obtain 31 new traces
+8:4:59:alg:Debug:l16: need more traces (98 eqts, need >= 189)
+8:4:59:alg:Debug:obtain 38 new traces
+8:4:59:alg:Debug:l16: need more traces (136 eqts, need >= 189)
+8:4:59:alg:Debug:obtain 30 new traces
+8:4:59:alg:Debug:l16: need more traces (166 eqts, need >= 189)
+8:5:0:alg:Debug:obtain 34 new traces
+8:5:0:alg:Debug:l16: iter 1 infer using 189 exprs
+8:5:0:miscs:Debug:solve 126 uks using 189 eqts
+8:5:16:alg:Debug:l16: 1 candidates:
+x*z - y*z - x + 1 == 0
+8:5:16:alg:Debug:l16: check 1 unchecked (1 candidates)
+8:5:16:alg:Debug:l16: no disproved candidates -- break
+8:5:16:alg:Debug:l16: got 1 eqts, 0 new inps
+8:5:16:alg:Debug:x*z - y*z - x + 1 == 0
+8:5:16:alg:Debug:gen eqts: (17.8038749695s)
+8:5:16:alg:Info:1 invs:
+l16: x*z - y*z - x + 1 == 0
+8:5:16:alg:Info:gen ieqs at 1 locs: l16 (int x, int y, int z, int k)
+8:5:16:alg:Info:1 locs: check upperbounds for 32 terms
+8:5:16:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+8:5:18:alg:Debug:1 locs: compute upperbounds for 19 terms
+8:5:18:miscs:Debug:workloads 'guesscheck' 19: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:5:22:alg:Debug:gen ieqs: (5.97837114334s)
+8:5:22:alg:Info:16 invs:
+l16: -z <= 0, -k - x <= -2, -k - z <= -1, -y <= 0, -x - z <= -1, -y - z <= 0, -x <= -1, -y + z <= 9, -x + y <= 0, -x + z <= 9, -x - y <= -1, k - x <= 9, -k - y <= -2, -k <= -1, -k + z <= 9, x*z - y*z - x + 1 == 0
+8:5:22:alg:Info:test 16 invs on all 264 traces
+8:5:22:alg:Info:find uniq invs
+8:5:22:alg:Info:16 invs:
+l16: -z <= 0, -k - x <= -2, -k - z <= -1, -y <= 0, -x - z <= -1, -y - z <= 0, -x <= -1, -y + z <= 9, -x + y <= 0, -x + z <= 9, -x - y <= -1, k - x <= 9, -k - y <= -2, -k <= -1, -k + z <= 9, x*z - y*z - x + 1 == 0
+8:5:22:alg:Debug:uniqify: remove 7 redundant invs (0.404258012772s)
+8:5:22:alg:Info:*** programs/nla/geo2.c, 1 locs, invs 9, inps 64, time 24.5749578476 s, rand 92: 
+l16: -x + y <= 0, -y <= 0, -k <= -1, x*z - y*z - x + 1 == 0, -k - y <= -2, k - x <= 9, -y + z <= 9, -z <= 0, -k + z <= 9
+8:5:22:alg:Debug:rm -rf /var/tmp/DIG2_XrWvtY
+8:5:24:alg:Debug:src: /var/tmp/DIG2_A9bXdn/geo2.c
+8:5:24:alg:Info:analyze programs/nla/geo2.c
+8:5:24:alg:Info:set seed to: 9.0 (test 60)
+8:5:24:miscs:Info:autodeg 5
+8:5:24:alg:Info:check reachability
+8:5:24:alg:Debug:gen 4 random inps
+8:5:24:alg:Debug:use RT to generate traces for l16
+8:5:24:alg:Info:gen eqts at 1 locs: l16 (int x, int y, int z, int k)
+8:5:24:alg:Debug:l16: need more traces (2 eqts, need >= 189)
+8:5:24:alg:Debug:obtain 16 new traces
+8:5:24:alg:Debug:l16: need more traces (18 eqts, need >= 189)
+8:5:24:alg:Debug:obtain 15 new traces
+8:5:24:alg:Debug:l16: need more traces (33 eqts, need >= 189)
+8:5:24:alg:Debug:obtain 20 new traces
+8:5:24:alg:Debug:l16: need more traces (53 eqts, need >= 189)
+8:5:24:alg:Debug:obtain 26 new traces
+8:5:25:alg:Debug:l16: need more traces (79 eqts, need >= 189)
+8:5:25:alg:Debug:obtain 32 new traces
+8:5:25:alg:Debug:l16: need more traces (111 eqts, need >= 189)
+8:5:25:alg:Debug:obtain 29 new traces
+8:5:25:alg:Debug:l16: need more traces (140 eqts, need >= 189)
+8:5:25:alg:Debug:obtain 32 new traces
+8:5:25:alg:Debug:l16: need more traces (172 eqts, need >= 189)
+8:5:26:alg:Debug:obtain 46 new traces
+8:5:26:alg:Debug:l16: iter 1 infer using 189 exprs
+8:5:26:miscs:Debug:solve 126 uks using 189 eqts
+8:5:41:alg:Debug:l16: 1 candidates:
+x*z - y*z - x + 1 == 0
+8:5:41:alg:Debug:l16: check 1 unchecked (1 candidates)
+8:5:41:alg:Debug:l16: no disproved candidates -- break
+8:5:41:alg:Debug:l16: got 1 eqts, 0 new inps
+8:5:41:alg:Debug:x*z - y*z - x + 1 == 0
+8:5:41:alg:Debug:gen eqts: (17.6952428818s)
+8:5:41:alg:Info:1 invs:
+l16: x*z - y*z - x + 1 == 0
+8:5:41:alg:Info:gen ieqs at 1 locs: l16 (int x, int y, int z, int k)
+8:5:41:alg:Info:1 locs: check upperbounds for 32 terms
+8:5:41:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+8:5:43:alg:Debug:1 locs: compute upperbounds for 19 terms
+8:5:43:miscs:Debug:workloads 'guesscheck' 19: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:5:47:alg:Debug:gen ieqs: (5.94330596924s)
+8:5:47:alg:Info:16 invs:
+l16: -z <= 0, -x + y <= 0, -y + z <= 9, k - x <= 9, -y - z <= 0, -x - y <= -1, -y <= 0, -k <= -1, -x - z <= -1, -k - z <= -1, -k - x <= -2, -x <= -1, -k + z <= 9, -x + z <= 9, -k - y <= -2, x*z - y*z - x + 1 == 0
+8:5:47:alg:Info:test 16 invs on all 272 traces
+8:5:48:alg:Info:find uniq invs
+8:5:48:alg:Info:16 invs:
+l16: -z <= 0, -x + y <= 0, -y + z <= 9, k - x <= 9, -y - z <= 0, -x - y <= -1, -y <= 0, -k <= -1, -x - z <= -1, -k - z <= -1, -k - x <= -2, -x <= -1, -k + z <= 9, -x + z <= 9, -k - y <= -2, x*z - y*z - x + 1 == 0
+8:5:48:alg:Debug:uniqify: remove 7 redundant invs (0.421210050583s)
+8:5:48:alg:Info:*** programs/nla/geo2.c, 1 locs, invs 9, inps 65, time 24.4648480415 s, rand 30: 
+l16: -k + z <= 9, -k <= -1, x*z - y*z - x + 1 == 0, -x + y <= 0, -y <= 0, -x - z <= -1, k - x <= 9, -y + z <= 9, -k - y <= -2
+8:5:48:alg:Debug:rm -rf /var/tmp/DIG2_A9bXdn
+8:5:49:alg:Debug:src: /var/tmp/DIG2_0W9LW1/geo2.c
+8:5:49:alg:Info:analyze programs/nla/geo2.c
+8:5:49:alg:Info:set seed to: 10.0 (test 97)
+8:5:49:miscs:Info:autodeg 5
+8:5:49:alg:Info:check reachability
+8:5:49:alg:Debug:gen 4 random inps
+8:5:49:alg:Debug:use RT to generate traces for l16
+8:5:49:alg:Info:gen eqts at 1 locs: l16 (int x, int y, int z, int k)
+8:5:49:alg:Debug:l16: need more traces (2 eqts, need >= 189)
+8:5:50:alg:Debug:obtain 9 new traces
+8:5:50:alg:Debug:l16: need more traces (11 eqts, need >= 189)
+8:5:50:alg:Debug:obtain 12 new traces
+8:5:50:alg:Debug:l16: need more traces (23 eqts, need >= 189)
+8:5:50:alg:Debug:obtain 16 new traces
+8:5:50:alg:Debug:l16: need more traces (39 eqts, need >= 189)
+8:5:50:alg:Debug:obtain 21 new traces
+8:5:50:alg:Debug:l16: need more traces (60 eqts, need >= 189)
+8:5:50:alg:Debug:obtain 26 new traces
+8:5:50:alg:Debug:l16: need more traces (86 eqts, need >= 189)
+8:5:51:alg:Debug:obtain 28 new traces
+8:5:51:alg:Debug:l16: need more traces (114 eqts, need >= 189)
+8:5:51:alg:Debug:obtain 30 new traces
+8:5:51:alg:Debug:l16: need more traces (144 eqts, need >= 189)
+8:5:51:alg:Debug:obtain 38 new traces
+8:5:51:alg:Debug:l16: need more traces (182 eqts, need >= 189)
+8:5:51:alg:Debug:obtain 48 new traces
+8:5:52:alg:Debug:l16: iter 1 infer using 189 exprs
+8:5:52:miscs:Debug:solve 126 uks using 189 eqts
+8:6:7:alg:Debug:l16: 1 candidates:
+x*z - y*z - x + 1 == 0
+8:6:7:alg:Debug:l16: check 1 unchecked (1 candidates)
+8:6:7:alg:Debug:l16: no disproved candidates -- break
+8:6:7:alg:Debug:l16: got 1 eqts, 0 new inps
+8:6:7:alg:Debug:x*z - y*z - x + 1 == 0
+8:6:7:alg:Debug:gen eqts: (17.85983181s)
+8:6:7:alg:Info:1 invs:
+l16: x*z - y*z - x + 1 == 0
+8:6:7:alg:Info:gen ieqs at 1 locs: l16 (int x, int y, int z, int k)
+8:6:7:alg:Info:1 locs: check upperbounds for 32 terms
+8:6:7:miscs:Debug:workloads 'prove' 16: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+8:6:9:alg:Debug:1 locs: compute upperbounds for 19 terms
+8:6:9:miscs:Debug:workloads 'guesscheck' 19: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:6:13:alg:Debug:gen ieqs: (5.62911486626s)
+8:6:13:alg:Info:16 invs:
+l16: -k <= -1, k - x <= 9, -y - z <= 0, -x <= -1, -x - y <= -1, -y + z <= 9, -k - y <= -2, -k - x <= -2, -z <= 0, -x + z <= 9, -k + z <= 9, -k - z <= -1, -y <= 0, -x + y <= 0, -x - z <= -1, x*z - y*z - x + 1 == 0
+8:6:13:alg:Info:test 16 invs on all 292 traces
+8:6:13:alg:Info:find uniq invs
+8:6:13:alg:Info:16 invs:
+l16: -k <= -1, k - x <= 9, -y - z <= 0, -x <= -1, -x - y <= -1, -y + z <= 9, -k - y <= -2, -k - x <= -2, -z <= 0, -x + z <= 9, -k + z <= 9, -k - z <= -1, -y <= 0, -x + y <= 0, -x - z <= -1, x*z - y*z - x + 1 == 0
+8:6:14:alg:Debug:uniqify: remove 7 redundant invs (0.418940067291s)
+8:6:14:alg:Info:*** programs/nla/geo2.c, 1 locs, invs 9, inps 68, time 24.335652113 s, rand 40: 
+l16: k - x <= 9, -y <= 0, x*z - y*z - x + 1 == 0, -k + z <= 9, -k <= -1, -x + y <= 0, -z <= 0, -y + z <= 9, -k - y <= -2
+8:6:14:alg:Debug:rm -rf /var/tmp/DIG2_0W9LW1
+8:6:15:alg:Debug:src: /var/tmp/DIG2_OkZpIB/geo3.c
+8:6:15:alg:Info:analyze programs/nla/geo3.c
+8:6:15:alg:Info:set seed to: 0.0 (test 11)
+8:6:15:miscs:Info:autodeg 4
+8:6:15:alg:Info:check reachability
+8:6:15:alg:Debug:gen 8 random inps
+8:6:15:alg:Debug:use RT to generate traces for l17
+8:6:15:alg:Info:gen eqts at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:6:15:alg:Debug:l17: need more traces (2 eqts, need >= 189)
+8:6:15:alg:Debug:obtain 16 new traces
+8:6:15:alg:Debug:l17: need more traces (18 eqts, need >= 189)
+8:6:15:alg:Debug:obtain 15 new traces
+8:6:15:alg:Debug:l17: need more traces (33 eqts, need >= 189)
+8:6:16:alg:Debug:obtain 20 new traces
+8:6:16:alg:Debug:l17: need more traces (53 eqts, need >= 189)
+8:6:16:alg:Debug:obtain 26 new traces
+8:6:16:alg:Debug:l17: need more traces (79 eqts, need >= 189)
+8:6:16:alg:Debug:obtain 32 new traces
+8:6:16:alg:Debug:l17: need more traces (111 eqts, need >= 189)
+8:6:17:alg:Debug:obtain 29 new traces
+8:6:17:alg:Debug:l17: need more traces (140 eqts, need >= 189)
+8:6:17:alg:Debug:obtain 32 new traces
+8:6:17:alg:Debug:l17: need more traces (172 eqts, need >= 189)
+8:6:17:alg:Debug:obtain 46 new traces
+8:6:17:alg:Debug:l17: iter 1 infer using 189 exprs
+8:6:17:miscs:Debug:solve 126 uks using 189 eqts
+8:6:34:alg:Debug:l17: 1 candidates:
+a*y*z - x*z - a + x == 0
+8:6:34:alg:Debug:l17: check 1 unchecked (1 candidates)
+8:6:34:alg:Debug:l17: no disproved candidates -- break
+8:6:34:alg:Debug:l17: got 1 eqts, 0 new inps
+8:6:34:alg:Debug:a*y*z - x*z - a + x == 0
+8:6:34:alg:Debug:gen eqts: (18.9491460323s)
+8:6:34:alg:Info:1 invs:
+l17: a*y*z - x*z - a + x == 0
+8:6:34:alg:Info:gen ieqs at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:6:34:alg:Info:1 locs: check upperbounds for 50 terms
+8:6:34:miscs:Debug:workloads 'prove' 17: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2]
+8:6:46:alg:Debug:1 locs: compute upperbounds for 12 terms
+8:6:46:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:6:48:alg:Debug:gen ieqs: (14.5352311134s)
+8:6:48:alg:Info:9 invs:
+l17: -y - z <= 0, -y + z <= 9, -k + z <= 9, -k - z <= -1, -k - y <= -2, -y <= 0, -k <= -1, -z <= 0, a*y*z - x*z - a + x == 0
+8:6:48:alg:Info:test 9 invs on all 654 traces
+8:6:49:ds:Warn:l17: a*y*z - x*z - a + x == 0 disproved
+8:6:49:alg:Info:find uniq invs
+8:6:49:alg:Info:8 invs:
+l17: -y - z <= 0, -y + z <= 9, -k + z <= 9, -k - z <= -1, -k - y <= -2, -y <= 0, -k <= -1, -z <= 0
+8:6:49:alg:Debug:uniqify: remove 2 redundant invs (0.159702062607s)
+8:6:49:alg:Info:*** programs/nla/geo3.c, 1 locs, invs 6, inps 146, time 34.1748199463 s, rand 51: 
+l17: -y + z <= 9, -k + z <= 9, -y <= 0, -z <= 0, -k <= -1, -k - y <= -2
+8:6:49:alg:Debug:rm -rf /var/tmp/DIG2_OkZpIB
+8:6:50:alg:Debug:src: /var/tmp/DIG2__YxUca/geo3.c
+8:6:50:alg:Info:analyze programs/nla/geo3.c
+8:6:50:alg:Info:set seed to: 1.0 (test 83)
+8:6:50:miscs:Info:autodeg 4
+8:6:50:alg:Info:check reachability
+8:6:50:alg:Debug:gen 8 random inps
+8:6:50:alg:Debug:use RT to generate traces for l17
+8:6:50:alg:Info:gen eqts at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:6:50:alg:Debug:l17: need more traces (2 eqts, need >= 189)
+8:6:51:alg:Debug:obtain 25 new traces
+8:6:51:alg:Debug:l17: need more traces (27 eqts, need >= 189)
+8:6:51:alg:Debug:obtain 20 new traces
+8:6:51:alg:Debug:l17: need more traces (47 eqts, need >= 189)
+8:6:51:alg:Debug:obtain 26 new traces
+8:6:51:alg:Debug:l17: need more traces (73 eqts, need >= 189)
+8:6:51:alg:Debug:obtain 33 new traces
+8:6:51:alg:Debug:l17: need more traces (106 eqts, need >= 189)
+8:6:52:alg:Debug:obtain 40 new traces
+8:6:52:alg:Debug:l17: need more traces (146 eqts, need >= 189)
+8:6:52:alg:Debug:obtain 31 new traces
+8:6:52:alg:Debug:l17: need more traces (177 eqts, need >= 189)
+8:6:53:alg:Debug:obtain 36 new traces
+8:6:53:alg:Debug:l17: iter 1 infer using 189 exprs
+8:6:53:miscs:Debug:solve 126 uks using 189 eqts
+8:7:9:alg:Debug:l17: 1 candidates:
+a*y*z - x*z - a + x == 0
+8:7:9:alg:Debug:l17: check 1 unchecked (1 candidates)
+8:7:9:alg:Debug:l17: no disproved candidates -- break
+8:7:9:alg:Debug:l17: got 1 eqts, 0 new inps
+8:7:9:alg:Debug:a*y*z - x*z - a + x == 0
+8:7:9:alg:Debug:gen eqts: (18.3851718903s)
+8:7:9:alg:Info:1 invs:
+l17: a*y*z - x*z - a + x == 0
+8:7:9:alg:Info:gen ieqs at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:7:9:alg:Info:1 locs: check upperbounds for 50 terms
+8:7:9:miscs:Debug:workloads 'prove' 17: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2]
+8:7:18:alg:Debug:1 locs: compute upperbounds for 12 terms
+8:7:18:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:7:21:alg:Debug:gen ieqs: (12.1470007896s)
+8:7:21:alg:Info:9 invs:
+l17: -z <= 0, -y <= 0, -k - y <= -2, -k <= -1, -y + z <= 9, -k + z <= 9, -k - z <= -1, -y - z <= 0, a*y*z - x*z - a + x == 0
+8:7:21:alg:Info:test 9 invs on all 631 traces
+8:7:21:alg:Info:find uniq invs
+8:7:21:alg:Info:9 invs:
+l17: -z <= 0, -y <= 0, -k - y <= -2, -k <= -1, -y + z <= 9, -k + z <= 9, -k - z <= -1, -y - z <= 0, a*y*z - x*z - a + x == 0
+8:7:21:alg:Debug:uniqify: remove 2 redundant invs (0.202723026276s)
+8:7:21:alg:Info:*** programs/nla/geo3.c, 1 locs, invs 7, inps 149, time 31.2800269127 s, rand 60: 
+l17: -k + z <= 9, -k <= -1, -y <= 0, -z <= 0, a*y*z - x*z - a + x == 0, -k - y <= -2, -y + z <= 9
+8:7:21:alg:Debug:rm -rf /var/tmp/DIG2__YxUca
+8:7:23:alg:Debug:src: /var/tmp/DIG2_iBybbh/geo3.c
+8:7:23:alg:Info:analyze programs/nla/geo3.c
+8:7:23:alg:Info:set seed to: 2.0 (test 98)
+8:7:23:miscs:Info:autodeg 4
+8:7:23:alg:Info:check reachability
+8:7:23:alg:Debug:gen 8 random inps
+8:7:23:alg:Debug:use RT to generate traces for l17
+8:7:23:alg:Info:gen eqts at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:7:23:alg:Debug:l17: need more traces (2 eqts, need >= 189)
+8:7:23:alg:Debug:obtain 16 new traces
+8:7:23:alg:Debug:l17: need more traces (18 eqts, need >= 189)
+8:7:23:alg:Debug:obtain 15 new traces
+8:7:23:alg:Debug:l17: need more traces (33 eqts, need >= 189)
+8:7:23:alg:Debug:obtain 20 new traces
+8:7:23:alg:Debug:l17: need more traces (53 eqts, need >= 189)
+8:7:24:alg:Debug:obtain 26 new traces
+8:7:24:alg:Debug:l17: need more traces (79 eqts, need >= 189)
+8:7:24:alg:Debug:obtain 32 new traces
+8:7:24:alg:Debug:l17: need more traces (111 eqts, need >= 189)
+8:7:24:alg:Debug:obtain 29 new traces
+8:7:24:alg:Debug:l17: need more traces (140 eqts, need >= 189)
+8:7:25:alg:Debug:obtain 32 new traces
+8:7:25:alg:Debug:l17: need more traces (172 eqts, need >= 189)
+8:7:25:alg:Debug:obtain 46 new traces
+8:7:25:alg:Debug:l17: iter 1 infer using 189 exprs
+8:7:25:miscs:Debug:solve 126 uks using 189 eqts
+8:7:41:alg:Debug:l17: 1 candidates:
+a*y*z - x*z - a + x == 0
+8:7:41:alg:Debug:l17: check 1 unchecked (1 candidates)
+8:7:41:alg:Debug:l17: no disproved candidates -- break
+8:7:41:alg:Debug:l17: got 1 eqts, 0 new inps
+8:7:41:alg:Debug:a*y*z - x*z - a + x == 0
+8:7:41:alg:Debug:gen eqts: (18.6094589233s)
+8:7:41:alg:Info:1 invs:
+l17: a*y*z - x*z - a + x == 0
+8:7:41:alg:Info:gen ieqs at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:7:41:alg:Info:1 locs: check upperbounds for 50 terms
+8:7:41:miscs:Debug:workloads 'prove' 17: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2]
+8:7:51:alg:Debug:1 locs: compute upperbounds for 12 terms
+8:7:51:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:7:53:alg:Debug:gen ieqs: (11.9999480247s)
+8:7:53:alg:Info:9 invs:
+l17: -y - z <= 0, -k <= -1, -k - z <= -1, -y <= 0, -k - y <= -2, -y + z <= 9, -k + z <= 9, -z <= 0, a*y*z - x*z - a + x == 0
+8:7:53:alg:Info:test 9 invs on all 644 traces
+8:7:54:alg:Info:find uniq invs
+8:7:54:alg:Info:9 invs:
+l17: -y - z <= 0, -k <= -1, -k - z <= -1, -y <= 0, -k - y <= -2, -y + z <= 9, -k + z <= 9, -z <= 0, a*y*z - x*z - a + x == 0
+8:7:54:alg:Debug:uniqify: remove 2 redundant invs (0.213242769241s)
+8:7:54:alg:Info:*** programs/nla/geo3.c, 1 locs, invs 7, inps 145, time 31.2590529919 s, rand 45: 
+l17: -k + z <= 9, -z <= 0, -k <= -1, -y + z <= 9, -y <= 0, a*y*z - x*z - a + x == 0, -k - y <= -2
+8:7:54:alg:Debug:rm -rf /var/tmp/DIG2_iBybbh
+8:7:55:alg:Debug:src: /var/tmp/DIG2_y9eDsq/geo3.c
+8:7:55:alg:Info:analyze programs/nla/geo3.c
+8:7:55:alg:Info:set seed to: 3.0 (test 43)
+8:7:55:miscs:Info:autodeg 4
+8:7:55:alg:Info:check reachability
+8:7:55:alg:Debug:gen 8 random inps
+8:7:55:alg:Info:gen eqts at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:7:55:alg:Debug:l17: need more traces (2 eqts, need >= 189)
+8:7:55:alg:Debug:obtain 18 new traces
+8:7:55:alg:Debug:l17: need more traces (20 eqts, need >= 189)
+8:7:56:alg:Debug:obtain 17 new traces
+8:7:56:alg:Debug:l17: need more traces (37 eqts, need >= 189)
+8:7:56:alg:Debug:obtain 22 new traces
+8:7:56:alg:Debug:l17: need more traces (59 eqts, need >= 189)
+8:7:56:alg:Debug:obtain 28 new traces
+8:7:56:alg:Debug:l17: need more traces (87 eqts, need >= 189)
+8:7:56:alg:Debug:obtain 34 new traces
+8:7:56:alg:Debug:l17: need more traces (121 eqts, need >= 189)
+8:7:57:alg:Debug:obtain 30 new traces
+8:7:57:alg:Debug:l17: need more traces (151 eqts, need >= 189)
+8:7:57:alg:Debug:obtain 34 new traces
+8:7:57:alg:Debug:l17: need more traces (185 eqts, need >= 189)
+8:7:57:alg:Debug:obtain 48 new traces
+8:7:57:alg:Debug:l17: iter 1 infer using 189 exprs
+8:7:57:miscs:Debug:solve 126 uks using 189 eqts
+8:8:13:alg:Debug:l17: 1 candidates:
+a*y*z - x*z - a + x == 0
+8:8:13:alg:Debug:l17: check 1 unchecked (1 candidates)
+8:8:14:alg:Debug:l17: no disproved candidates -- break
+8:8:14:alg:Debug:l17: got 1 eqts, 0 new inps
+8:8:14:alg:Debug:a*y*z - x*z - a + x == 0
+8:8:14:alg:Debug:gen eqts: (18.3935120106s)
+8:8:14:alg:Info:1 invs:
+l17: a*y*z - x*z - a + x == 0
+8:8:14:alg:Info:gen ieqs at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:8:14:alg:Info:1 locs: check upperbounds for 50 terms
+8:8:14:miscs:Debug:workloads 'prove' 17: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2]
+8:8:25:alg:Debug:1 locs: compute upperbounds for 12 terms
+8:8:25:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:8:28:alg:Debug:gen ieqs: (14.0129511356s)
+8:8:28:alg:Info:9 invs:
+l17: -y + z <= 9, -k - y <= -2, -k <= -1, -y <= 0, -z <= 0, -k - z <= -1, -y - z <= 0, -k + z <= 9, a*y*z - x*z - a + x == 0
+8:8:28:alg:Info:test 9 invs on all 671 traces
+8:8:28:alg:Info:find uniq invs
+8:8:28:alg:Info:9 invs:
+l17: -y + z <= 9, -k - y <= -2, -k <= -1, -y <= 0, -z <= 0, -k - z <= -1, -y - z <= 0, -k + z <= 9, a*y*z - x*z - a + x == 0
+8:8:28:alg:Debug:uniqify: remove 2 redundant invs (0.170990943909s)
+8:8:28:alg:Info:*** programs/nla/geo3.c, 1 locs, invs 7, inps 154, time 33.026540041 s, rand 84: 
+l17: -y + z <= 9, -k - y <= -2, a*y*z - x*z - a + x == 0, -y <= 0, -k <= -1, -k + z <= 9, -z <= 0
+8:8:28:alg:Debug:rm -rf /var/tmp/DIG2_y9eDsq
+8:8:29:alg:Debug:src: /var/tmp/DIG2_OmSkH9/geo3.c
+8:8:29:alg:Info:analyze programs/nla/geo3.c
+8:8:29:alg:Info:set seed to: 4.0 (test 61)
+8:8:29:miscs:Info:autodeg 4
+8:8:29:alg:Info:check reachability
+8:8:29:alg:Debug:gen 8 random inps
+8:8:29:alg:Debug:use RT to generate traces for l17
+8:8:29:alg:Info:gen eqts at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:8:29:alg:Debug:l17: need more traces (2 eqts, need >= 189)
+8:8:30:alg:Debug:obtain 30 new traces
+8:8:30:alg:Debug:l17: need more traces (32 eqts, need >= 189)
+8:8:30:alg:Debug:obtain 21 new traces
+8:8:30:alg:Debug:l17: need more traces (53 eqts, need >= 189)
+8:8:30:alg:Debug:obtain 28 new traces
+8:8:30:alg:Debug:l17: need more traces (81 eqts, need >= 189)
+8:8:30:alg:Debug:obtain 36 new traces
+8:8:31:alg:Debug:l17: need more traces (117 eqts, need >= 189)
+8:8:31:alg:Debug:obtain 44 new traces
+8:8:31:alg:Debug:l17: need more traces (161 eqts, need >= 189)
+8:8:31:alg:Debug:obtain 31 new traces
+8:8:31:alg:Debug:l17: iter 1 infer using 189 exprs
+8:8:31:miscs:Debug:solve 126 uks using 189 eqts
+8:8:48:alg:Debug:l17: 1 candidates:
+a*y*z - x*z - a + x == 0
+8:8:48:alg:Debug:l17: check 1 unchecked (1 candidates)
+8:8:48:alg:Debug:l17: no disproved candidates -- break
+8:8:48:alg:Debug:l17: got 1 eqts, 0 new inps
+8:8:48:alg:Debug:a*y*z - x*z - a + x == 0
+8:8:48:alg:Debug:gen eqts: (18.5285310745s)
+8:8:48:alg:Info:1 invs:
+l17: a*y*z - x*z - a + x == 0
+8:8:48:alg:Info:gen ieqs at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:8:48:alg:Info:1 locs: check upperbounds for 50 terms
+8:8:48:miscs:Debug:workloads 'prove' 17: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2]
+8:8:59:alg:Debug:1 locs: compute upperbounds for 12 terms
+8:8:59:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:9:1:alg:Debug:gen ieqs: (13.1703271866s)
+8:9:1:alg:Info:9 invs:
+l17: -k + z <= 9, -z <= 0, -y <= 0, -k - y <= -2, -y + z <= 9, -k <= -1, -k - z <= -1, -y - z <= 0, a*y*z - x*z - a + x == 0
+8:9:1:alg:Info:test 9 invs on all 631 traces
+8:9:2:alg:Info:find uniq invs
+8:9:2:alg:Info:9 invs:
+l17: -k + z <= 9, -z <= 0, -y <= 0, -k - y <= -2, -y + z <= 9, -k <= -1, -k - z <= -1, -y - z <= 0, a*y*z - x*z - a + x == 0
+8:9:2:alg:Debug:uniqify: remove 2 redundant invs (0.198374032974s)
+8:9:2:alg:Info:*** programs/nla/geo3.c, 1 locs, invs 7, inps 140, time 32.4693300724 s, rand 31: 
+l17: -z <= 0, -k <= -1, -y + z <= 9, -k - y <= -2, a*y*z - x*z - a + x == 0, -k + z <= 9, -y <= 0
+8:9:2:alg:Debug:rm -rf /var/tmp/DIG2_OmSkH9
+8:9:3:alg:Debug:src: /var/tmp/DIG2_0Y39bc/geo3.c
+8:9:3:alg:Info:analyze programs/nla/geo3.c
+8:9:3:alg:Info:set seed to: 5.0 (test 1)
+8:9:3:miscs:Info:autodeg 4
+8:9:3:alg:Info:check reachability
+8:9:3:alg:Debug:gen 8 random inps
+8:9:3:alg:Debug:use RT to generate traces for l17
+8:9:3:alg:Info:gen eqts at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:9:3:alg:Debug:l17: need more traces (2 eqts, need >= 189)
+8:9:3:alg:Debug:obtain 11 new traces
+8:9:3:alg:Debug:l17: need more traces (13 eqts, need >= 189)
+8:9:3:alg:Debug:obtain 14 new traces
+8:9:4:alg:Debug:l17: need more traces (27 eqts, need >= 189)
+8:9:4:alg:Debug:obtain 18 new traces
+8:9:4:alg:Debug:l17: need more traces (45 eqts, need >= 189)
+8:9:4:alg:Debug:obtain 23 new traces
+8:9:4:alg:Debug:l17: need more traces (68 eqts, need >= 189)
+8:9:4:alg:Debug:obtain 28 new traces
+8:9:4:alg:Debug:l17: need more traces (96 eqts, need >= 189)
+8:9:4:alg:Debug:obtain 29 new traces
+8:9:5:alg:Debug:l17: need more traces (125 eqts, need >= 189)
+8:9:5:alg:Debug:obtain 32 new traces
+8:9:5:alg:Debug:l17: need more traces (157 eqts, need >= 189)
+8:9:5:alg:Debug:obtain 40 new traces
+8:9:5:alg:Debug:l17: iter 1 infer using 189 exprs
+8:9:5:miscs:Debug:solve 126 uks using 189 eqts
+8:9:20:alg:Debug:l17: 1 candidates:
+a*y*z - x*z - a + x == 0
+8:9:20:alg:Debug:l17: check 1 unchecked (1 candidates)
+8:9:20:alg:Debug:l17: no disproved candidates -- break
+8:9:20:alg:Debug:l17: got 1 eqts, 0 new inps
+8:9:20:alg:Debug:a*y*z - x*z - a + x == 0
+8:9:20:alg:Debug:gen eqts: (17.3875989914s)
+8:9:20:alg:Info:1 invs:
+l17: a*y*z - x*z - a + x == 0
+8:9:20:alg:Info:gen ieqs at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:9:20:alg:Info:1 locs: check upperbounds for 50 terms
+8:9:20:miscs:Debug:workloads 'prove' 17: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2]
+8:9:31:alg:Debug:1 locs: compute upperbounds for 12 terms
+8:9:31:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:9:33:alg:Debug:gen ieqs: (12.9964652061s)
+8:9:33:alg:Info:9 invs:
+l17: -k + z <= 9, -k - y <= -2, -z <= 0, -y <= 0, -k <= -1, -k - z <= -1, -y - z <= 0, -y + z <= 9, a*y*z - x*z - a + x == 0
+8:9:33:alg:Info:test 9 invs on all 633 traces
+8:9:34:alg:Info:find uniq invs
+8:9:34:alg:Info:9 invs:
+l17: -k + z <= 9, -k - y <= -2, -z <= 0, -y <= 0, -k <= -1, -k - z <= -1, -y - z <= 0, -y + z <= 9, a*y*z - x*z - a + x == 0
+8:9:34:alg:Debug:uniqify: remove 2 redundant invs (0.22122502327s)
+8:9:34:alg:Info:*** programs/nla/geo3.c, 1 locs, invs 7, inps 146, time 31.143419981 s, rand 55: 
+l17: -k - y <= -2, -k <= -1, -y <= 0, -k + z <= 9, a*y*z - x*z - a + x == 0, -z <= 0, -y + z <= 9
+8:9:34:alg:Debug:rm -rf /var/tmp/DIG2_0Y39bc
+8:9:35:alg:Debug:src: /var/tmp/DIG2_6ORfUy/geo3.c
+8:9:35:alg:Info:analyze programs/nla/geo3.c
+8:9:35:alg:Info:set seed to: 6.0 (test 89)
+8:9:35:miscs:Info:autodeg 4
+8:9:35:alg:Info:check reachability
+8:9:35:alg:Debug:gen 8 random inps
+8:9:35:alg:Debug:use RT to generate traces for l17
+8:9:35:alg:Info:gen eqts at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:9:36:alg:Debug:l17: need more traces (2 eqts, need >= 189)
+8:9:36:alg:Debug:obtain 16 new traces
+8:9:36:alg:Debug:l17: need more traces (18 eqts, need >= 189)
+8:9:36:alg:Debug:obtain 15 new traces
+8:9:36:alg:Debug:l17: need more traces (33 eqts, need >= 189)
+8:9:36:alg:Debug:obtain 20 new traces
+8:9:36:alg:Debug:l17: need more traces (53 eqts, need >= 189)
+8:9:36:alg:Debug:obtain 26 new traces
+8:9:36:alg:Debug:l17: need more traces (79 eqts, need >= 189)
+8:9:36:alg:Debug:obtain 32 new traces
+8:9:36:alg:Debug:l17: need more traces (111 eqts, need >= 189)
+8:9:37:alg:Debug:obtain 29 new traces
+8:9:37:alg:Debug:l17: need more traces (140 eqts, need >= 189)
+8:9:37:alg:Debug:obtain 32 new traces
+8:9:37:alg:Debug:l17: need more traces (172 eqts, need >= 189)
+8:9:37:alg:Debug:obtain 46 new traces
+8:9:37:alg:Debug:l17: iter 1 infer using 189 exprs
+8:9:37:miscs:Debug:solve 126 uks using 189 eqts
+8:9:51:alg:Debug:l17: no new results -- break
+8:9:51:alg:Debug:l17: got 0 eqts, 0 new inps
+8:9:51:alg:Debug:gen eqts: (15.5701670647s)
+8:9:51:alg:Info:0 invs:
+l17: 
+8:9:51:alg:Info:gen ieqs at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:9:51:alg:Info:1 locs: check upperbounds for 50 terms
+8:9:51:miscs:Debug:workloads 'prove' 17: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2]
+8:10:1:alg:Debug:1 locs: compute upperbounds for 12 terms
+8:10:1:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:10:4:alg:Debug:gen ieqs: (12.8973219395s)
+8:10:4:alg:Info:8 invs:
+l17: -y + z <= 9, -k <= -1, -y <= 0, -y - z <= 0, -k + z <= 9, -z <= 0, -k - z <= -1, -k - y <= -2
+8:10:4:alg:Info:test 8 invs on all 645 traces
+8:10:4:alg:Info:find uniq invs
+8:10:4:alg:Info:8 invs:
+l17: -y + z <= 9, -k <= -1, -y <= 0, -y - z <= 0, -k + z <= 9, -z <= 0, -k - z <= -1, -k - y <= -2
+8:10:4:alg:Debug:uniqify: remove 2 redundant invs (0.161544084549s)
+8:10:4:alg:Info:*** programs/nla/geo3.c, 1 locs, invs 6, inps 145, time 29.0583920479 s, rand 90: 
+l17: -y <= 0, -y + z <= 9, -z <= 0, -k + z <= 9, -k - y <= -2, -k <= -1
+8:10:4:alg:Debug:rm -rf /var/tmp/DIG2_6ORfUy
+8:10:5:alg:Debug:src: /var/tmp/DIG2_5eToaJ/geo3.c
+8:10:6:alg:Info:analyze programs/nla/geo3.c
+8:10:6:alg:Info:set seed to: 7.0 (test 82)
+8:10:6:miscs:Info:autodeg 4
+8:10:6:alg:Info:check reachability
+8:10:6:alg:Debug:gen 8 random inps
+8:10:6:alg:Info:gen eqts at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:10:6:alg:Debug:l17: need more traces (1 eqts, need >= 189)
+8:10:6:alg:Debug:obtain 23 new traces
+8:10:6:alg:Debug:l17: need more traces (24 eqts, need >= 189)
+8:10:6:alg:Debug:obtain 18 new traces
+8:10:6:alg:Debug:l17: need more traces (42 eqts, need >= 189)
+8:10:6:alg:Debug:obtain 24 new traces
+8:10:6:alg:Debug:l17: need more traces (66 eqts, need >= 189)
+8:10:6:alg:Debug:obtain 31 new traces
+8:10:7:alg:Debug:l17: need more traces (97 eqts, need >= 189)
+8:10:7:alg:Debug:obtain 39 new traces
+8:10:7:alg:Debug:l17: need more traces (136 eqts, need >= 189)
+8:10:7:alg:Debug:obtain 30 new traces
+8:10:7:alg:Debug:l17: need more traces (166 eqts, need >= 189)
+8:10:8:alg:Debug:obtain 40 new traces
+8:10:8:alg:Debug:l17: iter 1 infer using 189 exprs
+8:10:8:miscs:Debug:solve 126 uks using 189 eqts
+8:10:24:alg:Debug:l17: 1 candidates:
+a*y*z - x*z - a + x == 0
+8:10:24:alg:Debug:l17: check 1 unchecked (1 candidates)
+8:10:25:alg:Debug:l17: no disproved candidates -- break
+8:10:25:alg:Debug:l17: got 1 eqts, 0 new inps
+8:10:25:alg:Debug:a*y*z - x*z - a + x == 0
+8:10:25:alg:Debug:gen eqts: (18.9292299747s)
+8:10:25:alg:Info:1 invs:
+l17: a*y*z - x*z - a + x == 0
+8:10:25:alg:Info:gen ieqs at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:10:25:alg:Info:1 locs: check upperbounds for 50 terms
+8:10:25:miscs:Debug:workloads 'prove' 17: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2]
+8:10:35:alg:Debug:1 locs: compute upperbounds for 12 terms
+8:10:35:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:10:38:alg:Debug:gen ieqs: (13.4246730804s)
+8:10:38:alg:Info:9 invs:
+l17: -y <= 0, -k + z <= 9, -z <= 0, -k - y <= -2, -k - z <= -1, -y - z <= 0, -y + z <= 9, -k <= -1, a*y*z - x*z - a + x == 0
+8:10:38:alg:Info:test 9 invs on all 640 traces
+8:10:38:alg:Info:find uniq invs
+8:10:38:alg:Info:9 invs:
+l17: -y <= 0, -k + z <= 9, -z <= 0, -k - y <= -2, -k - z <= -1, -y - z <= 0, -y + z <= 9, -k <= -1, a*y*z - x*z - a + x == 0
+8:10:39:alg:Debug:uniqify: remove 2 redundant invs (0.217110872269s)
+8:10:39:alg:Info:*** programs/nla/geo3.c, 1 locs, invs 7, inps 142, time 33.0306401253 s, rand 77: 
+l17: -k + z <= 9, a*y*z - x*z - a + x == 0, -y <= 0, -y + z <= 9, -k <= -1, -z <= 0, -k - y <= -2
+8:10:39:alg:Debug:rm -rf /var/tmp/DIG2_5eToaJ
+8:10:40:alg:Debug:src: /var/tmp/DIG2_1LXO0G/geo3.c
+8:10:40:alg:Info:analyze programs/nla/geo3.c
+8:10:40:alg:Info:set seed to: 8.0 (test 88)
+8:10:40:miscs:Info:autodeg 4
+8:10:40:alg:Info:check reachability
+8:10:40:alg:Debug:gen 8 random inps
+8:10:40:alg:Info:gen eqts at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:10:40:alg:Debug:l17: need more traces (3 eqts, need >= 189)
+8:10:40:alg:Debug:obtain 9 new traces
+8:10:40:alg:Debug:l17: need more traces (12 eqts, need >= 189)
+8:10:40:alg:Debug:obtain 13 new traces
+8:10:40:alg:Debug:l17: need more traces (25 eqts, need >= 189)
+8:10:40:alg:Debug:obtain 17 new traces
+8:10:40:alg:Debug:l17: need more traces (42 eqts, need >= 189)
+8:10:40:alg:Debug:obtain 22 new traces
+8:10:41:alg:Debug:l17: need more traces (64 eqts, need >= 189)
+8:10:41:alg:Debug:obtain 22 new traces
+8:10:41:alg:Debug:l17: need more traces (86 eqts, need >= 189)
+8:10:41:alg:Debug:obtain 28 new traces
+8:10:41:alg:Debug:l17: need more traces (114 eqts, need >= 189)
+8:10:41:alg:Debug:obtain 36 new traces
+8:10:41:alg:Debug:l17: need more traces (150 eqts, need >= 189)
+8:10:42:alg:Debug:obtain 40 new traces
+8:10:42:alg:Debug:l17: iter 1 infer using 189 exprs
+8:10:42:miscs:Debug:solve 126 uks using 189 eqts
+8:10:58:alg:Debug:l17: 1 candidates:
+a*y*z - x*z - a + x == 0
+8:10:58:alg:Debug:l17: check 1 unchecked (1 candidates)
+8:10:58:alg:Debug:l17: no disproved candidates -- break
+8:10:58:alg:Debug:l17: got 1 eqts, 0 new inps
+8:10:58:alg:Debug:a*y*z - x*z - a + x == 0
+8:10:58:alg:Debug:gen eqts: (18.4698090553s)
+8:10:58:alg:Info:1 invs:
+l17: a*y*z - x*z - a + x == 0
+8:10:58:alg:Info:gen ieqs at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:10:58:alg:Info:1 locs: check upperbounds for 50 terms
+8:10:58:miscs:Debug:workloads 'prove' 17: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2]
+8:11:9:alg:Debug:1 locs: compute upperbounds for 12 terms
+8:11:9:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:11:12:alg:Debug:gen ieqs: (13.3092300892s)
+8:11:12:alg:Info:9 invs:
+l17: -k - z <= -1, -y - z <= 0, -z <= 0, -y + z <= 9, -k + z <= 9, -y <= 0, -k - y <= -2, -k <= -1, a*y*z - x*z - a + x == 0
+8:11:12:alg:Info:test 9 invs on all 629 traces
+8:11:12:alg:Info:find uniq invs
+8:11:12:alg:Info:9 invs:
+l17: -k - z <= -1, -y - z <= 0, -z <= 0, -y + z <= 9, -k + z <= 9, -y <= 0, -k - y <= -2, -k <= -1, a*y*z - x*z - a + x == 0
+8:11:12:alg:Debug:uniqify: remove 2 redundant invs (0.198786973953s)
+8:11:12:alg:Info:*** programs/nla/geo3.c, 1 locs, invs 7, inps 138, time 32.3835589886 s, rand 92: 
+l17: -k + z <= 9, -y <= 0, -k <= -1, a*y*z - x*z - a + x == 0, -k - y <= -2, -z <= 0, -y + z <= 9
+8:11:12:alg:Debug:rm -rf /var/tmp/DIG2_1LXO0G
+8:11:13:alg:Debug:src: /var/tmp/DIG2_z5rb2k/geo3.c
+8:11:13:alg:Info:analyze programs/nla/geo3.c
+8:11:13:alg:Info:set seed to: 9.0 (test 60)
+8:11:13:miscs:Info:autodeg 4
+8:11:13:alg:Info:check reachability
+8:11:13:alg:Debug:gen 8 random inps
+8:11:13:alg:Debug:use RT to generate traces for l17
+8:11:13:alg:Info:gen eqts at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:11:13:alg:Debug:l17: need more traces (2 eqts, need >= 189)
+8:11:13:alg:Debug:obtain 9 new traces
+8:11:13:alg:Debug:l17: need more traces (11 eqts, need >= 189)
+8:11:14:alg:Debug:obtain 12 new traces
+8:11:14:alg:Debug:l17: need more traces (23 eqts, need >= 189)
+8:11:14:alg:Debug:obtain 16 new traces
+8:11:14:alg:Debug:l17: need more traces (39 eqts, need >= 189)
+8:11:14:alg:Debug:obtain 21 new traces
+8:11:14:alg:Debug:l17: need more traces (60 eqts, need >= 189)
+8:11:14:alg:Debug:obtain 26 new traces
+8:11:14:alg:Debug:l17: need more traces (86 eqts, need >= 189)
+8:11:15:alg:Debug:obtain 28 new traces
+8:11:15:alg:Debug:l17: need more traces (114 eqts, need >= 189)
+8:11:15:alg:Debug:obtain 30 new traces
+8:11:15:alg:Debug:l17: need more traces (144 eqts, need >= 189)
+8:11:15:alg:Debug:obtain 38 new traces
+8:11:15:alg:Debug:l17: need more traces (182 eqts, need >= 189)
+8:11:16:alg:Debug:obtain 48 new traces
+8:11:16:alg:Debug:l17: iter 1 infer using 189 exprs
+8:11:16:miscs:Debug:solve 126 uks using 189 eqts
+8:11:31:alg:Debug:l17: no new results -- break
+8:11:31:alg:Debug:l17: got 0 eqts, 0 new inps
+8:11:31:alg:Debug:gen eqts: (18.1715531349s)
+8:11:31:alg:Info:0 invs:
+l17: 
+8:11:31:alg:Info:gen ieqs at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:11:31:alg:Info:1 locs: check upperbounds for 50 terms
+8:11:31:miscs:Debug:workloads 'prove' 17: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2]
+8:11:42:alg:Debug:1 locs: compute upperbounds for 12 terms
+8:11:42:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:11:44:alg:Debug:gen ieqs: (12.8354542255s)
+8:11:44:alg:Info:8 invs:
+l17: -y <= 0, -k - z <= -1, -k <= -1, -y + z <= 9, -k - y <= -2, -k + z <= 9, -y - z <= 0, -z <= 0
+8:11:44:alg:Info:test 8 invs on all 677 traces
+8:11:45:alg:Info:find uniq invs
+8:11:45:alg:Info:8 invs:
+l17: -y <= 0, -k - z <= -1, -k <= -1, -y + z <= 9, -k - y <= -2, -k + z <= 9, -y - z <= 0, -z <= 0
+8:11:45:alg:Debug:uniqify: remove 2 redundant invs (0.166519165039s)
+8:11:45:alg:Info:*** programs/nla/geo3.c, 1 locs, invs 6, inps 149, time 31.6902148724 s, rand 30: 
+l17: -z <= 0, -k <= -1, -y <= 0, -k - y <= -2, -y + z <= 9, -k + z <= 9
+8:11:45:alg:Debug:rm -rf /var/tmp/DIG2_z5rb2k
+8:11:46:alg:Debug:src: /var/tmp/DIG2_mM_gTV/geo3.c
+8:11:46:alg:Info:analyze programs/nla/geo3.c
+8:11:46:alg:Info:set seed to: 10.0 (test 97)
+8:11:46:miscs:Info:autodeg 4
+8:11:46:alg:Info:check reachability
+8:11:46:alg:Debug:gen 8 random inps
+8:11:46:alg:Debug:use RT to generate traces for l17
+8:11:46:alg:Info:gen eqts at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:11:46:alg:Debug:l17: need more traces (2 eqts, need >= 189)
+8:11:46:alg:Debug:obtain 23 new traces
+8:11:46:alg:Debug:l17: need more traces (25 eqts, need >= 189)
+8:11:47:alg:Debug:obtain 18 new traces
+8:11:47:alg:Debug:l17: need more traces (43 eqts, need >= 189)
+8:11:47:alg:Debug:obtain 24 new traces
+8:11:47:alg:Debug:l17: need more traces (67 eqts, need >= 189)
+8:11:47:alg:Debug:obtain 31 new traces
+8:11:47:alg:Debug:l17: need more traces (98 eqts, need >= 189)
+8:11:47:alg:Debug:obtain 38 new traces
+8:11:47:alg:Debug:l17: need more traces (136 eqts, need >= 189)
+8:11:48:alg:Debug:obtain 30 new traces
+8:11:48:alg:Debug:l17: need more traces (166 eqts, need >= 189)
+8:11:48:alg:Debug:obtain 34 new traces
+8:11:48:alg:Debug:l17: iter 1 infer using 189 exprs
+8:11:48:miscs:Debug:solve 126 uks using 189 eqts
+8:12:6:alg:Debug:l17: 1 candidates:
+a*y*z - x*z - a + x == 0
+8:12:6:alg:Debug:l17: check 1 unchecked (1 candidates)
+8:12:6:alg:Debug:l17: no disproved candidates -- break
+8:12:6:alg:Debug:l17: got 1 eqts, 0 new inps
+8:12:6:alg:Debug:a*y*z - x*z - a + x == 0
+8:12:6:alg:Debug:gen eqts: (19.5384430885s)
+8:12:6:alg:Info:1 invs:
+l17: a*y*z - x*z - a + x == 0
+8:12:6:alg:Info:gen ieqs at 1 locs: l17 (int x, int y, int z, int a, int k)
+8:12:6:alg:Info:1 locs: check upperbounds for 50 terms
+8:12:6:miscs:Debug:workloads 'prove' 17: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2]
+8:12:16:alg:Debug:1 locs: compute upperbounds for 12 terms
+8:12:16:miscs:Debug:workloads 'guesscheck' 12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+8:12:19:alg:Debug:gen ieqs: (13.3669631481s)
+8:12:19:alg:Info:9 invs:
+l17: -k - y <= -2, -y <= 0, -y + z <= 9, -z <= 0, -k + z <= 9, -y - z <= 0, -k <= -1, -k - z <= -1, a*y*z - x*z - a + x == 0
+8:12:19:alg:Info:test 9 invs on all 619 traces
+8:12:19:alg:Info:find uniq invs
+8:12:19:alg:Info:9 invs:
+l17: -k - y <= -2, -y <= 0, -y + z <= 9, -z <= 0, -k + z <= 9, -y - z <= 0, -k <= -1, -k - z <= -1, a*y*z - x*z - a + x == 0
+8:12:20:alg:Debug:uniqify: remove 2 redundant invs (0.226054906845s)
+8:12:20:alg:Info:*** programs/nla/geo3.c, 1 locs, invs 7, inps 142, time 33.6061191559 s, rand 40: 
+l17: -z <= 0, a*y*z - x*z - a + x == 0, -k - y <= -2, -y <= 0, -k + z <= 9, -k <= -1, -y + z <= 9
+8:12:20:alg:Debug:rm -rf /var/tmp/DIG2_mM_gTV
