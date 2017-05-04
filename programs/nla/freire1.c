@@ -2,7 +2,7 @@
 #include <assert.h>
 
 int mainQ(int a){
-     float x = ((double)a)/2.0;
+     double x = ((double)a)/2.0;
      int r = 0;
 
 

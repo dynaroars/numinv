@@ -12,12 +12,13 @@ int mainQ(int x, int y){
   
      int q=0;
      int r=x;
-
+     int a=0;
+     int b=0;
      while(1) {
 	  ////%%%traces: int x, int y, int q, int r
 	  if(!(r>=y)) break;
-	  int a=1;
-	  int b=y;
+	  a=1;
+	  b=y;
 	  
 	  while (1){
 	       //assert(r>=2*y*a && b==y*a && x==q*y+r && r>=0);
@@ -33,7 +34,7 @@ int mainQ(int x, int y){
      //assert(r == x % y);
      //assert(q == x / y);
      //assert(x == q*y+r);
-     ////%%%traces: int x, int y, int r, int q
+     //%%%traces: int x, int y, int r, int q, int a, int b
      return q;
 }
 

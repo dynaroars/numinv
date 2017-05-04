@@ -225,7 +225,7 @@ class GenIeqs(Gen):
         assert isinstance(traces, DTraces) and traces, traces                
         assert isinstance(inps, Inps), inps
 
-        mymaxv  = 10
+        mymaxv = 100
         maxV = mymaxv
         minV = -1*maxV
 
@@ -239,8 +239,8 @@ class GenIeqs(Gen):
         if mydeg > 2:
             logger.warn("not Oct invs (deg {}). Might be slow".format(deg))
         termss = [Miscs.getTermsFixedCoefs(vs, mydeg) for vs in vss]
-        logger.info("{} locs: check upperbounds for {} terms".format(
-            len(locs), sum(map(len, termss))))
+        logger.info("{} locs: check upperbounds for {} terms (range {})".format(
+            len(locs), sum(map(len, termss)), mymaxv))
         
         refs = {loc: {Inv(t <= maxV): t for t in terms}
                 for loc, terms in zip(locs, termss)}
@@ -264,12 +264,12 @@ class GenIeqs(Gen):
             except ValueError:
                 mminV = minV
                 
-            logger.detail("{}: compute ub for '{}', start w/ min {}, maxV {})"
+            logger.debug("{}: compute ub for '{}', start w/ min {}, maxV {})"
                          .format(loc, term, mminV, maxV))
             
             disproves = set()
-            boundV = self.guessCheck(loc, term, #traces, inps, 
-                                     mminV, maxV, ubminV, ubmaxV, disproves)
+            boundV = self.naive(loc, term, #traces, inps, 
+                                mminV, maxV, ubminV, ubmaxV, disproves)
             if boundV not in disproves and boundV not in {maxV, minV}:
                 inv = Inv(term <= boundV)
                 logger.detail("got {}".format(inv))
@@ -293,14 +293,67 @@ class GenIeqs(Gen):
             dinvs[loc].add(inv)
         return dinvs
 
-    def guessCheck(self, loc, term, minV, maxV,
-                   ubMinV, ubMaxV, disproves):
+
+    def naive(self, loc, term, minV, maxV, ubMinV, ubMaxV, disproves):
         assert minV <= maxV, (minV, maxV, term)
         assert ubMinV < ubMaxV, (ubMinV, ubMaxV)
         #assert isinstance(traces, DTraces), traces
         assert isinstance(disproves, set), disproves
 
-        #print term, minV, maxV, ubMinV, ubMaxV
+
+        for v in range(minV-1, maxV+1):
+            inv = Inv(term <= v)
+            inv_ = DInvs.mk(loc, Invs.mk([inv]))
+            _, dCexs, _ = self.prover.check(inv_, None, ubMinV, ubMaxV)
+            if loc in dCexs: #disproved
+                assert dCexs[loc]            
+                cexs = Traces.extract(dCexs[loc], tuple(self.invdecls[loc]),
+                                      useOne=False)
+                minV = int(max(cexs.myeval(term)))
+                disproves.add(v)
+            else:
+                return v
+            
+        # if minV == maxV: return maxV
+        # elif maxV - minV == 1:
+        #     if minV in disproves:
+        #         return maxV
+        #     inv = Inv(term <= minV)
+        #     inv_ = DInvs.mk(loc, Invs.mk([inv]))
+        #     _, dCexs, _ = self.prover.check(inv_, None, ubMinV, ubMaxV)
+
+        #     if loc in dCexs:
+        #         assert dCexs[loc]
+        #         disproves.add(minV)
+        #         return maxV
+        #     else:
+        #         return minV
+
+        # v = minV+1
+        # inv = Inv(term <= v)
+        # inv_ = DInvs.mk(loc, Invs.mk([inv]))
+        # _, dCexs, _ = self.prover.check(inv_, None, ubMinV, ubMaxV)
+            
+        # if loc in dCexs: #disproved
+        #     assert dCexs[loc]            
+        #     cexs = Traces.extract(dCexs[loc], tuple(self.invdecls[loc]),
+        #                           useOne=False)
+        #     minV = int(max(cexs.myeval(term)))
+        #     disproves.add(v)
+        # else:
+        #     maxV = v
+
+        # return self.guessCheck(loc, term, #traces, inps,
+        #                        minV, maxV, ubMinV, ubMaxV,
+        #                        disproves)
+
+    
+    def guessCheck(self, loc, term, minV, maxV, ubMinV, ubMaxV, disproves):
+        assert minV <= maxV, (minV, maxV, term)
+        assert ubMinV < ubMaxV, (ubMinV, ubMaxV)
+        #assert isinstance(traces, DTraces), traces
+        assert isinstance(disproves, set), disproves
+
         if minV == maxV: return maxV
         elif maxV - minV == 1:
             if minV in disproves:
@@ -398,7 +451,7 @@ class DIG2(object):
             solver =  cls(self.inpdecls, self.invdecls, self.tcsFile, self.exeFile, self.prover)
             invs = solver.gen(deg, traces, inps)
 
-            logger.debug("gen {}: ({}s)".format(typ, time() - st_gen))
+            logger.info("gen {}: ({}s)".format(typ, time() - st_gen))
             if invs:
                 dinvs.merge(invs)
                 logger.info("{} invs:\n{}".format(dinvs.siz, dinvs))                

@@ -18,7 +18,7 @@ int mainQ(int A, int B){
      q=0;
 
      while(1){
-	  //%%%traces: int A, int B, int q, int r, int d, int p
+	  ///%%%traces: int A, int B, int q, int r, int d, int p
 	  if (!(r >= d)) break;
 	  //assert(A >= 0 && B > 0 && q == 0 && r == A && d == B*p);
 	  d = 2 * d;
