@@ -37,7 +37,7 @@ class KLEE(object):
     def compile(self):
 
         #compile file with llvm
-        includePath = "~/Src/Devel/KLEE/klee/include"
+        includePath = os.path.join(os.path.expandvars("$KLEE"), "klee/include")
         clangOpts =  "-emit-llvm -c"
         obj = os.path.basename(self.filename) + os.extsep + 'o'
         obj = os.path.join(self.tmpdir, obj)
