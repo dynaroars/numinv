@@ -65,7 +65,8 @@ class Gen(object):
         return newInps
 
     def getTracesAndUpdate(self, inps, traces):
-        assert inps
+        assert inps, inps
+        
         newTraces = self.getTraces(inps)
         newTraces = newTraces.update(traces, self.invdecls)
         return newTraces
@@ -87,6 +88,11 @@ class Gen(object):
                 ','.join(map(str, unreachLocs))))
             unreachInvs = DInvs.mkFalses(unreachLocs)
             cInps, _, _ = self.prover.checkRange(unreachInvs, inps=None)
+            if not cInps:
+                logger.warn("locs {} not reachable??"
+                            .format(','.join(map(str, unreachLocs))))
+                return dinvs, traces, inps
+            
             newInps = self.updateInps(cInps, inps)
             _ = self.getTracesAndUpdate(newInps, traces)
             
