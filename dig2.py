@@ -49,6 +49,10 @@ if __name__ == "__main__":
 
     aparser.add_argument("--nomp", "-nomp",
                          action="store_true")
+
+    aparser.add_argument("--normtmp", "-normtmp",
+                         action="store_true")
+
     
     from time import time
     args = aparser.parse_args()
@@ -67,6 +71,14 @@ if __name__ == "__main__":
     seed = round(time(), 2) if args.seed is None else float(args.seed)
     import alg
     dig2 = alg.DIG2(args.inp)
-    invs = dig2.start(seed=seed, maxdeg=args.maxdeg, maxterm=args.maxterm,
-                      doEqts=not args.noeqts, doIeqs=not args.noieqs)
+    invs, tmpdir = dig2.start(seed=seed, maxdeg=args.maxdeg, maxterm=args.maxterm,
+                              doEqts=not args.noeqts, doIeqs=not args.noieqs)
     
+    
+    if not args.normtmp:
+        import shutil
+        logger.debug("rm -rf {}".format(tmpdir))
+        shutil.rmtree(tmpdir)
+    else:
+        logger.debug("tmpdir: {}".format(tmpdir))
+        

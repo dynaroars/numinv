@@ -461,8 +461,5 @@ class DIG2(object):
                     .format(self.filename, len(dinvs), dinvs.siz, len(inps), 
                             time() - st, sage.all.randint(0,100),
                             dinvs))
-        import shutil
-        logger.debug("rm -rf {}".format(self.tmpdir))
-        shutil.rmtree(self.tmpdir)
-        
-        return dinvs
+
+        return dinvs, self.tmpdir
