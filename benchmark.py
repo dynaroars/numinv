@@ -1,57 +1,49 @@
 import vu_common as CM
+import os
+import os.path
+import subprocess as sp
 
-if __name__ == "__main__":
-    import argparse
-    aparser = argparse.ArgumentParser("DIG2 Benchmark")
-    aparser.add_argument("inp", help="inp")
-    
-    #0 Error #1 Warn #2 Info #3 Debug #4 Detail
-    aparser.add_argument("--logger_level", "-logger_level",
-                         help="set logger info",
-                         type=int,
-                         choices=range(5),
-                         default = 2)
+def vcmd(cmd, inp=None, shell=True):
+    proc = sp.Popen(cmd,shell=shell,stdin=sp.PIPE,stdout=sp.PIPE,stderr=sp.PIPE)
+    return proc.communicate(input=inp)
 
-    aparser.add_argument("--printTime", "-printTime",
-                         default=False,
-                         action="store_true")
 
-    aparser.add_argument("--seed", "-seed",
-                         type=float,
-                         help="use this seed")
-    
-    aparser.add_argument("--maxdeg", "-maxdeg",
-                         type=int,
-                         default=None,
-                         help="find nonlinear invs up to degree")
+def run(dir_, ntimes):
+    print ("**** Run dir {} for {} times".format(dir_, ntimes))
 
-    aparser.add_argument("--maxterm", "-maxterm",
-                         type=int,
-                         default=None,
-                         help="autodegree")
+    fs = [os.path.join(dir_, f)
+          for f in os.listdir(dir_) if f.endswith(".c")]
 
-    aparser.add_argument("--noeqts", "-noeqts",
-                         action="store_true")
+    for f in fs:
+        if not os.path.isfile(f):
+            print "File {} does not exist".format(f)
+            continue
 
-    aparser.add_argument("--noieqs", "-noieqs",
-                         action="store_true")
+        for i in range(ntimes):
+            print "Running {} with seed {}".format(f, i)
+            cmd = "timeout 5m $SAGE/sage -python -O dig2.py {}  -log 3 -seed {}".format(f,i)
+            print cmd
+            stdout, stderr = vcmd(cmd)
+            print stdout
+            print stderr
+            
 
-    from time import time
-    args = aparser.parse_args()
-    
-    import settings
-    settings.logger_level = args.logger_level
-    settings.logger_printTime = args.printTime
-    logger = CM.VLog("dig2")
-    logger.level = settings.logger_level
-    logger.PRINT_TIME = settings.logger_printTime
-    if __debug__: logger.warn("DEBUG MODE ON. Can be slow !")
-    
-    seed = round(time(), 2) if args.seed is None else float(args.seed)
-    import alg
-    st = time()
-    dig2 = alg.DIG2(args.inp)
-    invs = dig2.start(seed=seed, maxdeg=args.maxdeg, maxterm=args.maxterm,
-                      doEqts=not args.noeqts, doIeqs=not args.noieqs)
-    logger.info("time {}s".format(time() - st))
-    
+ntimes = 11
+#NLA
+dirNLA = "programs/nla/"
+run(dirNLA, ntimes)
+
+
+dirComplexity = "programs/complexity/gulwani_cav09"
+run(dirComplexity, ntimes)
+
+dirComplexity = "programs/complexity/gulwani_pldi09"
+run(dirComplexity, ntimes)
+
+dirComplexity = "programs/complexity/gulwani_popl09"
+run(dirComplexity, ntimes)
+
+
+# dirHola = "programs/hola/"
+# run(dirHola, ntimes)
+
