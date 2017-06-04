@@ -1,9 +1,10 @@
 from collections import OrderedDict
 import vu_common as CM
+from sage.all import median, mean
 
-def doit(logfile="/home/tnguyen/Dropbox/git/dig2/logs/dig2_150217a.log"):
+def doit(logfile):
 
-    lines = [l for l in CM.iread(logfile) if "***" in l]
+    lines = [l for l in CM.iread(logfile) if "Info:***" in l]
 
     rs = OrderedDict()
     for l in lines:
@@ -43,4 +44,18 @@ def doit(logfile="/home/tnguyen/Dropbox/git/dig2/logs/dig2_150217a.log"):
 
             print ('{} {} median {} mean {} len {}'
                    .format(name, key, medianc, meanc, lenc))
+
+    for name in sorted(stats):
+        invsd = stats[name]["ninvs"]
+        timesd = stats[name]["ntime"]
+        print name, invsd[0], timesd[0]
+
     return stats
+
+
+if __name__ == "__main__":
+    import argparse
+    aparser = argparse.ArgumentParser("DIG2")
+    aparser.add_argument("inp", help="inp")
+    args = aparser.parse_args()
+    doit(args.inp)
