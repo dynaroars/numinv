@@ -276,6 +276,7 @@ class Miscs(object):
                 sols_.append(s)
             else:
                 logger.detail("large coefs: ignore {}".format(s))
+                #CM.pause()
         sols = sols_
         return sols        
 
@@ -283,11 +284,14 @@ class Miscs(object):
     def solveEqts(eqts, uks, template):
         logger.debug("solve {} uks using {} eqts".format(len(uks), len(eqts)))
         # print 'ss', type(uks), uks
-        # print '\n'.join(map(str, eqts))
+        #print '\n'.join(map(str, eqts))
         
         rs = sage.all.solve(eqts, *uks, solution_dict=True)
+        #print 'done', rs
         eqts = Miscs.instantiateTemplate(template, rs)
+        #print 'done1'
         eqts = Miscs.refine(eqts)
+        #print 'done2'
         return eqts
 
 
