@@ -1,4 +1,4 @@
-**NOTE**: This repo is for the NumInv tool, which uses the **KLEE** symbolic execution tool to check and generate counterexample inputs for invariants.  A more recent version (but does not use KLEE) is available at https://github.com/unsat/dig/. 
+**NOTE**: This repo is for the NumInv tool, which uses the **KLEE** symbolic execution tool to check and generate counterexample inputs for invariants.  A new version of the work (but does not use KLEE) is available at https://github.com/unsat/dig/. 
 
 
 DIG2 (or NumInv) is a tool for generating numerical invariants using the KLEE symbolic execution tool.  Currently DIG3 supports C programs.
