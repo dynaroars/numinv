@@ -15,7 +15,7 @@ DIG2 is written in Python using the SAGE mathematics system. Candidate invariant
 
 ### Obtain DIG2 ###
 ```
-git clone https://nguyenthanhvuh@bitbucket.org/nguyenthanhvuh/dig2/ 
+git clone https://github.com/unsat/numinv.git 
 ```
 
 ### Installing SAGE and Z3###
